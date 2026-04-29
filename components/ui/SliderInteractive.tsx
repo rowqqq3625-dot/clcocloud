@@ -104,7 +104,7 @@ export function SliderInteractive({ plans }: SliderInteractiveProps) {
         <Result label="예상 사용 시간" value={plan.hours} suffix="시간" />
         <Result label="공식 대비 절감" value={plan.discount} suffix="%" />
       </motion.div>
-      <a href="#pricing" className="idle-arrow justify-self-end font-semibold text-primary underline decoration-coral underline-offset-8">
+      <a href="/checkout?plan=pro" className="idle-arrow justify-self-end font-semibold text-primary underline decoration-coral underline-offset-8">
         이 금액으로 시작하기 →
       </a>
     </div>

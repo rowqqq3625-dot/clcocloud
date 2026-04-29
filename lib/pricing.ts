@@ -1,6 +1,7 @@
 export const pricingPlans = [
   {
-    name: "베이직",
+    id: "standard",
+    name: "스탠다드",
     label: "₩98,000",
     balance: 200,
     price: 98000,
@@ -11,6 +12,7 @@ export const pricingPlans = [
     hours: 80
   },
   {
+    id: "pro",
     name: "프로",
     label: "₩196,000",
     balance: 500,
@@ -22,6 +24,7 @@ export const pricingPlans = [
     hours: 200
   },
   {
+    id: "ultra",
     name: "울트라",
     label: "₩264,000",
     balance: 1000,
@@ -34,6 +37,13 @@ export const pricingPlans = [
   }
 ] as const;
 
+export type PricingPlan = (typeof pricingPlans)[number];
+export type PricingPlanId = PricingPlan["id"];
+
 export const pricingPlansWithDiscount = pricingPlans;
 
 export const maxDiscount = Math.max(...pricingPlans.map((plan) => plan.discount));
+
+export function getPricingPlan(planId: string | null | undefined): PricingPlan {
+  return pricingPlans.find((plan) => plan.id === planId) || pricingPlans[0];
+}

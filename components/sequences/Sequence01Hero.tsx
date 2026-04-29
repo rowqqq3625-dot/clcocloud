@@ -21,20 +21,21 @@ export function Sequence01Hero() {
   const titleX = useTransform(scrollYProgress, [0, 0.2], [0, -8]);
 
   return (
-    <section className="cinematic-section noise overflow-hidden bg-cream pt-8">
+    <section id="top" className="cinematic-section noise overflow-hidden bg-cream pt-8">
       <div className="pointer-events-none absolute -right-28 top-24 h-[460px] w-[460px] rounded-full bg-coral/25 blur-[110px]" />
       <div className="pointer-events-none absolute bottom-0 left-0 h-32 w-full bg-[linear-gradient(90deg,rgba(217,119,87,.22),transparent_52%)]" />
       <nav className="container-cinematic sticky top-4 z-30 flex items-center justify-between rounded-full border border-[var(--border-subtle)] bg-glass px-4 py-3 backdrop-blur-xl">
-        <a href="#" className="flex items-center gap-3 font-semibold">
+        <a href="/" className="flex items-center gap-3 font-semibold">
           <BrandLogo size={28} />
           클코클라우드
         </a>
         <div className="hidden items-center gap-8 text-sm text-secondary md:flex">
-          <a href="#pricing">요금</a>
-          <a href="#flow">사용 흐름</a>
+          <a href="#pricing">가격</a>
+          <a href="#flow">사용법</a>
+          <a href="/dashboard">대시보드</a>
           <a href="#faq">FAQ</a>
         </div>
-        <PrimaryButton href="#pricing">6분의 1 가격</PrimaryButton>
+        <PrimaryButton href="/start">시작하기</PrimaryButton>
       </nav>
       <motion.div
         className="pointer-events-none absolute right-[7vw] top-[26vh] hidden font-mono text-[clamp(42px,5vw,84px)] font-semibold tracking-[-.08em] text-primary/[.06] xl:block"
@@ -86,9 +87,9 @@ export function Sequence01Hero() {
             클코클라우드는 공식 클로드코드CLI를 위한 최고의 API키 잔액충전 플랫폼입니다.
           </RevealText>
           <div className="mt-9 flex flex-wrap items-center gap-5">
-            <PrimaryButton href="#pricing">6분의 1 가격</PrimaryButton>
-            <a href="#pricing" className="secondary-underline font-semibold underline decoration-coral underline-offset-8">
-              요금표 보기
+            <PrimaryButton href="/start">시작하기</PrimaryButton>
+            <a href="/dashboard" className="secondary-underline font-semibold underline decoration-coral underline-offset-8">
+              대시보드 보기
             </a>
           </div>
         </div>

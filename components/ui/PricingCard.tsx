@@ -5,6 +5,7 @@ import { CountUp } from "@/components/ui/CountUp";
 import { PrimaryButton } from "@/components/ui/PrimaryButton";
 
 type PricingCardProps = {
+  id: string;
   name: string;
   balance: number;
   price: string;
@@ -13,7 +14,7 @@ type PricingCardProps = {
   popular: boolean;
 };
 
-export function PricingCard({ name, balance, price, discount, note, popular }: PricingCardProps) {
+export function PricingCard({ id, name, balance, price, discount, note, popular }: PricingCardProps) {
   const mouseX = useMotionValue(0);
   const mouseY = useMotionValue(0);
   const rotateX = useSpring(useTransform(mouseY, [-0.5, 0.5], [5, -5]), { stiffness: 220, damping: 26 });
@@ -70,7 +71,7 @@ export function PricingCard({ name, balance, price, discount, note, popular }: P
           ))}
         </ul>
         <div className="mt-9">
-          <PrimaryButton href="#final" variant={popular ? "light" : "dark"} arrow="→" pulse={popular}>
+          <PrimaryButton href={`/checkout?plan=${id}`} variant={popular ? "light" : "dark"} arrow="→" pulse={popular}>
             이 잔액으로 시작
           </PrimaryButton>
         </div>

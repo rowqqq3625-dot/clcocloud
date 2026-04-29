@@ -12,7 +12,7 @@ const plans = pricingPlansWithDiscount.map((plan) => ({
 
 export function Sequence05Simulator() {
   return (
-    <section className="bg-cream-2 py-32">
+    <section id="calculator" className="bg-cream-2 py-32">
       <div className="container-cinematic grid gap-10 rounded-[32px] border border-[var(--border-subtle)] bg-cream p-6 shadow-lg lg:grid-cols-[.45fr_.55fr] lg:p-12">
         <div>
           <p className="eyebrow">Calculate</p>

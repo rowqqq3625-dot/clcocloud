@@ -33,7 +33,12 @@ export const metadata: Metadata = {
     title: "클코클라우드",
     description:
       "Claude Code 전용 잔액 충전형 API 키 서비스. 1회 충전, 잔액 만료 없음, 개인 전용 키.",
-    images: ["/images/og-clcocloud.webp"]
+    images: ["/clcocloud-logo.png"]
+  },
+  icons: {
+    icon: "/clcocloud-logo.png",
+    shortcut: "/clcocloud-logo.png",
+    apple: "/clcocloud-logo.png"
   }
 };
 

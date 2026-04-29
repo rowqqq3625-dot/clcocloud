@@ -1,0 +1,5 @@
+<svg width="512" height="512" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <circle cx="256" cy="256" r="256" fill="#FEE500"/>
+  <path d="M256 118C157.1 118 77 180.8 77 258.3c0 50 33.3 93.9 83.6 118.7l-18.2 66.6c-1.6 5.9 5.1 10.7 10.2 7.3l79.9-53.1c7.6.7 15.5 1.1 23.5 1.1 98.9 0 179-62.9 179-140.4S354.9 118 256 118Z" fill="#3C1E1E"/>
+  <text x="256" y="295" text-anchor="middle" font-family="Arial Black, Arial, sans-serif" font-size="82" font-weight="900" fill="#FEE500" letter-spacing="-4">TALK</text>
+</svg>

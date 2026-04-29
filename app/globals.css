@@ -72,6 +72,10 @@ a {
   text-decoration: none;
 }
 
+[id] {
+  scroll-margin-top: 96px;
+}
+
 button,
 input {
   font: inherit;
@@ -460,4 +464,179 @@ input {
   border: 3px solid var(--bg-cream);
   border-radius: 999px;
   background: var(--coral);
+}
+
+/* Dashboard-only extensions. Existing design tokens stay untouched. */
+.dashboard-page-shell {
+  background:
+    radial-gradient(circle at 86% 12%, rgba(217, 119, 87, 0.08), transparent 0 28%),
+    radial-gradient(circle at 8% 82%, rgba(217, 119, 87, 0.06), transparent 0 30%),
+    var(--bg-cream);
+}
+
+@keyframes dashboard-progress {
+  0% {
+    transform: translateX(-100%) scaleX(0.35);
+  }
+  50% {
+    transform: translateX(20%) scaleX(0.65);
+  }
+  100% {
+    transform: translateX(100%) scaleX(0.35);
+  }
+}
+
+.animate-dashboard-progress {
+  transform-origin: left;
+  animation: dashboard-progress 1.05s cubic-bezier(0.22, 1, 0.36, 1) infinite;
+}
+
+.auth-page-shell {
+  background:
+    radial-gradient(circle at 78% 12%, rgba(217, 119, 87, 0.18), transparent 0 26%),
+    radial-gradient(circle at 18% 86%, rgba(239, 208, 188, 0.58), transparent 0 32%),
+    linear-gradient(135deg, rgba(245, 239, 230, 0.86), rgba(239, 230, 217, 0.96)),
+    var(--bg-cream);
+}
+
+.auth-stage-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 0.92fr) minmax(0, 1.08fr);
+}
+
+.auth-card-scene {
+  perspective: 1200px;
+  transform-style: preserve-3d;
+  filter: drop-shadow(0 30px 64px rgba(0, 0, 0, 0.32));
+}
+
+.auth-card-scene:before,
+.auth-card-scene:after {
+  content: "";
+  position: absolute;
+  border-radius: 999px;
+  pointer-events: none;
+}
+
+.auth-card-scene:before {
+  inset: auto 54px -12px 54px;
+  height: 30px;
+  background: radial-gradient(ellipse, rgba(0, 0, 0, 0.42), transparent 68%);
+  filter: blur(12px);
+  transform: translateZ(-70px) rotateX(72deg);
+}
+
+.auth-card-scene:after {
+  right: -34px;
+  top: -34px;
+  width: 150px;
+  height: 150px;
+  background: rgba(217, 119, 87, 0.16);
+  filter: blur(44px);
+}
+
+.auth-3d-card {
+  position: relative;
+  height: 100%;
+  overflow: hidden;
+  border: 1px solid rgba(245, 239, 230, 0.16);
+  border-radius: 30px;
+  padding: 19px 21px;
+  transform-style: preserve-3d;
+  transform: rotateX(5deg) rotateY(-9deg) rotateZ(0.4deg) scale(0.86);
+  animation: auth-card-tilt 8s cubic-bezier(0.45, 0, 0.2, 1) infinite;
+  background:
+    linear-gradient(115deg, rgba(255, 255, 255, 0.13), transparent 28%),
+    radial-gradient(circle at 78% 18%, rgba(232, 144, 114, 0.42), transparent 0 30%),
+    radial-gradient(circle at 16% 100%, rgba(239, 208, 188, 0.12), transparent 0 32%),
+    linear-gradient(145deg, #17120f 0%, #0f0e0d 48%, #211612 100%);
+  box-shadow:
+    inset 0 1px rgba(255, 255, 255, 0.16),
+    inset 0 -28px 80px rgba(217, 119, 87, 0.12),
+    0 28px 90px rgba(0, 0, 0, 0.34);
+}
+
+.auth-3d-card:before {
+  content: "";
+  position: absolute;
+  inset: 1px;
+  border-radius: 28px;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  pointer-events: none;
+  transform: translateZ(18px);
+}
+
+.auth-3d-card:after {
+  content: "";
+  position: absolute;
+  inset: -42% -18%;
+  pointer-events: none;
+  background: linear-gradient(110deg, transparent 32%, rgba(255, 244, 228, 0.24) 45%, transparent 58%);
+  transform: translateX(-46%) rotate(8deg);
+  animation: auth-card-sheen 6.4s ease-in-out infinite;
+  mix-blend-mode: screen;
+}
+
+.auth-3d-card > * {
+  transform: translateZ(34px);
+}
+
+.auth-3d-card__glare {
+  position: absolute;
+  inset: 0;
+  transform: translateZ(10px);
+  pointer-events: none;
+  background:
+    radial-gradient(circle at 28% 16%, rgba(255, 255, 255, 0.16), transparent 0 24%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.05), transparent 36%);
+}
+
+.auth-3d-card__meter {
+  background: linear-gradient(90deg, var(--coral), var(--coral-hi), #f0c1a8);
+  box-shadow: 0 0 26px rgba(232, 144, 114, 0.46);
+  animation: auth-meter-breathe 3.8s ease-in-out infinite;
+}
+
+@media (max-width: 1023px) {
+  .auth-stage-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@keyframes auth-card-tilt {
+  0%,
+  100% {
+    transform: rotateX(5deg) rotateY(-9deg) rotateZ(0.4deg) scale(0.86) translate3d(0, 0, 0);
+  }
+  50% {
+    transform: rotateX(4deg) rotateY(-6deg) rotateZ(-0.25deg) scale(0.86) translate3d(0, -7px, 12px);
+  }
+}
+
+@keyframes auth-card-sheen {
+  0%,
+  22% {
+    transform: translateX(-56%) rotate(8deg);
+    opacity: 0;
+  }
+  42% {
+    opacity: 1;
+  }
+  68%,
+  100% {
+    transform: translateX(54%) rotate(8deg);
+    opacity: 0;
+  }
+}
+
+@keyframes auth-meter-breathe {
+  0%,
+  100% {
+    opacity: 0.82;
+    transform: scaleX(0.98);
+  }
+  50% {
+    opacity: 1;
+    transform: scaleX(1);
+  }
 }

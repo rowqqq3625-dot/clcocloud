@@ -5,6 +5,7 @@ import { CountUp } from "@/components/ui/CountUp";
 import { PrimaryButton } from "@/components/ui/PrimaryButton";
 
 type PricingCardTiltProps = {
+  id: string;
   name: string;
   balance: number;
   price: number;
@@ -15,6 +16,7 @@ type PricingCardTiltProps = {
 };
 
 export function PricingCardTilt({
+  id,
   name,
   balance,
   price,
@@ -98,7 +100,7 @@ export function PricingCardTilt({
         ))}
       </ul>
       <motion.div className="relative mt-9 self-end" style={{ x: shiftX, y: shiftY }}>
-        <PrimaryButton href="#final" variant={popular ? "light" : "dark"} arrow="→" pulse={popular}>
+        <PrimaryButton href={`/checkout?plan=${id}`} variant={popular ? "light" : "dark"} arrow="→" pulse={popular}>
           이 잔액으로 시작
         </PrimaryButton>
       </motion.div>

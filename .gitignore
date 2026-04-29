@@ -1,5 +1,10 @@
 node_modules
 .next
 .next-broken-*
+.next-before-*
+scratch/
 tsconfig.tsbuildinfo
 .DS_Store
+
+.env*.local
+.env.local
