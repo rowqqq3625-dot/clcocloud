@@ -100,5 +100,9 @@ export function getSessionFromCookies(cookieStore: ReadonlyRequestCookies) {
 
 export function isAdminSession(session: AuthSession | null) {
   const adminEmail = process.env.ADMIN_EMAIL || "gimjeonghugimk@gmail.com";
-  return Boolean(session?.email && session.email.toLowerCase() === adminEmail.toLowerCase());
+  return Boolean(
+    session?.provider === "google" &&
+    session.email &&
+    session.email.toLowerCase() === adminEmail.toLowerCase()
+  );
 }

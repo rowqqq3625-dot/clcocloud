@@ -1,5 +1,3 @@
-"use client";
-
 import { CountUp } from "@/components/ui/CountUp";
 import { SplitHeading } from "@/components/typography/SplitHeading";
 
@@ -15,9 +13,9 @@ export function Sequence09IndependentKey() {
           lines={["구독계정이 아닌,", <span key="independent-emphasis" className="whitespace-nowrap serif-italic text-coral">나만의 API 키.</span>]}
         />
         <div className="mt-20 grid gap-10 md:grid-cols-3">
-          <Stat value={100} suffix="%" label="독립" />
-          <Stat value={0} suffix="명" label="동시 접속자" />
-          <Stat value={0} suffix="개" label="공유 풀" />
+          <Stat value={100} suffix="%" label="안정성" />
+          <Stat value={26} suffix="명" label="이용고객" />
+          <Stat value={100} suffix="%" label="재구매율" />
         </div>
       </div>
     </section>

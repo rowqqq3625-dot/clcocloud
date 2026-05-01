@@ -1,6 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
+import { BalanceRequestForm } from "@/components/balance/BalanceRequestForm";
 import { PricingCardTilt } from "@/components/ui/PricingCardTilt";
 import { pricingPlansWithDiscount } from "@/lib/pricing";
 
@@ -28,6 +29,7 @@ export function Sequence06Pricing() {
         <p className="mt-8 text-sm leading-6 text-cream/50">
           API 키 발급 후 잔액을 사용한 경우 환불 불가. API 키 자체가 사용 불가로 판단될 경우 교체 또는 환불을 지원합니다.
         </p>
+        <BalanceRequestForm />
       </div>
     </section>
   );

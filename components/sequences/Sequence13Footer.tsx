@@ -1,4 +1,5 @@
 import { BrandLogo } from "@/components/ui/BrandLogo";
+import { DashboardGateLink } from "@/components/navigation/DashboardGateLink";
 
 const groups: Array<{ title: string; links: Array<{ label: string; href: string }> }> = [
   {
@@ -56,10 +57,19 @@ export function Sequence13Footer() {
               <ul className="mt-4 grid gap-3 text-sm text-cream/54">
                 {links.map((link) => (
                   <li key={link.label}>
-                    <a href={link.href} className="group inline-flex items-center gap-2 border-b border-transparent pb-0.5 transition hover:border-coral hover:text-coral">
-                      <span className="h-1 w-1 rounded-full bg-coral opacity-0 transition duration-200 group-hover:opacity-100" />
-                      {link.label}
-                    </a>
+                    {link.href === "/dashboard" ? (
+                      <DashboardGateLink
+                        className="group inline-flex items-center gap-2 border-b border-transparent pb-0.5 transition hover:border-coral hover:text-coral"
+                        dotClassName="h-1 w-1 rounded-full bg-coral opacity-0 transition duration-200 group-hover:opacity-100"
+                      >
+                        {link.label}
+                      </DashboardGateLink>
+                    ) : (
+                      <a href={link.href} className="group inline-flex items-center gap-2 border-b border-transparent pb-0.5 transition hover:border-coral hover:text-coral">
+                        <span className="h-1 w-1 rounded-full bg-coral opacity-0 transition duration-200 group-hover:opacity-100" />
+                        {link.label}
+                      </a>
+                    )}
                   </li>
                 ))}
               </ul>

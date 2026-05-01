@@ -17,11 +17,11 @@ const panels = [
     detail: "사용량이 올라가면 비용도 그대로 올라갑니다."
   },
   {
-    title: "공유 구독 플랫폼",
+    title: "반복 구매 지표",
     value: 0,
-    suffix: " privacy",
-    caption: "공유 풀",
-    detail: "동시 사용, 설정 충돌, 프라이버시 리스크가 남습니다."
+    suffix: "%",
+    caption: "재구매율",
+    detail: "주문 DB 기준으로 반복 구매 흐름을 투명하게 집계합니다."
   },
   {
     title: "클코클라우드",

@@ -13,7 +13,38 @@ create table if not exists public.orders (
   created_at timestamptz not null default now()
 );
 
-alter table public.orders enable row level security;
+create table if not exists public.reviews (
+  id uuid primary key default gen_random_uuid(),
+  order_id uuid not null references public.orders(id) on delete cascade,
+  user_provider text not null,
+  user_provider_account_id text not null,
+  rating integer not null check (rating between 1 and 5),
+  body text not null check (char_length(body) between 10 and 600),
+  display_name text not null check (char_length(display_name) between 1 and 40),
+  masked_name text not null,
+  status text not null default 'pending' check (status in ('pending', 'approved', 'rejected')),
+  bonus_status text not null default 'pending' check (bonus_status in ('none', 'pending', 'paid')),
+  created_at timestamptz not null default now(),
+  reviewed_at timestamptz,
+  unique(order_id)
+);
 
--- The Next.js server uses SUPABASE_SERVICE_ROLE_KEY for inserts and admin reads.
+create table if not exists public.balance_requests (
+  id uuid primary key default gen_random_uuid(),
+  user_provider text not null,
+  user_provider_account_id text not null,
+  contact_email text not null,
+  request_amount text not null,
+  message text not null check (char_length(message) between 5 and 800),
+  status text not null default 'pending' check (status in ('pending', 'answered', 'fulfilled', 'rejected')),
+  admin_note text,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+
+alter table public.orders enable row level security;
+alter table public.reviews enable row level security;
+alter table public.balance_requests enable row level security;
+
+-- The Next.js server uses SUPABASE_SERVICE_ROLE_KEY for writes and admin reads.
 -- Do not expose SUPABASE_SERVICE_ROLE_KEY to the browser.

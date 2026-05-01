@@ -11,7 +11,7 @@ type AccordionFaqProps = {
 };
 
 export function AccordionFaq({ items }: AccordionFaqProps) {
-  const [open, setOpen] = useState(0);
+  const [open, setOpen] = useState(-1);
 
   return (
     <div className="mt-12">

@@ -129,6 +129,15 @@ input {
   mask-image: linear-gradient(90deg, transparent, #000 120px, #000 calc(100% - 120px), transparent);
 }
 
+.review-marquee-mask {
+  mask-image: linear-gradient(90deg, transparent, #000 7%, #000 93%, transparent);
+}
+
+.review-marquee-track {
+  animation: review-marquee 38s linear infinite;
+  will-change: transform;
+}
+
 .live-ripple:after {
   content: "";
   position: absolute;
@@ -234,6 +243,11 @@ input {
     scroll-behavior: auto !important;
     transition-duration: 0.01ms !important;
   }
+
+  .review-marquee-track {
+    animation: none !important;
+    transform: none !important;
+  }
 }
 
 @media (max-width: 767px) {
@@ -260,6 +274,15 @@ input {
   }
   to {
     transform: translateX(-50%);
+  }
+}
+
+@keyframes review-marquee {
+  from {
+    transform: translate3d(0, 0, 0);
+  }
+  to {
+    transform: translate3d(-50%, 0, 0);
   }
 }
 
@@ -638,5 +661,105 @@ input {
   50% {
     opacity: 1;
     transform: scaleX(1);
+  }
+}
+
+/* Hero 3D-only extensions. Design tokens above remain untouched. */
+.hero3d-root {
+  isolation: isolate;
+}
+
+.hero3d-split-headline {
+  text-wrap: balance;
+  perspective: 1000px;
+  text-shadow:
+    0 1px 0 rgba(247, 241, 232, 0.46),
+    0 16px 52px rgba(247, 241, 232, 0.4),
+    0 1px 20px rgba(31, 30, 29, 0.08);
+}
+
+.hero3d-word,
+.hero3d-char {
+  display: inline-block;
+  will-change: transform, opacity, filter;
+}
+
+.hero3d-coral-word {
+  overflow: visible;
+  text-shadow: 0 12px 40px rgba(217, 119, 87, 0.2);
+}
+
+.hero3d-coral-underline {
+  position: absolute;
+  left: 2%;
+  bottom: -0.075em;
+  width: 96%;
+  height: 2px;
+  border-radius: 999px;
+  background: var(--coral);
+  box-shadow: 0 10px 26px rgba(217, 119, 87, 0.26);
+}
+
+.hero3d-eyebrow-line {
+  transform-origin: top;
+  animation: hero3d-line-draw 420ms 200ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.hero3d-live-dot {
+  animation: hero3d-live-pulse 1000ms ease-in-out infinite alternate;
+}
+
+.hero3d-grid-dots {
+  opacity: 0.35;
+  background-image: radial-gradient(rgba(31, 30, 29, 0.075) 1px, transparent 1px);
+  background-size: 80px 80px;
+  mask-image: linear-gradient(90deg, transparent 0%, black 38%, black 100%);
+}
+
+.hero3d-grain {
+  opacity: 0.04;
+  background-image: radial-gradient(rgba(31, 30, 29, 0.08) 0.7px, transparent 0.7px);
+  background-size: 11px 11px;
+  mix-blend-mode: multiply;
+}
+
+.hero3d-compat-mask {
+  mask-image: linear-gradient(90deg, transparent 0%, black 16%, black 84%, transparent 100%);
+}
+
+.hero3d-compat-track {
+  animation: hero3d-marquee 60s linear infinite;
+}
+
+.hero3d-compat-mask:hover .hero3d-compat-track {
+  animation-play-state: paused;
+}
+
+@keyframes hero3d-marquee {
+  from { transform: translateX(0); }
+  to { transform: translateX(-50%); }
+}
+
+@keyframes hero3d-line-draw {
+  from { transform: scaleY(0); opacity: 0; }
+  to { transform: scaleY(1); opacity: 1; }
+}
+
+@keyframes hero3d-live-pulse {
+  from { opacity: 1; transform: scale(1); }
+  to { opacity: 0.3; transform: scale(0.78); }
+}
+
+@media (max-width: 767px) {
+  .hero3d-split-headline {
+    text-shadow: 0 1px 14px rgba(245, 239, 230, 0.46);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hero3d-compat-track,
+  .hero3d-live-dot,
+  .hero3d-eyebrow-line {
+    animation: none !important;
   }
 }
