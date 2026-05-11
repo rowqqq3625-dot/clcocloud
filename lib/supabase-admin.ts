@@ -6,6 +6,22 @@ export type ReviewStatus = "pending" | "approved" | "rejected";
 export type BonusStatus = "none" | "pending" | "paid";
 export type BalanceRequestStatus = "pending" | "answered" | "fulfilled" | "rejected";
 
+export type DashboardKeyRecord = {
+  id: string;
+  user_provider: string;
+  user_provider_account_id: string;
+  encrypted_api_key: string;
+  api_key_fingerprint: string;
+  masked_api_key: string;
+  last_status: string | null;
+  last_balance: number | null;
+  last_spend_cap: number | null;
+  last_rpm: number | null;
+  last_checked_at: string;
+  created_at: string;
+  updated_at: string;
+};
+
 export type OrderRecord = {
   id: string;
   user_provider: string;

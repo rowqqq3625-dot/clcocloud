@@ -18,7 +18,7 @@ const panels = [
   },
   {
     title: "반복 구매 지표",
-    value: 0,
+    value: 100,
     suffix: "%",
     caption: "재구매율",
     detail: "주문 DB 기준으로 반복 구매 흐름을 투명하게 집계합니다."

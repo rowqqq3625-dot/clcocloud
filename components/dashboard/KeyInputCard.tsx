@@ -5,11 +5,23 @@ import { useState } from "react";
 import { motion } from "framer-motion";
 import { cardReveal } from "@/lib/motion";
 
-type KeyInputCardProps = {
-  onKeySubmit: (key: string) => void;
+export type SavedDashboardKey = {
+  id: string;
+  masked_api_key: string;
+  apiKey?: string;
+  last_status: string | null;
+  last_balance: number | null;
+  last_spend_cap: number | null;
+  last_rpm: number | null;
+  last_checked_at: string;
 };
 
-export function KeyInputCard({ onKeySubmit }: KeyInputCardProps) {
+type KeyInputCardProps = {
+  onKeySubmit: (key: string) => void;
+  savedKeys?: SavedDashboardKey[];
+};
+
+export function KeyInputCard({ onKeySubmit, savedKeys = [] }: KeyInputCardProps) {
   const [apiKey, setApiKey] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -77,6 +89,35 @@ export function KeyInputCard({ onKeySubmit }: KeyInputCardProps) {
           <span className="absolute inset-0 scale-0 rounded-full bg-cream/20 opacity-0 transition duration-300 group-active:scale-100 group-active:opacity-100" />
         </motion.button>
       </form>
+
+
+      {savedKeys.length > 0 ? (
+        <div className="mt-7 rounded-2xl border border-[var(--border-subtle)] bg-cream-2/35 p-4">
+          <div className="flex items-center justify-between gap-3">
+            <p className="text-sm font-bold tracking-[-0.01em] text-primary">이전 조회 기록</p>
+            <span className="font-mono text-[10px] uppercase tracking-[0.14em] text-secondary/55">synced</span>
+          </div>
+          <div className="mt-3 grid gap-2">
+            {savedKeys.slice(0, 3).map((record) => (
+              <button
+                key={record.id}
+                type="button"
+                disabled={!record.apiKey}
+                onClick={() => record.apiKey ? onKeySubmit(record.apiKey) : undefined}
+                className="group flex min-w-0 items-center justify-between gap-3 rounded-xl border border-[var(--border-subtle)] bg-cream px-3 py-3 text-left transition hover:-translate-y-0.5 hover:border-coral/45 hover:shadow-sm disabled:cursor-not-allowed disabled:opacity-55"
+              >
+                <span className="min-w-0">
+                  <span className="block break-all font-mono text-[12px] font-semibold text-primary">{record.masked_api_key}</span>
+                  <span className="mt-1 block text-[12px] text-secondary">
+                    잔액 {typeof record.last_balance === "number" ? `$${record.last_balance.toFixed(4)}` : "-"} · {new Date(record.last_checked_at).toLocaleDateString("ko-KR")}
+                  </span>
+                </span>
+                <span className="shrink-0 rounded-full bg-coral/10 px-3 py-1 text-[11px] font-bold text-coral transition group-hover:bg-coral group-hover:text-cream">불러오기</span>
+              </button>
+            ))}
+          </div>
+        </div>
+      ) : null}
 
       <div className="mt-6 flex items-end justify-between gap-4">
         <p className="text-[13px] leading-[1.6] text-secondary">API 키는 발급 시 이메일로 전달됩니다.</p>

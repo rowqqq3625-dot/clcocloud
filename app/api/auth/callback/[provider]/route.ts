@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { AUTH_PROVIDERS, AuthProvider, OAuthProfile, getAuthBaseUrl, getProviderCredentials, isAuthProvider } from "@/lib/auth-providers";
 import { AUTH_SESSION_COOKIE, AUTH_STATE_COOKIE, createSessionToken, parseStatePayload, verifySignedValue } from "@/lib/auth-session";
+import { recordSessionEvent } from "@/lib/dashboard-key-records";
 
 type RouteContext = {
   params: { provider: string };
@@ -107,15 +108,17 @@ export async function GET(request: NextRequest, { params }: RouteContext) {
     if (!token.access_token) throw new Error(token.error || "token_exchange_failed");
 
     const profile = await fetchProfile(provider, token.access_token);
+    const sessionToken = createSessionToken(profile);
     const response = NextResponse.redirect(new URL(stateInfo?.returnTo || "/dashboard", request.url));
     response.cookies.delete(AUTH_STATE_COOKIE);
-    response.cookies.set(AUTH_SESSION_COOKIE, createSessionToken(profile), {
+    response.cookies.set(AUTH_SESSION_COOKIE, sessionToken, {
       httpOnly: true,
       sameSite: "lax",
       secure: process.env.NODE_ENV === "production",
-      maxAge: 60 * 60 * 24 * 14,
+      maxAge: 60 * 60 * 24 * 180,
       path: "/"
     });
+    await recordSessionEvent({ ...profile, issuedAt: Date.now() }, request, "oauth_login");
     return response;
   } catch {
     return NextResponse.redirect(new URL(`${fallbackPath}${fallbackPath.includes("?") ? "&" : "?"}error=oauth_failed&provider=${provider}`, request.url));

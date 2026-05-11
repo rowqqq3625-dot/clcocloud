@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getKeyInfo, ApiKeyError } from "@/lib/keys/client";
+import { getSessionFromRequest } from "@/lib/auth-session";
+import { saveDashboardKeyRecord } from "@/lib/dashboard-key-records";
 
 // Simple in-memory rate limiting map
 // In production, use Redis or Vercel KV
@@ -64,7 +66,11 @@ export async function POST(request: NextRequest) {
     // 3. Fetch data from upstream securely
     const keyInfo = await getKeyInfo(apiKey);
 
-    // 4. Return sanitized response
+    // 4. Preserve the latest lookup for authenticated users only.
+    // The API key is encrypted server-side and skipped if encryption is not configured.
+    await saveDashboardKeyRecord(getSessionFromRequest(request), apiKey, keyInfo);
+
+    // 5. Return sanitized response
     return NextResponse.json(
       { data: keyInfo, fetchedAt: new Date().toISOString() },
       { 

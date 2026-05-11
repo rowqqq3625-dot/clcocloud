@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { getSupabaseAdminClient } from "@/lib/supabase-admin";
 
 export const dynamic = "force-dynamic";
+const MANUAL_REPURCHASE_RATE = 100;
 
 type MetricOrder = {
   user_provider: string | null;
@@ -11,7 +12,7 @@ type MetricOrder = {
 export async function GET() {
   const supabase = getSupabaseAdminClient();
   if (!supabase) {
-    return NextResponse.json({ customers: 0, repurchaseRate: 0 }, { headers: { "Cache-Control": "no-store" } });
+    return NextResponse.json({ customers: 0, repurchaseRate: MANUAL_REPURCHASE_RATE }, { headers: { "Cache-Control": "no-store" } });
   }
 
   const { data, error } = await supabase
@@ -19,7 +20,7 @@ export async function GET() {
     .select("user_provider,user_provider_account_id");
 
   if (error || !data) {
-    return NextResponse.json({ customers: 0, repurchaseRate: 0 }, { headers: { "Cache-Control": "no-store" } });
+    return NextResponse.json({ customers: 0, repurchaseRate: MANUAL_REPURCHASE_RATE }, { headers: { "Cache-Control": "no-store" } });
   }
 
   const purchaseCounts = new Map<string, number>();
@@ -30,8 +31,8 @@ export async function GET() {
   }
 
   const customers = purchaseCounts.size;
-  const repeatCustomers = Array.from(purchaseCounts.values()).filter((count) => count >= 2).length;
-  const repurchaseRate = customers > 0 ? Math.round((repeatCustomers / customers) * 100) : 0;
+  // 이번 운영 반영분: 주문 DB 조회 경로는 유지하되 재구매율은 수동 100%로 고정한다.
+  const repurchaseRate = MANUAL_REPURCHASE_RATE;
 
   return NextResponse.json({ customers, repurchaseRate }, { headers: { "Cache-Control": "no-store" } });
 }

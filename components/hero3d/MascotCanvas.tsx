@@ -51,7 +51,7 @@ export default function MascotCanvas({
   return (
     <div
       ref={rootRef}
-      className="relative h-full w-full"
+      className="hero3d-canvas-shell relative h-full w-full"
       role="img"
       aria-label="클코클라우드 마스코트 인터랙티브 캐릭터"
       tabIndex={0}
@@ -80,7 +80,7 @@ export default function MascotCanvas({
           <MascotModel scrollProgress={scrollProgress} mouseRef={mouseRef} activationSignal={burstId} mobile={mobile} />
           <MascotParticles burstId={burstId} />
           <MascotToast message={toastMessage} />
-          <ContactShadows position={[0, -1.4, 0]} opacity={mobile ? 0.18 : 0.35} scale={mobile ? 4.4 : 6} blur={mobile ? 1.5 : 2.4} far={3} color="#1F1E1D" />
+          {!mobile ? <ContactShadows position={[0, -1.4, 0]} opacity={0.32} scale={6} blur={2.2} far={3} color="#1F1E1D" /> : null}
         </Canvas>
       </Suspense>
     </div>

@@ -15,6 +15,7 @@ export function Hero3D() {
   const stageRef = useRef<HTMLDivElement | null>(null);
   const { scrollYProgress } = useScroll({ target: stageRef, offset: ["start start", "end start"] });
   const [scrollProgress, setScrollProgress] = useState(0);
+  const lastScrollProgressRef = useRef(0);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
   const [burstId, setBurstId] = useState(0);
   const mouseRef = useMouseRef(false);
@@ -33,7 +34,10 @@ export function Hero3D() {
   const watermarkSpacing = useTransform(scrollYProgress, [0, 0.4], ["-0.05em", "-0.08em"]);
 
   useMotionValueEvent(scrollYProgress, "change", (latest) => {
-    setScrollProgress(Math.min(Math.max(latest, 0), 1));
+    const rounded = Math.round(Math.min(Math.max(latest, 0), 1) * 100) / 100;
+    if (Math.abs(rounded - lastScrollProgressRef.current) < 0.01) return;
+    lastScrollProgressRef.current = rounded;
+    setScrollProgress(rounded);
   });
 
   const triggerMascot = () => {
@@ -66,12 +70,12 @@ export function Hero3D() {
         <HeroBackground />
         <WatermarkText opacity={watermarkOpacity} x={watermarkX} letterSpacing={watermarkSpacing} />
         <motion.div
-          className="relative z-30 flex min-h-[calc(100svh-126px)] w-full items-start justify-start px-6 pb-28 pt-[7vh] sm:px-10 sm:pb-32 sm:pt-[8vh] lg:min-h-[calc(108vh-150px)] lg:px-16 lg:pb-20 lg:pt-[10vh] xl:px-20"
+          className="relative z-30 flex min-h-[calc(100svh-126px)] w-full items-start justify-start px-6 pb-10 pt-[7vh] sm:px-10 sm:pb-12 sm:pt-[8vh] lg:min-h-[calc(108vh-150px)] lg:px-8 lg:pb-20 lg:pt-[10vh] xl:px-8 2xl:px-10"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ duration: 0.35 }}
         >
-          <div className="w-full max-w-[760px] md:max-w-[880px] lg:max-w-[760px] xl:max-w-[820px]">
+          <div className="w-full max-w-[760px] md:max-w-[880px] lg:max-w-[760px] lg:translate-x-[4.5vw] xl:max-w-[820px] xl:translate-x-[5vw] 2xl:translate-x-[5.5vw]">
             <SplitHeadline
               y={headlineY}
               opacity={headlineOpacity}
@@ -81,14 +85,19 @@ export function Hero3D() {
               parallaxY={parallaxY}
             />
 
-            <div className="mt-7 lg:ml-8 lg:mt-8 xl:ml-10">
+            <div className="md:hidden h-[39vh] min-h-[260px] sm:h-[38vh]" />
+            <div className="mt-5 md:hidden">
+              <HeroCTAGroup align="center" />
+            </div>
+
+            <div className="mt-7 hidden md:block lg:ml-8 lg:mt-8 xl:ml-10">
               <HeroCTAGroup align="left" />
             </div>
           </div>
         </motion.div>
 
         <div
-          className="pointer-events-auto absolute bottom-[-6vh] left-1/2 z-20 h-[42vh] w-[82vw] max-w-[620px] -translate-x-1/2 sm:bottom-[-4vh] sm:h-[44vh] md:bottom-[-2vh] md:left-auto md:right-[-18vw] md:h-[48vh] md:w-[48vw] md:max-w-[640px] lg:bottom-[-2vh] lg:right-[-31vw] lg:h-[78vh] lg:w-[50vw] xl:bottom-[-1vh] xl:right-[-24vw] xl:h-[84vh] xl:w-[46vw] 2xl:right-[-12vw] 2xl:h-[86vh] 2xl:w-[41vw]"
+          className="pointer-events-auto absolute bottom-[18vh] left-1/2 z-20 h-[34vh] w-[82vw] max-w-[520px] -translate-x-1/2 sm:bottom-[18vh] sm:h-[36vh] md:bottom-[0vh] md:left-auto md:right-[4vw] md:h-[48vh] md:w-[42vw] md:max-w-[560px] md:translate-x-0 lg:bottom-[-1vh] lg:right-[1vw] lg:h-[76vh] lg:w-[38vw] lg:max-w-[660px] xl:bottom-[0vh] xl:right-[1vw] xl:h-[80vh] xl:w-[36vw] 2xl:right-[3vw] 2xl:h-[82vh] 2xl:w-[33vw]"
           onPointerDown={triggerMascot}
         >
           <MascotCanvas scrollProgress={scrollProgress} mouseRef={mouseRef} onMascotClick={triggerMascot} toastMessage={toastMessage} burstId={burstId} />

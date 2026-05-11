@@ -1,3 +1,4 @@
+import { HomeStructuredData } from "@/components/seo/HomeStructuredData";
 import { Sequence01Hero } from "@/components/sequences/Sequence01Hero";
 import { Sequence02TrustStrip } from "@/components/sequences/Sequence02TrustStrip";
 import { Sequence03Dashboard } from "@/components/sequences/Sequence03Dashboard";
@@ -15,6 +16,7 @@ import { Sequence13Footer } from "@/components/sequences/Sequence13Footer";
 export default function Page() {
   return (
     <main>
+      <HomeStructuredData />
       <Sequence01Hero />
       <Sequence02TrustStrip />
       <Sequence03Dashboard />

@@ -2,6 +2,7 @@ import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { SiteHeader } from "@/components/navigation/SiteHeader";
 import { getSessionFromCookies } from "@/lib/auth-session";
+import { getDashboardKeyRecords, type DashboardKeyListItem } from "@/lib/dashboard-key-records";
 import { getSupabaseAdminClient, type BonusStatus, type OrderRecord, type OrderStatus, type ReviewRecord, type ReviewStatus } from "@/lib/supabase-admin";
 
 const providerLabels: Record<string, string> = {
@@ -49,11 +50,13 @@ export default async function MyPage() {
   const supabase = getSupabaseAdminClient();
   let orders: OrderRecord[] = [];
   let reviews: Pick<ReviewRecord, "id" | "order_id" | "status" | "bonus_status" | "created_at">[] = [];
+  let keyRecords: DashboardKeyListItem[] = [];
   let configError = false;
 
   if (!supabase) {
     configError = true;
   } else {
+    keyRecords = await getDashboardKeyRecords(session, false);
     const { data } = await supabase
       .from("orders")
       .select("id,user_provider,user_provider_account_id,user_email,contact_email,plan_id,plan_name,balance_usd,price_krw,os_targets,status,created_at")
@@ -159,6 +162,16 @@ export default async function MyPage() {
                 <p className="font-mono text-[11px] font-bold uppercase tracking-[0.16em] text-coral/80">API Key</p>
                 <h2 className="mt-3 text-3xl font-[680] tracking-[-0.035em]">API 키 관리</h2>
                 <p className="mt-4 break-keep text-sm leading-7 text-secondary">발급받은 API 키의 잔액과 사용량을 대시보드에서 실시간으로 확인하세요.</p>
+                {keyRecords.length > 0 ? (
+                  <div className="mt-5 grid gap-2">
+                    {keyRecords.slice(0, 3).map((record) => (
+                      <div key={record.id} className="rounded-2xl border border-[var(--border-subtle)] bg-white/60 px-4 py-3">
+                        <p className="break-all font-mono text-xs font-semibold text-primary">{record.masked_api_key}</p>
+                        <p className="mt-1 text-xs text-secondary">최근 조회 · {formatDate(record.last_checked_at)}</p>
+                      </div>
+                    ))}
+                  </div>
+                ) : null}
                 <a href="/dashboard" className="mt-6 inline-flex min-h-12 items-center rounded-2xl bg-primary px-5 text-sm font-bold text-cream transition hover:-translate-y-0.5 hover:bg-coral">
                   API 키 상태 조회
                 </a>

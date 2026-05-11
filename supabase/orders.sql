@@ -48,3 +48,33 @@ alter table public.balance_requests enable row level security;
 
 -- The Next.js server uses SUPABASE_SERVICE_ROLE_KEY for writes and admin reads.
 -- Do not expose SUPABASE_SERVICE_ROLE_KEY to the browser.
+
+create table if not exists public.dashboard_key_records (
+  id uuid primary key default gen_random_uuid(),
+  user_provider text not null,
+  user_provider_account_id text not null,
+  encrypted_api_key text not null,
+  api_key_fingerprint text not null,
+  masked_api_key text not null,
+  last_status text,
+  last_balance numeric,
+  last_spend_cap numeric,
+  last_rpm integer,
+  last_checked_at timestamptz not null default now(),
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now(),
+  unique(user_provider, user_provider_account_id, api_key_fingerprint)
+);
+
+create table if not exists public.session_events (
+  id uuid primary key default gen_random_uuid(),
+  user_provider text not null,
+  user_provider_account_id text not null,
+  event_type text not null,
+  ip_hash text,
+  user_agent text,
+  created_at timestamptz not null default now()
+);
+
+alter table public.dashboard_key_records enable row level security;
+alter table public.session_events enable row level security;

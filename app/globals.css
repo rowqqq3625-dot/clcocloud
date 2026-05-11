@@ -763,3 +763,17 @@ input {
     animation: none !important;
   }
 }
+
+.hero3d-canvas-shell {
+  contain: layout paint;
+  isolation: isolate;
+  transform: translateZ(0);
+  will-change: transform;
+  backface-visibility: hidden;
+}
+
+.hero3d-canvas-shell canvas {
+  display: block;
+  transform: translateZ(0);
+  backface-visibility: hidden;
+}

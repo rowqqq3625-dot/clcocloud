@@ -1,14 +1,30 @@
 "use client";
 
 import { AnimatePresence, motion } from "framer-motion";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { SplitHeading } from "@/components/typography/SplitHeading";
 import { DashboardView } from "@/components/dashboard/DashboardView";
-import { KeyInputCard } from "@/components/dashboard/KeyInputCard";
+import { KeyInputCard, type SavedDashboardKey } from "@/components/dashboard/KeyInputCard";
 import { wipeReveal } from "@/lib/motion";
 
 export default function DashboardPage() {
   const [activeKey, setActiveKey] = useState<string | null>(null);
+  const [savedKeys, setSavedKeys] = useState<SavedDashboardKey[]>([]);
+
+  useEffect(() => {
+    let active = true;
+    fetch("/api/dashboard/key-records", { cache: "no-store" })
+      .then((response) => response.ok ? response.json() : { records: [] })
+      .then((payload: { records?: SavedDashboardKey[] }) => {
+        if (active) setSavedKeys(Array.isArray(payload.records) ? payload.records : []);
+      })
+      .catch(() => {
+        if (active) setSavedKeys([]);
+      });
+    return () => {
+      active = false;
+    };
+  }, []);
 
   return (
     <main className="dashboard-page-shell noise relative overflow-hidden py-16 sm:py-24">
@@ -56,7 +72,7 @@ export default function DashboardPage() {
               exit={{ opacity: 0, y: -24 }}
               transition={{ duration: 0.3 }}
             >
-              <KeyInputCard onKeySubmit={setActiveKey} />
+              <KeyInputCard onKeySubmit={setActiveKey} savedKeys={savedKeys} />
             </motion.section>
           ) : (
             <motion.section
