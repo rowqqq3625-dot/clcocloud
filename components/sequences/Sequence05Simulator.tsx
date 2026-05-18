@@ -1,6 +1,6 @@
 import { SliderInteractive } from "@/components/ui/SliderInteractive";
-import { RevealText } from "@/components/typography/RevealText";
-import { SplitHeading } from "@/components/typography/SplitHeading";
+import { CCAnimatedContent } from "@/components/reactbits-wrapped/CCAnimatedContent";
+import { CCSplitText } from "@/components/reactbits-wrapped/CCSplitText";
 import { pricingPlansWithDiscount } from "@/lib/pricing";
 
 const plans = pricingPlansWithDiscount.map((plan) => ({
@@ -12,21 +12,23 @@ const plans = pricingPlansWithDiscount.map((plan) => ({
 
 export function Sequence05Simulator() {
   return (
-    <section id="calculator" className="bg-cream-2 py-32">
-      <div className="container-cinematic grid gap-10 rounded-[32px] border border-[var(--border-subtle)] bg-cream p-6 shadow-lg lg:grid-cols-[.45fr_.55fr] lg:p-12">
-        <div>
-          <p className="eyebrow">Calculate</p>
-          <SplitHeading
-            as="h2"
-            className="section-display mt-5 max-w-xl text-[clamp(40px,5vw,72px)] font-semibold"
-            lines={["내 사용량 기준, 어느 플랜이 맞을지 먼저 계산하세요."]}
-          />
-          <RevealText className="mt-6 max-w-md text-lg leading-8 text-secondary">
+    <section id="calculator" className="cc-section bg-[var(--cream)] py-[var(--section-y-tight)]">
+      <CCAnimatedContent className="cc-max relative grid gap-10 rounded-[var(--r-2xl)] border border-[var(--line)] bg-[linear-gradient(180deg,rgba(251,246,236,1)_0%,var(--cream)_100%)] p-8 shadow-[var(--shadow-lg)] lg:grid-cols-[0.44fr_0.56fr] lg:p-14" distance={24} duration={0.7}>
+        <span className="pointer-events-none absolute right-6 top-6 h-6 w-6 rounded-full border border-[var(--coral)] opacity-40" />
+        <div className="relative z-[1]">
+          <p className="cc-eyebrow before:hidden">Calculate</p>
+          <h2 className="cc-display mt-5 max-w-xl text-[calc(var(--fs-display)*0.9)] text-[var(--ink)]">
+            <span className="block"><CCSplitText text="내 사용량 기준," delay={0.02} /></span>
+            <span className="block"><CCSplitText text="어느 플랜이" delay={0.02} /></span>
+            <span className="block"><CCSplitText text="맞을지 먼저" delay={0.02} /></span>
+            <span className="block"><CCSplitText text="계산하세요" delay={0.02} /><span className="text-[var(--coral)]">.</span></span>
+          </h2>
+          <p className="mt-6 max-w-[280px] text-[var(--fs-body)] leading-[var(--lh-body)] tracking-[var(--tracking-body)] text-[var(--ink-soft)]">
             충전 금액을 움직이면 예상 사용량과 절감률을 바로 확인합니다.
-          </RevealText>
+          </p>
         </div>
         <SliderInteractive plans={plans} />
-      </div>
+      </CCAnimatedContent>
     </section>
   );
 }

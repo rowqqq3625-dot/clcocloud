@@ -1,0 +1,5 @@
+"use client";
+
+export function CCShinyText({ text, className = "" }: { text: string; className?: string }) {
+  return <span className={className}>{text}</span>;
+}

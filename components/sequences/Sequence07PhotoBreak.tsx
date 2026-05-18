@@ -1,41 +1,24 @@
 "use client";
 
-import { CodeBlockFloat } from "@/components/system/CodeBlockFloat";
-import { ImageReveal } from "@/components/ui/ImageReveal";
-import { RevealText } from "@/components/typography/RevealText";
-import { SplitHeading } from "@/components/typography/SplitHeading";
+import { CCAnimatedContent } from "@/components/reactbits-wrapped/CCAnimatedContent";
+import { CCSplitText } from "@/components/reactbits-wrapped/CCSplitText";
 
 export function Sequence07PhotoBreak() {
   return (
-    <section className="relative h-[80vh] overflow-hidden bg-dark">
-      <ImageReveal
-        src="/images/workspace-dark.avif"
-        alt="따뜻한 모니터 빛과 코드 화면이 보이는 어두운 개발자 작업 공간"
-        fill
-        sizes="100vw"
-        imageClassName="animate-image-drift object-cover opacity-78 will-change-transform"
-        priority={false}
-      />
-      <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(0,0,0,.55),transparent_60%),linear-gradient(180deg,rgba(15,14,13,.12),rgba(15,14,13,.72))]" />
-      <div className="absolute inset-0 animate-coral-wash bg-coral/0" />
-      <div className="absolute right-10 top-10 hidden w-72 lg:block">
-        <CodeBlockFloat
-          lines={[
-            '$ export ANTHROPIC_API_KEY="sk-clco-..."',
-            "$ claude --version",
-            "$ curl https://api.clcocloud.kr/v1/usage"
-          ]}
-        />
+    <section className="cc-section grid min-h-[80vh] place-items-center bg-[var(--surface-dark)] py-[var(--section-y-tight)] text-[var(--cream)]">
+      <div className="pointer-events-none absolute inset-x-0 bottom-0 h-24 bg-[linear-gradient(180deg,transparent,var(--surface-dark-2))]" />
+      <CCAnimatedContent className="pointer-events-none absolute -right-[8%] bottom-[-16%] z-0 font-sans text-[clamp(160px,22vw,280px)] font-semibold leading-none text-transparent [-webkit-text-stroke:1px_rgba(247,241,232,0.08)]" opacityOnly delay={0.4} duration={1.2}>
+        WORKFLOW
+      </CCAnimatedContent>
+      <div className="cc-max relative z-[1]">
+        <p className="cc-eyebrow">Why 4 Steps</p>
+        <h2 className="cc-display mt-6 max-w-[880px] text-[var(--cream)]">
+          <span className="block"><CCSplitText text="한 사람의 작업" delay={0.02} /></span>
+          <span className="block"><span className="cc-serif">흐름을 끊지 않는</span></span>
+          <span className="block"><CCSplitText text="것이 " delay={0.02} /><span className="text-[var(--coral)]">우선</span><span>입니다</span><span className="text-[var(--coral)]">.</span></span>
+        </h2>
+        <p className="mt-6 text-xl leading-[var(--lh-body)] text-[rgba(247,241,232,0.70)]">공유계정도, 일일 제한도 없이.</p>
       </div>
-      <div className="container-cinematic absolute inset-x-0 bottom-16 max-w-[720px]">
-        <SplitHeading
-          as="h2"
-          className="section-display max-w-4xl text-[clamp(40px,6vw,86px)] font-semibold text-cream"
-          lines={["한 사람의 작업 흐름을 끊지 않는 것이 우선입니다."]}
-        />
-        <RevealText className="mt-6 text-xl text-cream/70">공유계정도, 일일 제한도 없이.</RevealText>
-      </div>
-      <div className="section-transition-mask bg-[linear-gradient(180deg,transparent,var(--bg-cream))]" />
     </section>
   );
 }

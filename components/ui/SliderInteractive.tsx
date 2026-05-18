@@ -2,8 +2,9 @@
 
 import { useEffect, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
+import { ArrowRight } from "lucide-react";
 import { AbstractChart } from "@/components/system/AbstractChart";
-import { CountUp } from "@/components/ui/CountUp";
+import { CCCountUp } from "@/components/reactbits-wrapped/CCCountUp";
 
 type Plan = {
   label: string;
@@ -34,7 +35,7 @@ export function SliderInteractive({ plans }: SliderInteractiveProps) {
   };
 
   return (
-    <div className="grid content-center gap-7">
+    <div className="relative z-[1] grid content-center gap-7">
       <div
         role="slider"
         aria-label="충전 금액"
@@ -46,14 +47,15 @@ export function SliderInteractive({ plans }: SliderInteractiveProps) {
           if (event.key === "ArrowRight") choose(Math.min(2, active + 1));
           if (event.key === "ArrowLeft") choose(Math.max(0, active - 1));
         }}
-        className="rounded-[28px] bg-white p-5 shadow-[0_1px_2px_rgba(31,30,29,.04),0_8px_24px_rgba(31,30,29,.06),0_32px_80px_rgba(31,30,29,.10)]"
+        className="rounded-[var(--r-lg)] bg-[rgba(251,246,236,0.78)] p-5"
       >
         <div
-          className="relative h-4 cursor-pointer rounded-full bg-[var(--border-subtle)]"
+          className="relative h-4 cursor-pointer rounded-full"
           onMouseEnter={() => setHint(false)}
         >
+          <span className="absolute left-0 top-1/2 h-1 w-full -translate-y-1/2 rounded-full bg-[var(--line)]" />
           <motion.div
-            className="h-4 rounded-full bg-coral"
+            className="absolute left-0 top-1/2 h-1 -translate-y-1/2 rounded-full bg-[linear-gradient(90deg,var(--coral)_0%,var(--coral-soft)_100%)] shadow-[0_0_20px_rgba(217,119,87,0.30)]"
             animate={{ width: `${active * 50 + 1}%` }}
             transition={{ duration: 0.28, ease: [0.22, 1, 0.36, 1] }}
           />
@@ -63,14 +65,16 @@ export function SliderInteractive({ plans }: SliderInteractiveProps) {
               type="button"
               aria-label={plans[index]?.label}
               onClick={() => choose(index)}
-              className="absolute top-1/2 h-5 w-5 -translate-x-1/2 -translate-y-1/2 rounded-full border border-white bg-coral/80 transition hover:scale-125 hover:bg-coral"
+              className="absolute top-1/2 h-7 w-7 -translate-x-1/2 -translate-y-1/2 cursor-grab rounded-full border-2 border-[var(--coral)] bg-[var(--cream-2)] shadow-[0_0_0_8px_rgba(217,119,87,0.15),0_8px_16px_rgba(217,119,87,0.25)] transition duration-200 ease-[var(--ease-out)] hover:scale-[1.08] active:cursor-grabbing"
               style={{ left: `${index * 50}%` }}
-            />
+            >
+              <span className={`mx-auto block h-1 w-1 rounded-full bg-[var(--coral)] transition duration-200 ${active === index ? "scale-[1.4]" : ""}`} />
+            </button>
           ))}
           <motion.span
             key={pulse}
-            className="absolute top-1/2 grid h-7 w-7 -translate-y-1/2 place-items-center rounded-full border-[1.5px] border-coral-hi bg-coral text-[9px] font-bold text-cream shadow-coral"
-            animate={{ left: `calc(${active * 50}% - 14px)`, scaleX: [1, 1.3, 1], scaleY: [1, 0.85, 1], boxShadow: ["0 0 0px var(--coral-glow)", "0 0 24px var(--coral-glow)", "0 0 0px var(--coral-glow)"] }}
+            className="pointer-events-none absolute top-1/2 grid h-7 w-7 -translate-y-1/2 place-items-center rounded-full text-[9px] font-bold text-[var(--coral)]"
+            animate={{ left: `calc(${active * 50}% - 14px)`, scaleX: [1, 1.16, 1], scaleY: [1, 0.9, 1] }}
             transition={{ duration: 0.2 }}
           >
             <span className={`transition-opacity duration-300 ${hint ? "opacity-100" : "opacity-0"}`}>drag</span>
@@ -82,8 +86,10 @@ export function SliderInteractive({ plans }: SliderInteractiveProps) {
               key={item.label}
               type="button"
               onClick={() => choose(index)}
-              className={`min-h-12 rounded-xl border text-sm font-semibold transition duration-200 active:scale-95 ${
-                active === index ? "border-coral bg-coral/10 text-coral" : "border-[var(--border-subtle)] hover:border-coral/50"
+              className={`min-h-12 rounded-[var(--r-md)] border px-3 text-[var(--fs-body)] font-semibold tabular-nums transition duration-200 ease-[var(--ease-out)] active:scale-95 ${
+                active === index
+                  ? "border-[1.5px] border-[var(--coral)] bg-[rgba(251,246,236,1)] text-[var(--coral)] shadow-[0_4px_12px_rgba(217,119,87,0.15)]"
+                  : "border-[var(--line)] bg-transparent text-[var(--ink-soft)] hover:border-[var(--coral-soft)] hover:bg-[rgba(251,246,236,1)] hover:text-[var(--ink)]"
               }`}
             >
               {item.label}
@@ -92,7 +98,7 @@ export function SliderInteractive({ plans }: SliderInteractiveProps) {
         </div>
       </div>
       <div className="pointer-events-none flex justify-end">
-        <AbstractChart className="h-20 w-[min(100%,280px)]" />
+        <AbstractChart className="h-20 w-[min(100%,280px)] text-[var(--coral-soft)]" />
       </div>
       <motion.div
         key={pulse}
@@ -104,8 +110,8 @@ export function SliderInteractive({ plans }: SliderInteractiveProps) {
         <Result label="예상 사용 시간" value={plan.hours} suffix="시간" />
         <Result label="공식 대비 절감" value={plan.discount} suffix="%" />
       </motion.div>
-      <a href="/checkout?plan=pro" className="idle-arrow justify-self-end font-semibold text-primary underline decoration-coral underline-offset-8">
-        이 금액으로 시작하기 →
+      <a href="/checkout?plan=pro" data-cta="true" className="group inline-flex items-center gap-1.5 justify-self-end border-b border-transparent py-2 text-[var(--fs-body)] font-semibold text-[var(--coral)] transition duration-200 ease-[var(--ease-out)] hover:border-[var(--coral)]">
+        이 금액으로 시작하기 <ArrowRight className="h-4 w-4 transition duration-200 group-hover:translate-x-1" aria-hidden="true" />
       </a>
     </div>
   );
@@ -113,10 +119,9 @@ export function SliderInteractive({ plans }: SliderInteractiveProps) {
 
 function Result({ label, value, suffix }: { label: string; value: number; suffix: string }) {
   return (
-    <article className="group relative overflow-hidden rounded-[22px] border border-[var(--border-subtle)] bg-white p-5 transition duration-300 hover:-translate-y-1 hover:shadow-md">
-      <span className="absolute inset-0 bg-coral/0 transition duration-500 group-hover:bg-coral/5" />
-      <span className="text-sm font-semibold text-tertiary">{label}</span>
-      <strong className="mt-3 block text-4xl tracking-tight">
+    <article className="group relative overflow-hidden rounded-[var(--r-md)] border border-[var(--line)] bg-[rgba(251,246,236,1)] p-5 transition duration-200 ease-[var(--ease-out)] hover:-translate-y-0.5 hover:border-[rgba(217,119,87,0.30)] hover:shadow-[var(--shadow-sm)]">
+      <span className="text-[var(--fs-caption)] font-medium tracking-[var(--tracking-body)] text-[var(--ink-soft)]">{label}</span>
+      <strong className="mt-3 block text-[var(--fs-h2)] font-semibold tracking-[var(--tracking-h)] text-[var(--ink)]">
         <AnimatePresence mode="wait" initial={false}>
           <motion.span
             key={`${label}-${value}-${suffix}`}
@@ -126,7 +131,8 @@ function Result({ label, value, suffix }: { label: string; value: number; suffix
             transition={{ duration: 0.35 }}
             className="inline-block"
           >
-            ~<CountUp end={value} suffix={suffix} mode="slot" />
+            <span className="mr-0.5 text-[var(--fs-body)] opacity-55">~</span>
+            <CCCountUp end={value} suffix={suffix} flash className="[&>span]:align-baseline" />
           </motion.span>
         </AnimatePresence>
       </strong>
