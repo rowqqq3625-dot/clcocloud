@@ -157,7 +157,7 @@ export default async function MyPage() {
             </section>
 
             <div className="grid gap-6 lg:grid-cols-2">
-              <section className="relative overflow-hidden rounded-[32px] border border-[var(--border-subtle)] bg-cream/84 p-6 shadow-[0_24px_80px_rgba(31,30,29,.08)]">
+              <section id="api-key-history" className="relative scroll-mt-28 overflow-hidden rounded-[32px] border border-[var(--border-subtle)] bg-cream/84 p-6 shadow-[0_24px_80px_rgba(31,30,29,.08)]">
                 <div className="pointer-events-none absolute -right-20 -top-20 h-52 w-52 rounded-full bg-coral/10 blur-[70px]" />
                 <p className="font-mono text-[11px] font-bold uppercase tracking-[0.16em] text-coral/80">API Key</p>
                 <h2 className="mt-3 text-3xl font-[680] tracking-[-0.035em]">API 키 관리</h2>

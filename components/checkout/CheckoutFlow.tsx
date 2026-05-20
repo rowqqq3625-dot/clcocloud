@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useMemo, useState } from "react";
 import type { PricingPlan } from "@/lib/pricing";
 
@@ -26,11 +27,11 @@ export function CheckoutFlow({ plan, defaultEmail = "" }: CheckoutFlowProps) {
   const [step, setStep] = useState<Step>("details");
   const [contactEmail, setContactEmail] = useState(defaultEmail);
   const [selectedOs, setSelectedOs] = useState<OsTarget[]>([]);
-  const [agreed, setAgreed] = useState(false);
+  const [finalAgreed, setFinalAgreed] = useState(false);
   const [copied, setCopied] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const canContinue = useMemo(() => /.+@.+\..+/.test(contactEmail) && selectedOs.length > 0 && agreed, [agreed, contactEmail, selectedOs]);
+  const canContinue = useMemo(() => /.+@.+\..+/.test(contactEmail) && selectedOs.length > 0, [contactEmail, selectedOs]);
 
   const toggleOs = (target: OsTarget) => {
     setSelectedOs((current) => current.includes(target) ? current.filter((item) => item !== target) : [...current, target]);
@@ -115,11 +116,6 @@ export function CheckoutFlow({ plan, defaultEmail = "" }: CheckoutFlowProps) {
               </div>
             </div>
 
-            <label className="mt-7 flex gap-3 rounded-2xl border border-[var(--border-subtle)] bg-white/70 p-4 text-sm leading-6 text-secondary">
-              <input type="checkbox" checked={agreed} onChange={(event) => setAgreed(event.target.checked)} className="mt-1 h-4 w-4 accent-[var(--coral)]" />
-              <span>입금 확인 후 API 키가 발급되며, 발급 후 사용된 잔액은 환불이 제한될 수 있음에 동의합니다.</span>
-            </label>
-
             <button
               type="button"
               disabled={!canContinue}
@@ -150,7 +146,22 @@ export function CheckoutFlow({ plan, defaultEmail = "" }: CheckoutFlowProps) {
               ))}
             </div>
             {error ? <p className="mt-4 rounded-2xl border border-coral/25 bg-coral/10 px-4 py-3 text-sm font-semibold text-coral">{error}</p> : null}
-            <button type="button" onClick={submitOrder} disabled={submitting} className="mt-8 min-h-14 w-full rounded-2xl bg-primary px-5 text-base font-bold text-cream shadow-lg transition hover:-translate-y-0.5 disabled:opacity-60">
+            <label className="mt-5 flex gap-2 rounded-xl border border-[var(--border-subtle)] bg-white/55 px-3 py-2.5 text-[12px] leading-5 text-secondary/80">
+              <input
+                type="checkbox"
+                checked={finalAgreed}
+                onChange={(event) => setFinalAgreed(event.target.checked)}
+                className="mt-0.5 h-3.5 w-3.5 shrink-0 accent-[var(--coral)]"
+              />
+              <span>
+                본 상품의{" "}
+                <Link href="/docs/terms" target="_blank" className="font-semibold text-primary/80 underline-offset-2 hover:text-coral hover:underline">
+                  이용약관 및 정책
+                </Link>{" "}
+                전문을 모두 확인하였으며, 이에 동의합니다.
+              </span>
+            </label>
+            <button type="button" onClick={submitOrder} disabled={submitting || !finalAgreed} className="mt-5 min-h-14 w-full rounded-2xl bg-primary px-5 text-base font-bold text-cream shadow-lg transition hover:-translate-y-0.5 disabled:cursor-not-allowed disabled:bg-secondary/30 disabled:opacity-60 disabled:shadow-none">
               {submitting ? "저장 중" : "결제완료"}
             </button>
           </div>

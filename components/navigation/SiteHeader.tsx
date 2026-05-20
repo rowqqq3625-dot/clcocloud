@@ -86,6 +86,7 @@ export function SiteHeader({ variant = "floating" }: SiteHeaderProps) {
         <Link className={linkClass} href="/#pricing">가격</Link>
         <Link className={linkClass} href="/#flow">사용법</Link>
         <DashboardGateLink className={linkClass}>대시보드</DashboardGateLink>
+        <Link className={linkClass} href="/docs">문서</Link>
         <Link className={linkClass} href="/#faq">FAQ</Link>
         <Link className={linkClass} href="/mypage">마이페이지</Link>
       </div>

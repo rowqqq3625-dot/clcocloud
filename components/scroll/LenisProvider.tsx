@@ -1,6 +1,7 @@
 "use client";
 
 import Lenis from "lenis";
+import { usePathname } from "next/navigation";
 import { useEffect } from "react";
 
 declare global {
@@ -10,7 +11,16 @@ declare global {
 }
 
 export function LenisProvider() {
+  const pathname = usePathname();
+
   useEffect(() => {
+    if (pathname?.startsWith("/docs")) {
+      window.__clcoLenis?.destroy();
+      window.__clcoLenis = undefined;
+      document.documentElement.classList.remove("lenis", "lenis-smooth", "lenis-stopped");
+      return;
+    }
+
     const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     if (reduced) return;
 
@@ -35,7 +45,7 @@ export function LenisProvider() {
       }
       lenis.destroy();
     };
-  }, []);
+  }, [pathname]);
 
   return null;
 }
