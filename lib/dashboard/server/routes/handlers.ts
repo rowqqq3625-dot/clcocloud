@@ -84,7 +84,7 @@ const adminLoginBodySchema = z.object({
 const noStoreHeaders = {
   'Cache-Control': 'no-store',
 };
-const MAX_RECENT_USAGE_ROWS = 60;
+const MAX_RECENT_USAGE_ROWS = 30;
 const EVENTS_CACHE_TTL_MS = 2_000;
 
 function getSeededRandom(seedStr: string): () => number {
@@ -360,39 +360,7 @@ function stringValue(value: unknown): string | null {
 }
 
 function isSlashCommandUsage(row: UsageEventDto): boolean {
-  const metadata = nestedRecordValue(row, 'metadata');
-  const request = nestedRecordValue(row, 'request');
-  const candidates = [
-    recordValue(row, 'prompt'),
-    recordValue(row, 'input'),
-    recordValue(row, 'message'),
-    recordValue(row, 'command'),
-    metadata.command,
-    metadata.prompt,
-    metadata.input,
-    metadata.message,
-    request.command,
-    request.prompt,
-    request.input,
-    request.message,
-  ];
-
-  const typeStr = stringValue(recordValue(row, 'type'))?.toLowerCase();
-  if (typeStr === 'system' || typeStr?.includes('slash') === true) {
-    return true;
-  }
-  const metaTypeStr = stringValue(metadata.type)?.toLowerCase();
-  if (metaTypeStr === 'system' || metaTypeStr?.includes('slash') === true) {
-    return true;
-  }
-  if (recordValue(row, 'is_slash_command') === true || metadata.is_slash_command === true) {
-    return true;
-  }
-
-  return candidates.some((candidate) => {
-    const text = stringValue(candidate);
-    return text !== null && (text.startsWith('/') || text.includes('_directMetaOnly') || text.includes('model_stats'));
-  });
+  return false;
 }
 
 function isDirectMetaOnlyUsage(row: UsageEventDto): boolean {
@@ -734,8 +702,6 @@ export function createAipDashboardRouter(deps: Partial<AipRouteDeps> = {}): AipD
       throw new Error('Lookup pipeline did not produce an isolated result');
     }
     let filtered = filterEventsForKey(allRows, ctx);
-    const actualRequestRows = filtered.filter((row) => !isDirectMetaOnlyUsage(row) && !isSlashCommandUsage(row));
-    // Safe and pure data-fetching: No fallback to mock rows to avoid key usage lookup hallucinations.
     try {
       assertAllRowsBelongToKey(filtered, ctx);
     } catch (error) {

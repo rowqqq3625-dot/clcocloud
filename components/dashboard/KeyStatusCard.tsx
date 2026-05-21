@@ -44,7 +44,7 @@ export function KeyStatusCard({ apiKey, data, fetchedAt, isRefreshing = false, o
           </div>
         </div>
 
-        <div className="flex flex-col items-end gap-2.5 shrink-0 sm:items-end">
+        <div className="flex flex-col items-end gap-3.5">
           <button
             type="button"
             onClick={onRefresh}
@@ -57,13 +57,9 @@ export function KeyStatusCard({ apiKey, data, fetchedAt, isRefreshing = false, o
           <button
             type="button"
             onClick={onOpenGuide}
-            className="inline-flex w-fit items-center gap-2 rounded-full border border-coral/30 bg-coral/10 hover:bg-coral/20 px-4 py-1.5 font-mono text-[11px] font-semibold text-coral shadow-sm transition-all"
+            className="group inline-flex w-fit items-center gap-2 rounded-full border border-coral/25 bg-coral/5 px-4.5 py-2 font-mono text-[11px] font-semibold text-coral shadow-sm transition hover:bg-coral hover:text-cream"
           >
-            <span className="relative flex h-2 w-2">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-coral opacity-75"></span>
-              <span className="relative inline-flex rounded-full h-2 w-2 bg-coral"></span>
-            </span>
-            가이드 (Guide) →
+            가이드
           </button>
         </div>
       </div>

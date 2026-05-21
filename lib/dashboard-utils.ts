@@ -25,11 +25,8 @@ export function formatRefreshMeta(fetchedAt: string | null | undefined) {
 }
 
 export function buildUsageSeries(requests: ApiKeyRecentRequest[] = []) {
-  // Include all requests that have a valid model name
-  const filtered = requests.filter((request) => request.requestedModel);
-
-  // Sort chronologically (oldest first)
-  const sorted = [...filtered].sort(
+  // Sort chronologically (oldest first) without filtering out any models
+  const sorted = [...requests].sort(
     (a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
   );
 
@@ -66,23 +63,28 @@ export function buildUsageSeries(requests: ApiKeyRecentRequest[] = []) {
   });
 }
 
-export function buildSvgPath(points: Array<{ x: number; y: number }>) {
+export function buildSvgBezierPath(points: Array<{ x: number; y: number }>) {
   if (points.length === 0) return "";
   if (points.length === 1) return `M ${points[0].x.toFixed(2)} ${points[0].y.toFixed(2)}`;
   if (points.length === 2) {
     return `M ${points[0].x.toFixed(2)} ${points[0].y.toFixed(2)} L ${points[1].x.toFixed(2)} ${points[1].y.toFixed(2)}`;
   }
 
-  // Horizontal cubic spline interpolation for a beautiful smooth premium curve
   let path = `M ${points[0].x.toFixed(2)} ${points[0].y.toFixed(2)}`;
+  
   for (let i = 0; i < points.length - 1; i++) {
     const p0 = points[i];
     const p1 = points[i + 1];
-    const cp1x = p0.x + (p1.x - p0.x) / 3;
-    const cp1y = p0.y;
-    const cp2x = p0.x + 2 * (p1.x - p0.x) / 3;
-    const cp2y = p1.y;
-    path += ` C ${cp1x.toFixed(2)} ${cp1y.toFixed(2)}, ${cp2x.toFixed(2)} ${cp2y.toFixed(2)}, ${p1.x.toFixed(2)} ${p1.y.toFixed(2)}`;
+    
+    // Smooth control points exited horizontally from p0 and entered horizontally to p1
+    const cpX1 = p0.x + (p1.x - p0.x) / 3;
+    const cpY1 = p0.y;
+    
+    const cpX2 = p1.x - (p1.x - p0.x) / 3;
+    const cpY2 = p1.y;
+    
+    path += ` C ${cpX1.toFixed(2)} ${cpY1.toFixed(2)}, ${cpX2.toFixed(2)} ${cpY2.toFixed(2)}, ${p1.x.toFixed(2)} ${p1.y.toFixed(2)}`;
   }
+  
   return path;
 }

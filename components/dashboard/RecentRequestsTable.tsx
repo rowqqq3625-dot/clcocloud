@@ -32,11 +32,11 @@ export function getModelDisplayName(model: string): string {
 }
 
 export function RecentRequestsTable({ requests = [] }: RecentRequestsTableProps) {
-  // Map display names and include all requests (no silent filtering)
-  const displayedRequests = requests.map((request) => {
-    const displayName = getModelDisplayName(request.requestedModel);
-    return { ...request, displayName };
-  });
+  // Map display names for all requests without filtering out any unrecognized models
+  const displayedRequests = requests.map((request) => ({
+    ...request,
+    displayName: getModelDisplayName(request.requestedModel),
+  }));
 
   return (
     <motion.section
