@@ -408,7 +408,7 @@ function eventsPage(page: number): number {
 }
 
 function eventsPageSize(pageSize: number): number {
-  return Math.min(Math.max(pageSize, 1), 20);
+  return Math.min(Math.max(pageSize, 1), 10);
 }
 
 function hasOperatorCredentialEnv(): boolean {
@@ -735,9 +735,7 @@ export function createAipDashboardRouter(deps: Partial<AipRouteDeps> = {}): AipD
     }
     let filtered = filterEventsForKey(allRows, ctx);
     const actualRequestRows = filtered.filter((row) => !isDirectMetaOnlyUsage(row) && !isSlashCommandUsage(row));
-    if (actualRequestRows.length === 0) {
-      filtered = [...filtered, ...generateMockRequestRows(ctx.identifierForRows, range)];
-    }
+    // Safe and pure data-fetching: No fallback to mock rows to avoid key usage lookup hallucinations.
     try {
       assertAllRowsBelongToKey(filtered, ctx);
     } catch (error) {

@@ -24,6 +24,8 @@ export function DashboardView({ apiKey }: DashboardViewProps) {
   const [toast, setToast] = useState<string | null>(null);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [showLowBalanceModal, setShowLowBalanceModal] = useState(false);
+  const [showGuideModal, setShowGuideModal] = useState(false);
+  const [guideTab, setGuideTab] = useState<'macOS' | 'powershell' | 'cmd' | 'linux'>('macOS');
 
   const { basePath } = useAipContext();
   const events = useAipEvents(apiKey, range, page);
@@ -133,7 +135,7 @@ export function DashboardView({ apiKey }: DashboardViewProps) {
 
   if (!data) return null;
 
-  const totalPages = Math.max(1, Math.ceil((events.data?.total ?? 0) / (events.data?.pageSize ?? 20)));
+  const totalPages = Math.min(3, Math.max(1, Math.ceil((events.data?.total ?? 0) / (events.data?.pageSize ?? 10))));
 
   return (
     <>
@@ -194,6 +196,117 @@ export function DashboardView({ apiKey }: DashboardViewProps) {
             </motion.div>
           </div>
         )}
+
+        {showGuideModal && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+            <div 
+              className="absolute inset-0 bg-ink/40 backdrop-blur-sm transition-opacity cursor-pointer" 
+              onClick={() => setShowGuideModal(false)}
+            />
+            <motion.div 
+              initial={{ opacity: 0, scale: 0.95, y: 10 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 10 }}
+              className="relative z-10 w-full max-w-2xl overflow-hidden rounded-2xl border border-[var(--border-subtle)] bg-cream p-6 shadow-2xl sm:p-8"
+            >
+              {/* Apple Bezel Signal Light Design */}
+              <div className="flex items-center justify-between pb-4 border-b border-[var(--border-subtle)] mb-6">
+                <div className="flex items-center gap-1.5 select-none">
+                  <span className="h-3 w-3 rounded-full bg-[#ff5f56] border border-[#e0443e] cursor-pointer hover:opacity-85 transition-opacity" onClick={() => setShowGuideModal(false)} />
+                  <span className="h-3 w-3 rounded-full bg-[#ffbd2e] border border-[#dea123] cursor-pointer hover:opacity-85 transition-opacity" />
+                  <span className="h-3 w-3 rounded-full bg-[#27c93f] border border-[#1aab29] cursor-pointer hover:opacity-85 transition-opacity" />
+                </div>
+                <h3 className="font-mono text-[11px] font-bold text-secondary tracking-[0.08em] select-none">CLAUDE CODE CLI GUIDE</h3>
+                <div className="w-[52px]" />
+              </div>
+
+              {/* CLI Installation Section */}
+              <div className="mb-6">
+                <h4 className="text-[13px] font-semibold text-primary mb-2.5 flex items-center gap-2">
+                  <span className="inline-block h-2 w-2 rounded-full bg-coral animate-pulse" />
+                  1. CLI 설치
+                </h4>
+                <div className="relative rounded-xl bg-[#1e1e24] border border-[#2b2b35] p-4 font-mono text-[13px] text-[#c9d1d9] group shadow-inner">
+                  <div className="flex justify-between items-center mb-2.5 text-secondary/50 text-[10px] uppercase tracking-wider font-semibold select-none">
+                    <span>terminal</span>
+                    <button 
+                      onClick={() => {
+                        navigator.clipboard.writeText("npm install -g @anthropic-ai/claude-code");
+                        showToast("CLI 설치 명령어가 복사되었습니다.");
+                      }}
+                      className="hover:text-coral transition-colors duration-200 uppercase tracking-widest font-bold text-[9px] border border-secondary/20 hover:border-coral/50 px-2 py-0.5 rounded"
+                    >
+                      copy
+                    </button>
+                  </div>
+                  <code className="block select-all whitespace-pre-wrap text-[#8b949e]">
+                    <span className="text-[#ff7b72] select-none">$ </span>
+                    <span className="text-[#a5d6ff]">npm install -g @anthropic-ai/claude-code</span>
+                  </code>
+                </div>
+              </div>
+
+              {/* Environment Variable Section */}
+              <div className="mb-6">
+                <h4 className="text-[13px] font-semibold text-primary mb-3 flex items-center gap-2">
+                  <span className="inline-block h-2 w-2 rounded-full bg-coral animate-pulse" />
+                  2. 환경 변수 설정
+                </h4>
+                <div className="flex gap-1.5 mb-4 border-b border-[var(--border-subtle)] pb-2 flex-wrap">
+                  {(['macOS', 'powershell', 'cmd', 'linux'] as const).map((tab) => (
+                    <button
+                      key={tab}
+                      onClick={() => setGuideTab(tab)}
+                      className={`px-3 py-1.5 rounded-xl font-mono text-[11px] font-semibold tracking-wide transition-all duration-200 ${
+                        guideTab === tab
+                          ? 'bg-coral text-cream font-bold shadow-md transform scale-[1.02]'
+                          : 'bg-cream-2/45 text-secondary hover:bg-cream-2/80 hover:text-primary'
+                      }`}
+                    >
+                      {tab === 'macOS' ? '🍎 macOS' : tab === 'powershell' ? '🐚 PowerShell' : tab === 'cmd' ? '💻 CMD' : '🐧 Linux'}
+                    </button>
+                  ))}
+                </div>
+                <div className="relative rounded-xl bg-[#1e1e24] border border-[#2b2b35] p-4 font-mono text-[13px] text-[#c9d1d9] shadow-inner">
+                  <div className="flex justify-between items-center mb-2.5 text-secondary/50 text-[10px] uppercase tracking-wider font-semibold select-none">
+                    <span>
+                      {guideTab === 'macOS' ? '~/.zshrc' : guideTab === 'powershell' ? 'PowerShell Profile' : guideTab === 'cmd' ? 'Command Prompt' : '~/.bashrc'}
+                    </span>
+                    <button 
+                      onClick={() => {
+                        const code = getCodeSnippet(guideTab, apiKey);
+                        navigator.clipboard.writeText(code);
+                        showToast("환경 변수 설정 코드가 복사되었습니다.");
+                      }}
+                      className="hover:text-coral transition-colors duration-200 uppercase tracking-widest font-bold text-[9px] border border-secondary/20 hover:border-coral/50 px-2 py-0.5 rounded"
+                    >
+                      copy
+                    </button>
+                  </div>
+                  <pre className="overflow-x-auto whitespace-pre leading-relaxed text-[#c9d1d9] select-all max-h-[170px] scrollbar-thin text-[12px] font-medium">
+                    <code>{getCodeSnippet(guideTab, apiKey)}</code>
+                  </pre>
+                </div>
+              </div>
+
+              {/* Popup Footer */}
+              <div className="flex justify-between items-center mt-7 pt-4 border-t border-[var(--border-subtle)]">
+                <button 
+                  onClick={() => setShowGuideModal(false)}
+                  className="rounded-xl border border-[var(--border-subtle)] bg-cream px-5 py-2.5 text-[12px] font-semibold text-secondary transition hover:bg-cream-2/60"
+                >
+                  닫기
+                </button>
+                <a 
+                  href="/docs/installation" 
+                  className="font-mono text-[10px] font-semibold text-secondary/35 hover:text-coral hover:underline transition-all duration-200 select-none pr-1 tracking-wider"
+                >
+                  자세히 보기 ↗
+                </a>
+              </div>
+            </motion.div>
+          </div>
+        )}
       </AnimatePresence>
 
       <motion.div
@@ -209,6 +322,7 @@ export function DashboardView({ apiKey }: DashboardViewProps) {
           isRefreshing={isRefreshing || isSyncing}
           onCopied={showToast}
           onRefresh={refresh}
+          onOpenGuide={() => setShowGuideModal(true)}
         />
 
         {/* Dynamic & Beautiful Cinematic Toolbar */}
@@ -370,5 +484,46 @@ export function DashboardView({ apiKey }: DashboardViewProps) {
       </motion.div>
     </>
   );
+}
+
+function getCodeSnippet(tab: 'macOS' | 'powershell' | 'cmd' | 'linux', key: string): string {
+  const safeKey = key || "여기에_발급받은_API키를_넣어주세요.";
+  switch (tab) {
+    case 'macOS':
+      return `sed -i '' '/export ANTHROPIC_API_KEY/d' ~/.zshrc
+echo 'export ANTHROPIC_BASE_URL="https://api-anthropic.com/v1"' >> ~/.zshrc
+echo 'export ANTHROPIC_AUTH_TOKEN="${safeKey}"' >> ~/.zshrc
+echo 'export CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC="1"' >> ~/.zshrc
+unset ANTHROPIC_API_KEY
+source ~/.zshrc
+claude /logout`;
+    case 'powershell':
+      return `[Environment]::SetEnvironmentVariable("ANTHROPIC_BASE_URL", "https://api-anthropic.com/v1", "User")
+[Environment]::SetEnvironmentVariable("ANTHROPIC_AUTH_TOKEN", "${safeKey}", "User")
+[Environment]::SetEnvironmentVariable("CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC", "1", "User")
+$env:ANTHROPIC_BASE_URL="https://api-anthropic.com/v1"
+$env:ANTHROPIC_AUTH_TOKEN="${safeKey}"
+$env:CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC="1"
+Remove-Item Env:\\ANTHROPIC_API_KEY -ErrorAction SilentlyContinue
+claude /logout`;
+    case 'cmd':
+      return `setx ANTHROPIC_BASE_URL "https://api-anthropic.com/v1"
+setx ANTHROPIC_AUTH_TOKEN "${safeKey}"
+setx CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC "1"
+reg delete "HKCU\\Environment" /v ANTHROPIC_API_KEY /f 2>nul
+set ANTHROPIC_BASE_URL=https://api-anthropic.com/v1
+set ANTHROPIC_AUTH_TOKEN=${safeKey}
+set CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC=1
+set ANTHROPIC_API_KEY=
+claude /logout`;
+    case 'linux':
+      return `sed -i '/export ANTHROPIC_API_KEY/d' ~/.bashrc
+echo 'export ANTHROPIC_BASE_URL="https://api-anthropic.com/v1"' >> ~/.bashrc
+echo 'export ANTHROPIC_AUTH_TOKEN="${safeKey}"' >> ~/.bashrc
+echo 'export CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC="1"' >> ~/.bashrc
+unset ANTHROPIC_API_KEY
+source ~/.bashrc
+claude /logout`;
+  }
 }
 

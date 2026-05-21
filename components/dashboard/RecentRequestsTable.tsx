@@ -17,7 +17,7 @@ export function formatCompactToken(num: number): string {
   return Math.round(num / 1000000) + "M";
 }
 
-export function getModelDisplayName(model: string): string | null {
+export function getModelDisplayName(model: string): string {
   const m = model.toLowerCase();
   if (m.includes("sonnet") || m.includes("소넷")) {
     return "소넷 4.6";
@@ -28,17 +28,15 @@ export function getModelDisplayName(model: string): string | null {
   if (m.includes("haiku") || m.includes("하이쿠")) {
     return "하이쿠 4.5";
   }
-  return null;
+  return model;
 }
 
 export function RecentRequestsTable({ requests = [] }: RecentRequestsTableProps) {
-  // Filter out requests that don't match the allowed models, and map their display names
-  const displayedRequests = requests
-    .map((request) => {
-      const displayName = getModelDisplayName(request.requestedModel);
-      return displayName ? { ...request, displayName } : null;
-    })
-    .filter((req): req is (ApiKeyRecentRequest & { displayName: string }) => req !== null);
+  // Map display names and include all requests (no silent filtering)
+  const displayedRequests = requests.map((request) => {
+    const displayName = getModelDisplayName(request.requestedModel);
+    return { ...request, displayName };
+  });
 
   return (
     <motion.section

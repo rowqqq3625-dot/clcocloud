@@ -14,9 +14,10 @@ type KeyStatusCardProps = {
   isRefreshing?: boolean;
   onCopied: (message: string) => void;
   onRefresh: () => void;
+  onOpenGuide: () => void;
 };
 
-export function KeyStatusCard({ apiKey, data, fetchedAt, isRefreshing = false, onCopied, onRefresh }: KeyStatusCardProps) {
+export function KeyStatusCard({ apiKey, data, fetchedAt, isRefreshing = false, onCopied, onRefresh, onOpenGuide }: KeyStatusCardProps) {
   return (
     <motion.article
       initial={{ opacity: 0, y: 24 }}
@@ -43,14 +44,28 @@ export function KeyStatusCard({ apiKey, data, fetchedAt, isRefreshing = false, o
           </div>
         </div>
 
-        <button
-          type="button"
-          onClick={onRefresh}
-          className="group inline-flex w-fit items-center gap-2 rounded-full border border-[var(--border-subtle)] bg-cream-2/45 px-4 py-2 font-mono text-[11px] text-secondary shadow-sm transition hover:border-coral/50 hover:text-coral"
-        >
-          <RefreshCw className={`h-3.5 w-3.5 transition duration-500 group-hover:rotate-180 ${isRefreshing ? "animate-spin text-coral" : ""}`} />
-          {formatRefreshMeta(fetchedAt)}
-        </button>
+        <div className="flex flex-col items-end gap-2.5 shrink-0 sm:items-end">
+          <button
+            type="button"
+            onClick={onRefresh}
+            className="group inline-flex w-fit items-center gap-2 rounded-full border border-[var(--border-subtle)] bg-cream-2/45 px-4 py-2 font-mono text-[11px] text-secondary shadow-sm transition hover:border-coral/50 hover:text-coral"
+          >
+            <RefreshCw className={`h-3.5 w-3.5 transition duration-500 group-hover:rotate-180 ${isRefreshing ? "animate-spin text-coral" : ""}`} />
+            {formatRefreshMeta(fetchedAt)}
+          </button>
+          
+          <button
+            type="button"
+            onClick={onOpenGuide}
+            className="inline-flex w-fit items-center gap-2 rounded-full border border-coral/30 bg-coral/10 hover:bg-coral/20 px-4 py-1.5 font-mono text-[11px] font-semibold text-coral shadow-sm transition-all"
+          >
+            <span className="relative flex h-2 w-2">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-coral opacity-75"></span>
+              <span className="relative inline-flex rounded-full h-2 w-2 bg-coral"></span>
+            </span>
+            가이드 (Guide) →
+          </button>
+        </div>
       </div>
     </motion.article>
   );

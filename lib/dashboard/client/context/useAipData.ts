@@ -91,7 +91,7 @@ function useAipRequest<T>(
       const requestBody =
         kind === 'summary'
           ? { apiKey, range }
-          : { apiKey, range, page: page ?? 1, pageSize: 20 };
+          : { apiKey, range, page: page ?? 1, pageSize: 10 };
       const next = await postJson<T>(joinPath(basePath, path), requestBody);
       queryClient.set(queryKey, next);
       setData(next);

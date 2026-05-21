@@ -25,15 +25,8 @@ export function formatRefreshMeta(fetchedAt: string | null | undefined) {
 }
 
 export function buildUsageSeries(requests: ApiKeyRecentRequest[] = []) {
-  // Filter strictly Sonnet, Opus, and Haiku models
-  const filtered = requests.filter((request) => {
-    const m = request.requestedModel.toLowerCase();
-    return (
-      m.includes("sonnet") || m.includes("소넷") ||
-      m.includes("opus") || m.includes("오푸스") ||
-      m.includes("haiku") || m.includes("하이쿠")
-    );
-  });
+  // Include all requests that have a valid model name
+  const filtered = requests.filter((request) => request.requestedModel);
 
   // Sort chronologically (oldest first)
   const sorted = [...filtered].sort(
@@ -75,5 +68,21 @@ export function buildUsageSeries(requests: ApiKeyRecentRequest[] = []) {
 
 export function buildSvgPath(points: Array<{ x: number; y: number }>) {
   if (points.length === 0) return "";
-  return points.map((point, index) => `${index === 0 ? "M" : "L"} ${point.x.toFixed(2)} ${point.y.toFixed(2)}`).join(" ");
+  if (points.length === 1) return `M ${points[0].x.toFixed(2)} ${points[0].y.toFixed(2)}`;
+  if (points.length === 2) {
+    return `M ${points[0].x.toFixed(2)} ${points[0].y.toFixed(2)} L ${points[1].x.toFixed(2)} ${points[1].y.toFixed(2)}`;
+  }
+
+  // Horizontal cubic spline interpolation for a beautiful smooth premium curve
+  let path = `M ${points[0].x.toFixed(2)} ${points[0].y.toFixed(2)}`;
+  for (let i = 0; i < points.length - 1; i++) {
+    const p0 = points[i];
+    const p1 = points[i + 1];
+    const cp1x = p0.x + (p1.x - p0.x) / 3;
+    const cp1y = p0.y;
+    const cp2x = p0.x + 2 * (p1.x - p0.x) / 3;
+    const cp2y = p1.y;
+    path += ` C ${cp1x.toFixed(2)} ${cp1y.toFixed(2)}, ${cp2x.toFixed(2)} ${cp2y.toFixed(2)}, ${p1.x.toFixed(2)} ${p1.y.toFixed(2)}`;
+  }
+  return path;
 }
