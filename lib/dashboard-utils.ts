@@ -25,18 +25,52 @@ export function formatRefreshMeta(fetchedAt: string | null | undefined) {
 }
 
 export function buildUsageSeries(requests: ApiKeyRecentRequest[] = []) {
-  // 최근 요청의 토큰량만 사용해 클라이언트 전용 차트 데이터를 만든다.
-  const source = requests.length > 0 ? requests.slice(0, 12).reverse() : [];
-  const fallback = [18, 31, 24, 46, 39, 62, 54, 72, 61, 79, 68, 86];
-  const values = source.length > 1 ? source.map((request) => request.totalTokens) : fallback;
+  // Filter strictly Sonnet, Opus, and Haiku models
+  const filtered = requests.filter((request) => {
+    const m = request.requestedModel.toLowerCase();
+    return (
+      m.includes("sonnet") || m.includes("소넷") ||
+      m.includes("opus") || m.includes("오푸스") ||
+      m.includes("haiku") || m.includes("하이쿠")
+    );
+  });
+
+  // Sort chronologically (oldest first)
+  const sorted = [...filtered].sort(
+    (a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
+  );
+
+  // If no requests, draw a baseline of 0 points across the axis
+  if (sorted.length === 0) {
+    return Array.from({ length: 12 }, (_, i) => ({
+      label: `T-${12 - i}`,
+      value: 0,
+      x: (i / 11) * 100,
+      y: 92,
+    }));
+  }
+
+  // If exactly 1 request, draw two points to create a smooth slope
+  if (sorted.length === 1) {
+    const val = sorted[0].totalTokens;
+    return [
+      { label: "시작", value: 0, x: 0, y: 92 },
+      { label: sorted[0].createdAt, value: val, x: 100, y: 18 },
+    ];
+  }
+
+  const values = sorted.map((request) => request.totalTokens);
   const max = Math.max(...values, 1);
 
-  return values.map((value, index) => ({
-    label: source[index]?.createdAt ?? `T-${values.length - index}`,
-    value,
-    x: values.length === 1 ? 50 : (index / (values.length - 1)) * 100,
-    y: 92 - (value / max) * 74,
-  }));
+  return sorted.map((request, index) => {
+    const value = request.totalTokens;
+    return {
+      label: request.createdAt,
+      value,
+      x: (index / (sorted.length - 1)) * 100,
+      y: 92 - (value / max) * 74,
+    };
+  });
 }
 
 export function buildSvgPath(points: Array<{ x: number; y: number }>) {

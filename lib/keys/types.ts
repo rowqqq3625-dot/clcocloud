@@ -8,6 +8,8 @@ export const ApiKeyRecentRequestSchema = z.object({
   latencyMs: z.number(),
   statusCode: z.number(),
   createdAt: z.string(), // ISO String
+  reasoningEffort: z.string().optional(),
+  processing: z.string().optional(),
 }).passthrough(); // Preserve any unknown fields
 
 export const ApiKeyStatsSchema = z.object({
@@ -32,6 +34,9 @@ export const ApiKeyStatusSchema = z.object({
   lastUsedAt: z.string().nullable().optional(),
   expiresAt: z.string().nullable().optional(),
   balanceUsd: z.number(),
+  initialUsd: z.number().nullable().optional(),
+  baselineUsd: z.number().nullable().optional(),
+  usedUsd: z.number().nullable().optional(),
   lifetimeConsumedUsd: z.number().nullable().optional(),
   stats: ApiKeyStatsSchema.optional(),
   recentRequests: z.array(ApiKeyRecentRequestSchema).optional(),

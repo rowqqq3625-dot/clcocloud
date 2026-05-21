@@ -1,0 +1,18 @@
+:root {
+  --aip-bg: #ffffff;
+  --aip-surface: rgba(255, 255, 255, 0.78);
+  --aip-surface-muted: #f5f8ff;
+  --aip-border: #e8ebf0;
+  --aip-border-strong: #e1e5eb;
+  --aip-text: #222222;
+  --aip-text-muted: #646464;
+  --aip-text-soft: #8a8a8a;
+  --aip-primary: #1473ff;
+  --aip-primary-muted: #e7f0ff;
+  --aip-primary-text: #ffffff;
+  --aip-danger: #ef4444;
+  --aip-success: #1473ff;
+  --aip-focus: #1473ff;
+  --aip-radius: 34px;
+  --aip-shadow: 0 28px 70px rgba(21, 31, 54, 0.08);
+}

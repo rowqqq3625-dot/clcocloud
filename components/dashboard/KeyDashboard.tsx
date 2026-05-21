@@ -4,6 +4,21 @@ import React, { useEffect, useState } from "react";
 import { useKeyStatus } from "@/lib/keys/hooks";
 import { formatUsd, formatDateTime, formatTimeAgo, formatNumber } from "@/lib/format";
 import { Pause, AlertCircle, RefreshCw, Key, Database, Activity, Clock } from "lucide-react";
+import type { ApiKeyRecentRequest } from "@/lib/keys/types";
+
+function getModelDisplayName(model: string): string | null {
+  const m = model.toLowerCase();
+  if (m.includes("sonnet") || m.includes("소넷")) {
+    return "소넷 4.6";
+  }
+  if (m.includes("opus") || m.includes("오푸스")) {
+    return "오푸스 4.7";
+  }
+  if (m.includes("haiku") || m.includes("하이쿠")) {
+    return "하이쿠 4.5";
+  }
+  return null;
+}
 
 export function KeyDashboard({ apiKey }: { apiKey: string }) {
   const { data, error, isLoading, fetchedAt } = useKeyStatus(apiKey);
@@ -52,6 +67,19 @@ export function KeyDashboard({ apiKey }: { apiKey: string }) {
   }
 
   if (!data) return null;
+
+  // Filter allowed models
+  const mappedAllowedModels = (data.allowedModels || [])
+    .map((model) => getModelDisplayName(model))
+    .filter((model): model is string => model !== null);
+
+  // Filter recent requests
+  const mappedRecentRequests = (data.recentRequests || [])
+    .map((req) => {
+      const displayName = getModelDisplayName(req.requestedModel);
+      return displayName ? { ...req, displayName } : null;
+    })
+    .filter((req): req is (ApiKeyRecentRequest & { displayName: string }) => req !== null);
 
   return (
     <div className="w-full bg-white/60 backdrop-blur-xl border border-neutral-200/60 rounded-[32px] shadow-[0_8px_40px_-12px_rgba(0,0,0,0.08)] overflow-hidden">
@@ -134,11 +162,11 @@ export function KeyDashboard({ apiKey }: { apiKey: string }) {
         </div>
 
         {/* Allowed Models */}
-        {data.allowedModels && data.allowedModels.length > 0 && (
+        {mappedAllowedModels.length > 0 && (
           <div className="bg-white/80 backdrop-blur-md p-6 rounded-[24px] border border-neutral-200/60 shadow-sm">
             <h4 className="text-xs font-semibold uppercase tracking-widest text-neutral-500 mb-4">허용된 모델 (Allowed Models)</h4>
             <div className="flex flex-wrap gap-2">
-              {data.allowedModels.map((model) => (
+              {mappedAllowedModels.map((model) => (
                 <span key={model} className="px-3 py-1.5 bg-neutral-100 text-neutral-700 text-xs rounded-full border border-neutral-200 font-mono transition-colors hover:bg-neutral-200 hover:text-neutral-900 shadow-sm">
                   {model}
                 </span>
@@ -165,21 +193,21 @@ export function KeyDashboard({ apiKey }: { apiKey: string }) {
                 </tr>
               </thead>
               <tbody className="divide-y divide-neutral-100">
-                {!data.recentRequests || data.recentRequests.length === 0 ? (
+                {mappedRecentRequests.length === 0 ? (
                   <tr>
                     <td colSpan={6} className="px-6 py-12 text-center text-neutral-400 text-sm font-medium">
                       최근 내역이 없습니다.
                     </td>
                   </tr>
                 ) : (
-                  data.recentRequests.map((req) => (
+                  mappedRecentRequests.map((req) => (
                     <tr key={req.requestId} className="hover:bg-neutral-50/80 transition-colors group">
                       <td className="px-6 py-4 text-neutral-500 text-xs font-mono font-medium">
                         {formatDateTime(req.createdAt)}
                       </td>
                       <td className="px-6 py-4 font-mono text-xs text-neutral-800">
                         <span className="px-2.5 py-1 bg-neutral-100 rounded-md border border-transparent group-hover:border-neutral-200 transition-colors">
-                          {req.requestedModel}
+                          {req.displayName}
                         </span>
                       </td>
                       <td className="px-6 py-4 text-right font-mono text-xs text-neutral-600">

@@ -6,9 +6,11 @@ import { buildSvgPath, buildUsageSeries } from "@/lib/dashboard-utils";
 
 type UsageChartProps = {
   requests?: ApiKeyRecentRequest[];
+  onRefresh?: () => void;
+  isRefreshing?: boolean;
 };
 
-export function UsageChart({ requests = [] }: UsageChartProps) {
+export function UsageChart({ requests = [], onRefresh, isRefreshing = false }: UsageChartProps) {
   // 실제 요청 내역이 없을 때도 레이아웃이 비지 않도록 안전한 신호선을 만든다.
   const points = buildUsageSeries(requests);
   const path = buildSvgPath(points);
@@ -26,7 +28,15 @@ export function UsageChart({ requests = [] }: UsageChartProps) {
           <p className="font-mono text-[11px] uppercase tracking-[0.16em] text-coral/75">· USAGE SIGNAL</p>
           <h3 className="mt-2 text-[24px] font-[560] tracking-[-0.018em] text-primary">사용량 흐름</h3>
         </div>
-        <p className="font-mono text-[11px] text-secondary/60">live · auto-refresh 30s</p>
+        <button
+          type="button"
+          onClick={onRefresh}
+          disabled={isRefreshing}
+          className={`group flex items-center gap-1.5 font-mono text-[11px] uppercase tracking-[0.12em] text-secondary/65 hover:text-coral transition-colors duration-200 disabled:opacity-50 ${isRefreshing ? "animate-pulse" : ""}`}
+        >
+          <span className={`inline-block h-1.5 w-1.5 rounded-full bg-emerald-500 ${isRefreshing ? "animate-ping" : "animate-pulse"}`} />
+          live · auto-refresh 30s {isRefreshing ? "(refreshing...)" : ""}
+        </button>
       </div>
       <div className="mt-6 h-[220px] rounded-2xl border border-[var(--border-subtle)] bg-cream-2/45 p-4">
         <svg viewBox="0 0 100 100" preserveAspectRatio="none" className="h-full w-full overflow-visible">
