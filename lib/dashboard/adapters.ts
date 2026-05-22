@@ -60,7 +60,16 @@ export function adaptRecentRequests(rows: Record<string, string | number | null>
       latencyMs: numberValue(row.latencyMs ?? row['duration_ms']),
       statusCode: numberValue(row.statusCode ?? row['status_code'], 200),
       createdAt,
-      reasoningEffort: stringValue(row.reasoningEffort ?? row['reasoning_effort'] ?? row['異붾줎?쒖씠??'], 'default'),
+      reasoningEffort: (() => {
+        const raw = row.reasoningEffort ?? row.reasoning_effort ?? row['reasoning_effort'] ?? row.reasoningLabel ?? row.reasoning_label ?? row.reasoning ?? row.thinking ?? row.effort ?? row.difficulty ?? row.level ?? row['異붾줎?쒖씠??'];
+        if (raw === undefined || raw === null || raw === '') return 'default';
+        const lower = String(raw).toLowerCase();
+        if (lower.includes('high')) return 'high';
+        if (lower.includes('medium')) return 'medium';
+        if (lower.includes('low')) return 'low';
+        if (lower.includes('none')) return 'none';
+        return String(raw);
+      })(),
       processing: stringValue(row.processing ?? row.status ?? row['泥섎━'], 'success'),
     }];
   });

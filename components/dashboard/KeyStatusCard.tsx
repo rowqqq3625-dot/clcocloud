@@ -59,7 +59,7 @@ export function KeyStatusCard({
             className="group inline-flex w-fit items-center gap-2 rounded-full border border-[var(--border-subtle)] bg-cream-2/45 px-4 py-2 font-mono text-[11px] text-secondary shadow-sm transition hover:border-coral/50 hover:text-coral"
           >
             <RefreshCw className={`h-3.5 w-3.5 transition duration-500 group-hover:rotate-180 ${isRefreshing ? "animate-spin text-coral" : ""}`} />
-            {formatRefreshMeta(fetchedAt)}
+            새로 고침
           </button>
           
           {onGuide && (

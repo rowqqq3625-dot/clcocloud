@@ -45,7 +45,7 @@ function useAipRequest<T>(
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const [updatedAt, setUpdatedAt] = useState<Date | null>(null);
-  const backoffRef = useRef(30_000);
+  const backoffRef = useRef(60_000);
   const previousFpRef = useRef('');
   const inFlightRef = useRef<Promise<void> | null>(null);
   const lastManualRefetchAt = useRef(0);
@@ -107,7 +107,7 @@ function useAipRequest<T>(
       queryClient.set(queryKey, next);
       setData(next);
       setUpdatedAt(new Date());
-      backoffRef.current = 30_000;
+      backoffRef.current = 60_000;
     })();
 
     inFlightRef.current = request;
@@ -116,7 +116,7 @@ function useAipRequest<T>(
       await request;
     } catch (err: any) {
       setError(err?.message || '데이터를 불러오는 중 오류가 발생했습니다.');
-      backoffRef.current = 30_000;
+      backoffRef.current = 60_000;
     } finally {
       inFlightRef.current = null;
       setLoading(false);

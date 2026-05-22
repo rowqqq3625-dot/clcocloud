@@ -114,6 +114,61 @@ export const UsageSummaryDtoSchema = z
   })
   .passthrough();
 
+function findReasoningEffortDeep(value: unknown): string | undefined {
+  if (value === undefined || value === null) return undefined;
+
+  if (typeof value === 'string') {
+    const trimmed = value.trim();
+    if (trimmed.startsWith('{') || trimmed.startsWith('[')) {
+      try {
+        const parsed = JSON.parse(trimmed);
+        const deepResult = findReasoningEffortDeep(parsed);
+        if (deepResult !== undefined) return deepResult;
+      } catch {
+        // ignore
+      }
+    }
+    return undefined;
+  }
+
+  if (Array.isArray(value)) {
+    for (const item of value) {
+      const result = findReasoningEffortDeep(item);
+      if (result !== undefined) return result;
+    }
+    return undefined;
+  }
+
+  if (typeof value === 'object') {
+    const record = value as Record<string, unknown>;
+    const targetKeys = ['reasoning', 'thinking', 'effort', 'difficulty', 'level'];
+    for (const k of Object.keys(record)) {
+      const lowerKey = k.toLowerCase();
+      if (targetKeys.some(target => lowerKey.includes(target))) {
+        const val = record[k];
+        if (val !== undefined && val !== null && val !== '') {
+          if (typeof val === 'object') {
+            const deepVal = findReasoningEffortDeep(val);
+            if (deepVal !== undefined) return deepVal;
+          } else {
+            return String(val);
+          }
+        }
+      }
+    }
+
+    for (const k of Object.keys(record)) {
+      const val = record[k];
+      if (typeof val === 'object' || (typeof val === 'string' && (val.trim().startsWith('{') || val.trim().startsWith('[')))) {
+        const result = findReasoningEffortDeep(val);
+        if (result !== undefined) return result;
+      }
+    }
+  }
+
+  return undefined;
+}
+
 // RouteAI usage rows are normalized to keyIdentifier for strict isolation.
 // Current discovered mapping: api_key_id is the RouteAI filter/row identifier candidate.
 // Historical token_id/key_id are accepted only for one-release compatibility with old fixtures.
@@ -157,25 +212,13 @@ export const UsageEventDtoSchema = z
   })
   .passthrough()
   .transform((row, ctx) => {
-    const keyIdentifier = row.keyIdentifier ?? row.api_key_id ?? row.key_id ?? row.token_id ?? row.id;
+    let keyIdentifier = row.keyIdentifier ?? row.api_key_id ?? row.key_id ?? row.token_id ?? row.id;
 
     if (keyIdentifier === undefined || keyIdentifier === '') {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        message: 'Usage row is missing api_key_id/key_id key identifier',
-        path: ['keyIdentifier'],
-      });
-      return z.NEVER;
+      keyIdentifier = '__direct_key__';
     }
 
-    const reasoningLabel =
-      row.reasoning_effort ??
-      row.reasoning ??
-      row.thinking ??
-      row.difficulty ??
-      row.metadata?.reasoning_effort ??
-      row.request?.reasoning_effort ??
-      '기본값';
+    const reasoningLabel = findReasoningEffortDeep(row) ?? '기본값';
     const record = row as Record<string, unknown>;
     const model = row.model ?? optionalStringValue(firstNestedValue(record, ['modelName', 'model_name', 'model']));
     const inputTokens =

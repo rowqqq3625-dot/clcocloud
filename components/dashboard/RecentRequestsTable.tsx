@@ -49,9 +49,8 @@ export function RecentRequestsTable({ requests = [], dataState = "ready" }: Rece
             <tr>
               <th className="sticky left-0 z-[1] bg-cream-2/95 px-5 py-4 font-medium backdrop-blur">MODEL</th>
               <th className="px-5 py-4 text-center font-medium">REASONING</th>
-              <th className="px-5 py-4 text-right font-medium">INPUT</th>
-              <th className="px-5 py-4 text-right font-medium">OUTPUT</th>
-              <th className="px-5 py-4 text-right font-medium">TOTAL</th>
+              <th className="px-5 py-4 text-right font-medium">TOKENS</th>
+              <th className="px-5 py-4 text-right font-medium">DURATION</th>
               <th className="px-5 py-4 text-right font-medium">COST</th>
               <th className="px-5 py-4 font-medium">TIME</th>
               <th className="px-5 py-4 text-center font-medium">STATUS</th>
@@ -60,7 +59,7 @@ export function RecentRequestsTable({ requests = [], dataState = "ready" }: Rece
           <tbody>
             {requests.length === 0 ? (
               <tr>
-                <td colSpan={8} className="px-5 py-14 text-center text-sm leading-6 text-secondary">
+                <td colSpan={7} className="px-5 py-14 text-center text-sm leading-6 text-secondary">
                   {emptyMessage}
                 </td>
               </tr>
@@ -78,18 +77,31 @@ export function RecentRequestsTable({ requests = [], dataState = "ready" }: Rece
                     <span className="break-all font-mono font-medium">{displayModelName(request.requestedModel)}</span>
                   </td>
                   <td className="px-5 py-4 text-center">
-                    <span className="inline-flex items-center rounded-md bg-cream-2 px-2.5 py-1 font-mono text-[11px] font-semibold text-secondary">
-                      {request.reasoningEffort || "default"}
+                    {(() => {
+                      const effort = (request.reasoningEffort || "default").toLowerCase();
+                      let badgeClass = "bg-cream-2 text-secondary";
+                      if (effort.includes("high")) {
+                        badgeClass = "bg-coral/10 text-coral";
+                      } else if (effort.includes("medium")) {
+                        badgeClass = "bg-[#E4A853]/15 text-[#b27926]";
+                      } else if (effort.includes("low")) {
+                        badgeClass = "bg-[#6B9A7C]/15 text-[#426a50]";
+                      }
+                      return (
+                        <span className={`inline-flex items-center rounded-md px-2.5 py-1 font-mono text-[11px] font-semibold ${badgeClass}`}>
+                          {request.reasoningEffort || "default"}
+                        </span>
+                      );
+                    })()}
+                  </td>
+                  <td className="px-5 py-4 text-right font-mono text-[13px] tabular-nums text-primary">
+                    <span className="font-bold">{formatCompactToken(request.totalTokens)}</span>
+                    <span className="text-secondary/70 text-[11px] ml-1.5 font-normal">
+                      (In: {formatCompactToken(request.inputTokens ?? 0)} / Out: {formatCompactToken(request.outputTokens ?? 0)})
                     </span>
                   </td>
                   <td className="px-5 py-4 text-right font-mono text-[13px] tabular-nums text-secondary">
-                    {formatCompactToken(request.inputTokens ?? 0)}
-                  </td>
-                  <td className="px-5 py-4 text-right font-mono text-[13px] tabular-nums text-secondary">
-                    {formatCompactToken(request.outputTokens ?? 0)}
-                  </td>
-                  <td className="px-5 py-4 text-right font-mono text-[13px] tabular-nums text-primary">
-                    {formatCompactToken(request.totalTokens)}
+                    {request.latencyMs ? `${(request.latencyMs / 1000).toFixed(2)}s` : "0.00s"}
                   </td>
                   <td className="px-5 py-4 text-right font-mono text-[13px] font-medium tabular-nums text-coral">
                     {formatUsd(request.costUsd)}
