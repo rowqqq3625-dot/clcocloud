@@ -14,6 +14,13 @@ export async function handleNextRequest(req: NextRequest, method: string, path: 
     } catch {
       // Empty or invalid body
     }
+  } else if (method === 'GET') {
+    const { searchParams } = new URL(req.url);
+    const params: Record<string, string> = {};
+    searchParams.forEach((value, key) => {
+      params[key] = value;
+    });
+    body = params;
   }
 
   const headers: Record<string, string> = {};

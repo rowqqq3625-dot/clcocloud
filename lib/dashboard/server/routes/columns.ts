@@ -12,7 +12,7 @@ const columnResolvers: Record<string, (row: UsageEventDto) => string | number | 
   outputTokens: (row) => row.output_tokens ?? 0,
   totalTokens: (row) => row.total_tokens ?? tokenTotal(row),
   costUsd: (row) => row.actual_cost ?? row.cost ?? 0,
-  createdAt: (row) => row.created_at ?? null,
+  createdAt: (row) => row.created_at ?? '',
   processing: (row) => requestStatus(row),
 };
 

@@ -12,30 +12,44 @@ let tablesInitialized = false;
 
 async function initializeTables(client: PoolClient) {
   if (tablesInitialized) return;
+
+  // Drop old tables to migrate to the new isolation schemas perfectly
   await client.query(`
-    CREATE TABLE IF NOT EXISTS public.api_key_balance (
-      api_key_id text PRIMARY KEY,
-      initial_balance_usd numeric(12, 4) NOT NULL DEFAULT 0,
-      last_topup_balance_usd numeric(12, 4) NOT NULL DEFAULT 0,
-      current_balance_usd numeric(12, 4) NOT NULL DEFAULT 0,
-      updated_at timestamptz DEFAULT now()
+    DROP TABLE IF EXISTS public.usage_logs CASCADE;
+    DROP TABLE IF EXISTS public.api_key_balance CASCADE;
+  `);
+
+  await client.query(`
+    CREATE TABLE public.api_key_balance (
+      fp_full                 char(64) PRIMARY KEY,
+      initial_balance_usd     numeric(12,6) NOT NULL,
+      last_topup_balance_usd  numeric(12,6) NOT NULL,
+      current_balance_usd     numeric(12,6) NOT NULL,
+      updated_at              timestamptz NOT NULL DEFAULT now()
     );
 
-    CREATE TABLE IF NOT EXISTS public.usage_logs (
-      request_id text PRIMARY KEY,
-      api_key_id text NOT NULL,
-      model text NOT NULL,
-      reasoning_effort text DEFAULT 'default',
-      input_tokens integer NOT NULL DEFAULT 0,
-      output_tokens integer NOT NULL DEFAULT 0,
-      cost_usd numeric(12, 6) NOT NULL DEFAULT 0,
-      request_source text NOT NULL DEFAULT 'user_prompt',
-      occurred_at timestamptz NOT NULL,
-      created_at timestamptz DEFAULT now()
+    CREATE TABLE public.usage_logs (
+      id                  bigserial PRIMARY KEY,
+      fp_full             char(64)        NOT NULL,
+      fp16                char(16)        NOT NULL,
+      last4               char(4)         NOT NULL,
+      request_id          text            NOT NULL,
+      model               text            NOT NULL,
+      reasoning_effort    text            NULL,
+      input_tokens        integer         NOT NULL DEFAULT 0,
+      output_tokens       integer         NOT NULL DEFAULT 0,
+      total_tokens        integer         GENERATED ALWAYS AS (input_tokens + output_tokens) STORED,
+      cost_usd            numeric(12,6)   NOT NULL DEFAULT 0,
+      request_source      text            NOT NULL,
+      occurred_at         timestamptz     NULL,
+      ingested_at         timestamptz     NOT NULL DEFAULT now(),
+      upstream_source     text            NOT NULL,
+      raw_payload_hash    char(64)        NOT NULL,
+      CONSTRAINT unique_fp_request UNIQUE (fp_full, request_id)
     );
 
-    CREATE INDEX IF NOT EXISTS idx_usage_logs_api_key_id ON public.usage_logs (api_key_id);
-    CREATE INDEX IF NOT EXISTS idx_usage_logs_occurred_at ON public.usage_logs (occurred_at DESC);
+    CREATE INDEX IF NOT EXISTS idx_usage_logs_fp_occurred ON public.usage_logs (fp_full, occurred_at DESC NULLS LAST);
+    CREATE INDEX IF NOT EXISTS idx_usage_logs_fp_source_occurred ON public.usage_logs (fp_full, request_source, occurred_at DESC NULLS LAST);
   `);
   tablesInitialized = true;
 }

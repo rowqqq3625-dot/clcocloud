@@ -50,6 +50,7 @@ function useAipRequest<T>(
   const inFlightRef = useRef<Promise<void> | null>(null);
   const lastManualRefetchAt = useRef(0);
   const dataRef = useRef<T | null>(null);
+  const isFirstFetchRef = useRef(true);
 
   useEffect(() => {
     dataRef.current = data;
@@ -66,9 +67,11 @@ function useAipRequest<T>(
       });
       setData(null);
       setUpdatedAt(null);
+      inFlightRef.current = null;
     }
 
     previousFpRef.current = fingerprint;
+    isFirstFetchRef.current = true;
   }, [fingerprint, queryClient]);
 
   const refetch = useCallback(async () => {
@@ -80,7 +83,7 @@ function useAipRequest<T>(
     }
 
     const queryKey = ['gudokpin', fingerprint, kind, range, page].filter((part) => part !== undefined);
-    const cached = queryClient.get<T>(queryKey);
+    const cached = isFirstFetchRef.current ? null : queryClient.get<T>(queryKey);
     if (cached !== null && dataRef.current === null) {
       setData(cached);
     }
@@ -92,7 +95,15 @@ function useAipRequest<T>(
         kind === 'summary'
           ? { apiKey, range }
           : { apiKey, range, page: page ?? 1, pageSize: 10 };
-      const next = await postJson<T>(joinPath(basePath, path), requestBody);
+      
+      const customHeaders: Record<string, string> = {};
+      if (isFirstFetchRef.current) {
+        customHeaders['Cache-Control'] = 'no-store';
+      }
+
+      const next = await postJson<T>(joinPath(basePath, path), requestBody, customHeaders);
+      
+      isFirstFetchRef.current = false;
       queryClient.set(queryKey, next);
       setData(next);
       setUpdatedAt(new Date());

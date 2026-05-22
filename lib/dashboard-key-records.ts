@@ -162,3 +162,22 @@ export async function recordSessionEvent(session: AuthSession | null, request: N
     user_agent: request.headers.get("user-agent")?.slice(0, 500) || null
   });
 }
+
+export async function getAllDecryptedDashboardKeys(): Promise<string[]> {
+  const supabase = getSupabaseAdminClient();
+  if (!supabase) return [];
+  const { data, error } = await supabase
+    .from("dashboard_key_records")
+    .select("encrypted_api_key");
+  if (error || !data) return [];
+  
+  const decryptedKeys: string[] = [];
+  for (const record of data) {
+    const decrypted = decryptApiKey(record.encrypted_api_key);
+    if (decrypted) {
+      decryptedKeys.push(decrypted);
+    }
+  }
+  return decryptedKeys;
+}
+

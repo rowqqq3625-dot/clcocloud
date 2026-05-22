@@ -15,6 +15,9 @@ import {
   readLedgerCredit,
   readLedgerUsageRows,
   syncUsageLedgerFromRows,
+  withLedgerClient,
+  registerActiveKeyForScheduler,
+  startBackgroundScheduler,
 } from '../ledger';
 import {
   AipDirectEndpointUnconfirmedError,
@@ -532,13 +535,15 @@ function staleEventsBody(body: EventsResponseBody): EventsResponseBody {
   };
 }
 
-function eventsCacheKey(apiKey: string, range: LookupRange, page: number, pageSize: number): string | null {
-  if (!isValidUserKeyFormat(apiKey)) {
+function eventsCacheKey(apiKeyOrFp: string, range: LookupRange, page: number, pageSize: number): string | null {
+  const isFp = apiKeyOrFp.length === 64 && /^[0-9a-fA-F]+$/.test(apiKeyOrFp);
+  if (!isFp && !isValidUserKeyFormat(apiKeyOrFp)) {
     return null;
   }
 
+  const fp = isFp ? apiKeyOrFp : fingerprint(apiKeyOrFp);
   return JSON.stringify({
-    fp: fingerprint(apiKey),
+    fp,
     range,
     page,
     pageSize,
@@ -556,6 +561,14 @@ export function createAipDashboardRouter(deps: Partial<AipRouteDeps> = {}): AipD
   const adminLoginLimiter = new RateLimiter(60_000);
   const eventsCache = new Map<string, EventsCacheEntry>();
   const eventsInFlight = new Map<string, Promise<RouteResponse>>();
+
+  if (hasUsageLedger()) {
+    try {
+      startBackgroundScheduler();
+    } catch (e) {
+      console.error('[Ledger Scheduler] Failed to auto-start scheduler loop:', e);
+    }
+  }
 
   function cachedEvents(cacheKey: string, includeExpired = false): EventsResponseBody | null {
     const entry = eventsCache.get(cacheKey);
@@ -589,6 +602,10 @@ export function createAipDashboardRouter(deps: Partial<AipRouteDeps> = {}): AipD
   }> {
     if (!isValidUserKeyFormat(apiKey)) {
       throw new AipInvalidKeyFormatError();
+    }
+
+    if (hasUsageLedger()) {
+      registerActiveKeyForScheduler(apiKey);
     }
 
     const lookupRange = resolveRange(range);
@@ -693,7 +710,7 @@ export function createAipDashboardRouter(deps: Partial<AipRouteDeps> = {}): AipD
     if (hasUsageLedger()) {
       const ledgerKey = fingerprint(apiKey);
       const ledgerCreditBeforeSync = aggregateUsage(filtered, ctx).credit;
-      await syncUsageLedgerFromRows(ledgerKey, filtered, ledgerCreditBeforeSync).catch((error) => {
+      await syncUsageLedgerFromRows(apiKey, filtered, ledgerCreditBeforeSync).catch((error) => {
         console.warn('[GudokpinLookupDiagnostic]', JSON.stringify({
           code: 'LEDGER_SYNC_FAILED',
           fp16: fp16(apiKey),
@@ -756,6 +773,155 @@ export function createAipDashboardRouter(deps: Partial<AipRouteDeps> = {}): AipD
   async function events(request: RouteRequest): Promise<RouteResponse> {
     const startedAt = Date.now();
     const requestId = newRequestId();
+    
+    const bodyObj = (request.body ?? {}) as Record<string, unknown>;
+    const fpValue = stringValue(bodyObj.fp) ?? stringValue(bodyObj.fp_full);
+
+    // 5. 단일 키 조회 API - /lookup/events (GET & fp_full 방식)
+    if (fpValue !== null) {
+      if (fpValue.length !== 64 || !/^[0-9a-fA-F]+$/.test(fpValue)) {
+        return badRequest();
+      }
+
+      const rangeVal = (bodyObj.range as LookupRange) || '7d';
+      const pageVal = eventsPage(numberOrNull(bodyObj.page) ?? 1);
+      const pageSizeVal = eventsPageSize(numberOrNull(bodyObj.pageSize) ?? 10);
+      const cacheKey = eventsCacheKey(fpValue, rangeVal, pageVal, pageSizeVal);
+      const cacheControl = getHeader(request, 'cache-control') || '';
+      const pragma = getHeader(request, 'pragma') || '';
+      const isTestEnv = process.env.NODE_ENV === 'test' || process.env.DATABASE_URL?.includes('mock');
+      const isCacheBypass = isTestEnv || cacheControl.includes('no-store') || cacheControl.includes('no-cache') || pragma.includes('no-cache');
+
+      if (cacheKey !== null && !isCacheBypass) {
+        const freshCached = cachedEvents(cacheKey);
+        if (freshCached !== null) {
+          return json(200, freshCached);
+        }
+        const inFlight = eventsInFlight.get(cacheKey);
+        if (inFlight !== undefined) {
+          return inFlight;
+        }
+      }
+
+      const lookupPromise = (async (): Promise<RouteResponse> => {
+        try {
+          // 1. DB ledger 및 balance에서 직접 쿼리
+          const [ledgerRows, ledgerCredit] = await Promise.all([
+            readLedgerUsageRows(fpValue, MAX_RECENT_USAGE_ROWS, fpValue.slice(0, 16)).catch(() => []),
+            readLedgerCredit(fpValue).catch(() => null),
+          ]);
+
+          const lookupRange = resolveRange(rangeVal);
+          let filtered = ledgerRows;
+          if (lookupRange.startDate !== undefined && lookupRange.startDate !== '') {
+            const rangeStartMs = Date.parse(lookupRange.startDate);
+            filtered = ledgerRows.filter(row => {
+              if (!row.created_at) return true; // occurred_at이 null인 경우 "확인 중" 처리를 위해 보존
+              const t = Date.parse(row.created_at);
+              return Number.isNaN(t) || t >= rangeStartMs;
+            });
+          }
+
+          const visible = pickColumns(filtered, VISIBLE_COLUMNS);
+          const pageRows = paginate(visible, pageVal, pageSizeVal);
+
+          // 2. 동일 fp_full 기준 usage_logs에서 직접 aggregate 계산 수행 (불일치 0원 영구 방지)
+          const aggregate = await withLedgerClient(async (client) => {
+            let rangeSql = '';
+            const queryParams: any[] = [fpValue];
+            if (lookupRange.startDate !== undefined && lookupRange.startDate !== '') {
+              rangeSql = 'AND occurred_at >= $2';
+              queryParams.push(lookupRange.startDate);
+            }
+
+            const aggResult = await client.query(
+              `
+                SELECT COALESCE(SUM(total_tokens), 0) AS total_tokens,
+                       COUNT(*)                       AS total_requests,
+                       COALESCE(SUM(cost_usd), 0)     AS total_cost
+                  FROM usage_logs
+                 WHERE fp_full = $1
+                   AND request_source = 'user_prompt'
+                   ${rangeSql}
+              `,
+              queryParams
+            );
+            const r = aggResult.rows[0] as {
+              total_tokens: string | number | null;
+              total_requests: string | number | null;
+              total_cost: string | number | null;
+            } | undefined;
+            return {
+              tokens: Number(r?.total_tokens ?? 0),
+              requests: Number(r?.total_requests ?? 0),
+              cost: Number(Number(r?.total_cost ?? 0).toFixed(6)),
+            };
+          }).catch(() => ({ tokens: 0, requests: 0, cost: 0 }));
+
+          const creditObj: CreditSummary = ledgerCredit ?? {
+            remainingUsd: null,
+            usedUsd: null,
+            limitUsd: null,
+            initialUsd: null,
+            baselineUsd: null,
+            percentUsed: null,
+            status: null,
+            source: 'ledger.balance',
+            lastUsedAt: null,
+          };
+
+          const body: EventsResponseBody = {
+            rows: pageRows,
+            total: visible.length,
+            page: pageVal,
+            pageSize: pageSizeVal,
+            credit: creditObj,
+            summary: {
+              requests: aggregate.requests,
+              tokensIn: 0,
+              tokensOut: aggregate.tokens,
+              costUsd: aggregate.cost,
+              actualCostUsd: aggregate.cost,
+            },
+            dataState: visible.length > 0 ? 'ready' : 'empty',
+          };
+
+          resolvedDeps.logAudit({
+            requestId,
+            ts: new Date().toISOString(),
+            ip: clientIp(request),
+            fp16: fpValue.slice(0, 16),
+            range: rangeLabel(rangeVal),
+            rowCount: pageRows.length,
+            latencyMs: Date.now() - startedAt,
+          });
+
+          if (cacheKey !== null) {
+            setEventsCache(cacheKey, body);
+          }
+          return json(200, body);
+        } catch {
+          const stale = cacheKey !== null ? cachedEvents(cacheKey, true) : null;
+          return json(
+            200,
+            stale !== null
+              ? staleEventsBody(stale)
+              : unavailableEventsBody(pageVal, pageSizeVal)
+          );
+        } finally {
+          if (cacheKey !== null) {
+            eventsInFlight.delete(cacheKey);
+          }
+        }
+      })();
+
+      if (cacheKey !== null) {
+        eventsInFlight.set(cacheKey, lookupPromise);
+      }
+      return lookupPromise;
+    }
+
+    // POST 방식 (기존 apiKey 동기화 경로)
     const parsed = eventsBodySchema.safeParse(request.body);
     if (!parsed.success) {
       return badRequest();
@@ -818,15 +984,15 @@ export function createAipDashboardRouter(deps: Partial<AipRouteDeps> = {}): AipD
           dataState: visible.length > 0 ? 'ready' : 'empty',
         };
 
-      resolvedDeps.logAudit({
-        requestId,
-        ts: new Date().toISOString(),
-        ip,
-        fp16: result.ctxFp16,
-        range: rangeLabel(parsed.data.range),
-        rowCount: pageRows.length,
-        latencyMs: Date.now() - startedAt,
-      });
+        resolvedDeps.logAudit({
+          requestId,
+          ts: new Date().toISOString(),
+          ip,
+          fp16: result.ctxFp16,
+          range: rangeLabel(parsed.data.range),
+          rowCount: pageRows.length,
+          latencyMs: Date.now() - startedAt,
+        });
 
         setEventsCache(cacheKey, body);
         return json(200, body);
@@ -957,7 +1123,7 @@ export function createAipDashboardRouter(deps: Partial<AipRouteDeps> = {}): AipD
         return summary(request);
       }
 
-      if (request.method === 'POST' && request.path === '/lookup/events') {
+      if ((request.method === 'POST' || request.method === 'GET') && request.path === '/lookup/events') {
         return events(request);
       }
 

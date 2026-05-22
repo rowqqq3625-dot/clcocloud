@@ -4,10 +4,10 @@ export function joinPath(basePath: string, path: string): string {
   return `${basePath.replace(/\/+$/g, '')}/${path.replace(/^\/+/g, '')}`;
 }
 
-export async function postJson<T>(url: string, body: unknown): Promise<T> {
+export async function postJson<T>(url: string, body: unknown, headers?: Record<string, string>): Promise<T> {
   const response = await fetch(url, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: { 'Content-Type': 'application/json', ...headers },
     credentials: 'same-origin',
     body: JSON.stringify(body),
   });
@@ -19,3 +19,4 @@ export async function postJson<T>(url: string, body: unknown): Promise<T> {
 
   return json;
 }
+
