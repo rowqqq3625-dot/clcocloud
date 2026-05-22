@@ -16,8 +16,11 @@ export function HeroCTAGroup({ align = "center" }: { align?: "center" | "left" }
         <span>시작하기</span>
         <span className="grid h-14 w-14 place-items-center rounded-full bg-coral text-cream transition group-hover:translate-x-0.5 group-hover:bg-coral-hi">↘</span>
       </StartGateLink>
-      <DashboardGateLink className="inline-flex min-h-[64px] w-full items-center justify-center rounded-full border border-coral/28 bg-[linear-gradient(135deg,rgba(247,241,232,.98),rgba(240,226,210,.94)_50%,rgba(217,119,87,.16))] px-10 text-[17px] font-bold text-primary shadow-[0_14px_42px_rgba(217,119,87,.14)] ring-1 ring-white/60 backdrop-blur-xl transition hover:-translate-y-0.5 hover:border-coral/52 hover:bg-[linear-gradient(135deg,rgba(247,241,232,1),rgba(240,226,210,.98)_45%,rgba(217,119,87,.24))] hover:shadow-[0_20px_58px_rgba(217,119,87,.2)] sm:w-auto">
-        대시보드
+      <DashboardGateLink className="group relative inline-flex items-center justify-center text-[15px] font-semibold text-coral-solid transition hover:text-coral-deep py-2 sm:py-0 sm:ml-2">
+        <span className="relative">
+          이 잔액으로 시작 →
+          <span className="absolute left-0 bottom-[-2px] w-full h-[0.5px] bg-coral transition-transform duration-300 origin-left scale-x-100 group-hover:scale-x-110" />
+        </span>
       </DashboardGateLink>
     </motion.div>
   );

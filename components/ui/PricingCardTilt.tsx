@@ -3,6 +3,8 @@
 import { motion, useMotionTemplate, useMotionValue, useSpring, useTransform } from "framer-motion";
 import { CountUp } from "@/components/ui/CountUp";
 import { PrimaryButton } from "@/components/ui/PrimaryButton";
+import { Price } from "@/components/ui/Price";
+import { DiscountBadge } from "@/components/ui/DiscountBadge";
 
 type PricingCardTiltProps = {
   id: string;
@@ -48,30 +50,35 @@ export function PricingCardTilt({
         mouseY.set(0);
       }}
       style={{ rotateX, rotateY, transformPerspective: 1000 }}
-      className={`group relative grid min-h-[540px] min-w-0 grid-rows-[auto_auto_auto_1fr_auto] overflow-visible rounded-[28px] border p-7 transition duration-300 will-change-transform hover:-translate-y-2 ${
+      className={`group relative grid min-h-[540px] min-w-0 grid-rows-[auto_auto_auto_1fr_auto] overflow-visible rounded-[28px] border p-7 transition duration-300 will-change-transform hover:-translate-y-[3px] ${
         popular
-          ? "border-coral bg-[radial-gradient(circle_at_80%_0%,var(--bg-cream)_0%,transparent_36%),linear-gradient(145deg,var(--coral-hi),var(--coral),var(--coral-lo))] text-cream shadow-[0_24px_80px_var(--coral-glow)] lg:-translate-y-2"
-          : "border-[var(--border-dark)] bg-dark-2 text-cream"
+          ? "border-coral bg-[radial-gradient(circle_at_80%_0%,var(--bg-cream)_0%,transparent_36%),linear-gradient(145deg,var(--coral-hi),var(--coral),var(--coral-lo))] text-cream shadow-[0_24px_80px_var(--coral-glow)] hover:shadow-coral"
+          : "border-[var(--border-dark)] bg-dark-2 text-cream hover:border-white/20 hover:shadow-lg"
       }`}
     >
       {popular ? (
-        <span className="absolute left-1/2 top-0 -translate-x-1/2 -translate-y-1/2 rounded-full border border-coral bg-cream px-4 py-1 text-xs font-semibold text-coral shadow-md">
+        <span className="absolute left-1/2 top-0 -translate-x-1/2 -translate-y-1/2 rounded-full border border-coral bg-cream px-4 py-1 text-xs font-semibold text-coral shadow-md z-10">
           가장 많이 선택
         </span>
       ) : null}
+
+      {/* Unified Placement Discount Badge on Top Right */}
+      <DiscountBadge percent={discount} className="absolute top-7 right-7 z-10" />
+
       <motion.span className="pointer-events-none absolute inset-0 rounded-[28px] opacity-0 mix-blend-screen transition-opacity duration-200 group-hover:opacity-[.18]" style={{ background: spotlight }} />
       <span className="pointer-events-none absolute inset-0 rounded-[28px] opacity-[.05] noise" />
+      
       <div className="relative min-w-0">
         <div className="flex min-w-0 items-start justify-between gap-4">
-          <div className="min-w-0">
-            <h3 className="text-2xl font-semibold">{name}</h3>
+          <div className="min-w-0 pr-24"> {/* Extra padding-right to avoid overlapping with absolute DiscountBadge */}
+            {/* Header font style upgraded: weight 640, tracking -0.01em */}
+            <h3 className="text-2xl font-[640] tracking-[-0.01em]">{name}</h3>
             <p className={`${popular ? "text-cream/74" : "text-cream/48"} mt-2 min-h-[3rem] text-balance leading-6`}>{note}</p>
           </div>
-          <span className="rounded-full bg-cream/10 px-3 py-1 font-mono text-xs">
-            약 <CountUp end={discount} suffix="%" duration={700} delay={80} /> 절감
-          </span>
         </div>
       </div>
+
+      {/* Price section with Unified Price component */}
       <div className="relative mt-10 min-w-0">
         <motion.strong
           initial={{ opacity: 0, y: 18, filter: "blur(6px)" }}
@@ -82,10 +89,11 @@ export function PricingCardTilt({
         >
           <CountUp end={balance} prefix="$" duration={950} delay={120} />
         </motion.strong>
-        <p className={`mt-3 text-3xl font-semibold tracking-[-0.03em] ${popular ? "text-cream" : "text-coral-hi"}`}>
-          <CountUp end={price} prefix="₩" grouped duration={1050} delay={220} />
-        </p>
+        <div className={`mt-3 text-3xl font-semibold tracking-[-0.03em] ${popular ? "text-cream" : "text-coral-hi"}`}>
+          <Price krw={price} usd={balance} />
+        </div>
       </div>
+
       <ul className="relative mt-8 grid content-start gap-3 self-start text-sm text-cream/72">
         {["공식 클로드코드 호환", "잔액 기간 만료 없음", "개인 전용 API 키"].map((item, index) => (
           <motion.li
@@ -101,13 +109,16 @@ export function PricingCardTilt({
           </motion.li>
         ))}
       </ul>
-      <motion.div className="relative mt-9 self-end" style={{ x: shiftX, y: shiftY }}>
+
+      {/* Button aligned full width */}
+      <motion.div className="relative mt-9 self-end w-full" style={{ x: shiftX, y: shiftY }}>
         <PrimaryButton
           onClick={onSelectPlan ? () => onSelectPlan(id.toUpperCase(), price, `${name} 플랜 ($${balance})`) : undefined}
           href={onSelectPlan ? undefined : `/checkout?plan=${id}`}
-          variant={popular ? "light" : "dark"}
+          variant={popular ? "coral-solid" : "secondary"}
           arrow="→"
           pulse={popular}
+          className="w-full text-center justify-between"
         >
           이 잔액으로 시작
         </PrimaryButton>

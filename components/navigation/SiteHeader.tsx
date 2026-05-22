@@ -82,22 +82,40 @@ export function SiteHeader({ variant = "floating" }: SiteHeaderProps) {
         <span>클코클라우드</span>
       </Link>
 
-      <div className="order-3 flex w-full items-center gap-5 overflow-x-auto whitespace-nowrap text-[12px] font-semibold text-secondary [scrollbar-width:none] md:order-none md:w-auto md:gap-7 md:overflow-visible md:text-sm">
-        <Link className={linkClass} href="/#pricing">가격</Link>
-        <Link className={linkClass} href="/#flow">사용법</Link>
-        <DashboardGateLink className={linkClass}>대시보드</DashboardGateLink>
-        <Link className={linkClass} href="/docs">문서</Link>
-        <Link className={linkClass} href="/#faq">FAQ</Link>
-        <Link className={linkClass} href="/mypage">마이페이지</Link>
+      <div className="order-3 flex w-full items-center gap-3 overflow-x-auto whitespace-nowrap text-[12px] font-semibold text-secondary [scrollbar-width:none] md:order-none md:w-auto md:overflow-visible md:text-sm">
+        {/* Left Menu Group */}
+        <div className="flex items-center gap-4 md:gap-6">
+          <Link className={linkClass} href="/#pricing">가격</Link>
+          <Link className={linkClass} href="/#flow">사용법</Link>
+          <Link className={linkClass} href="/docs">문서</Link>
+          <Link className={linkClass} href="/#faq">FAQ</Link>
+        </div>
+
+        {/* Vertical Divider: 12px gap, 0.5px line (line 40% opacity) */}
+        <span className="mx-1 h-3.5 w-[0.5px] bg-[var(--border-subtle)] opacity-40 md:mx-2" />
+
+        {/* Right Menu Group */}
+        <div className="flex items-center gap-4 md:gap-6">
+          <DashboardGateLink className={linkClass}>대시보드</DashboardGateLink>
+          <Link className={linkClass} href="/mypage">마이페이지</Link>
+        </div>
       </div>
 
-      <div className="relative flex min-w-[32px] justify-end" ref={profileRef}>
+      <div className="relative flex items-center gap-3 justify-end" ref={profileRef}>
+        {/* Single CTA '잔액 시작' pill button - Solid Coral */}
+        <Link
+          href="/start"
+          className="inline-flex items-center justify-center rounded-full bg-coral px-3.5 py-1.5 text-[11px] font-bold text-cream shadow-sm transition hover:bg-coral-deep md:text-[12px]"
+        >
+          잔액 시작
+        </Link>
+
         {user ? (
           <>
             <button
               type="button"
               onClick={() => setProfileOpen((current) => !current)}
-              className="grid h-8 w-8 place-items-center overflow-hidden rounded-full border border-[var(--border-subtle)] bg-cream text-[11px] font-bold text-secondary shadow-sm transition hover:border-coral/45 hover:text-coral"
+              className="grid h-8 w-8 place-items-center overflow-hidden rounded-full border border-[var(--border-subtle)] bg-cream text-[11px] font-bold text-secondary shadow-sm transition hover:border-coral/45 hover:text-coral shrink-0"
               aria-label="프로필 메뉴"
               aria-expanded={profileOpen}
             >
@@ -137,9 +155,7 @@ export function SiteHeader({ variant = "floating" }: SiteHeaderProps) {
               </div>
             ) : null}
           </>
-        ) : (
-          <span className="h-8 w-8" aria-hidden="true" />
-        )}
+        ) : null}
       </div>
     </nav>
   );

@@ -4,6 +4,7 @@ import { motion } from "framer-motion";
 import { PrimaryButton } from "@/components/ui/PrimaryButton";
 import { RevealText } from "@/components/typography/RevealText";
 import { SplitHeading } from "@/components/typography/SplitHeading";
+import { CCClickSpark } from "@/components/reactbits-wrapped/CCClickSpark";
 
 export function Sequence12FinalCTA() {
   return (
@@ -22,8 +23,12 @@ export function Sequence12FinalCTA() {
           ₩98,000부터 시작하고, 잔액이 남아있는 한 계속 사용하세요.
         </RevealText>
         <div className="mt-10 flex flex-wrap items-center justify-center gap-5">
-          <PrimaryButton href="#pricing" pulse>6분의 1 가격</PrimaryButton>
-          <a href="#pricing" className="secondary-underline font-semibold underline decoration-cream/40 underline-offset-8">요금표 다시 보기</a>
+          <CCClickSpark>
+            <PrimaryButton href="#pricing" pulse variant="coral-solid">6분의 1 가격</PrimaryButton>
+          </CCClickSpark>
+          <a href="#pricing" className="text-cream/80 hover:text-cream transition-colors duration-200 text-sm font-semibold underline decoration-cream/30 decoration-[0.5px] underline-offset-4">
+            요금표 다시 보기
+          </a>
         </div>
         <p className="mt-8 text-sm text-cream/70">결제 확인 후 API 키 수동 발급 · 키 사용불가 시 교체 또는 환불</p>
       </div>

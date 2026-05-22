@@ -138,8 +138,8 @@ input {
 }
 
 :focus-visible {
-  outline: 2px solid var(--coral);
-  outline-offset: 3px;
+  outline: 2px solid var(--coral) !important;
+  outline-offset: 2px !important;
   animation: focus-pulse 240ms cubic-bezier(0.22, 1, 0.36, 1);
 }
 
@@ -575,7 +575,7 @@ input {
 }
 
 .animate-subtle-bob {
-  animation: subtle-bob 7s ease-in-out infinite;
+  animation: subtle-bob 5s ease-in-out infinite;
 }
 
 @keyframes soft-float {
@@ -973,4 +973,50 @@ input::-webkit-caps-lock-indicator {
   -webkit-text-security: disc !important;
   text-security: disc !important;
 }
+
+/* Typography Snap and Ink Opacity Utility Classes */
+.fs-hero {
+  font-size: var(--fs-hero) !important;
+}
+.fs-display {
+  font-size: var(--fs-display) !important;
+}
+.fs-h1 {
+  font-size: var(--fs-h1) !important;
+}
+.fs-h2 {
+  font-size: var(--fs-h2) !important;
+}
+.fs-h3 {
+  font-size: var(--fs-h3) !important;
+}
+.fs-body {
+  font-size: var(--fs-body) !important;
+}
+.fs-meta {
+  font-size: 14px !important;
+}
+.fs-caption {
+  font-size: var(--fs-caption) !important;
+}
+.fs-eyebrow {
+  font-size: var(--fs-eyebrow) !important;
+}
+
+.text-ink-100 {
+  color: var(--ink) !important;
+}
+.text-ink-65 {
+  color: var(--ink-soft) !important;
+}
+.text-ink-45 {
+  color: var(--ink-faint) !important;
+}
+.text-ink-8 {
+  color: rgba(31, 30, 29, 0.08) !important;
+}
+.text-coral-solid {
+  color: var(--coral) !important;
+}
+
 

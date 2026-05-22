@@ -8,6 +8,7 @@ import { CodeBlockFloat } from "@/components/system/CodeBlockFloat";
 import { CountUp } from "@/components/ui/CountUp";
 import { Price } from "@/components/ui/Price";
 import { CCAnimatedContent } from "@/components/reactbits-wrapped/CCAnimatedContent";
+import { DashboardGateLink } from "@/components/navigation/DashboardGateLink";
 
 const steps = [
   "잔액을 한눈에.",
@@ -42,7 +43,7 @@ export function StickyDashboard() {
   return (
     <section ref={rootRef} className="cc-section relative min-h-[400vh] bg-[var(--surface-dark)] text-[var(--cream)]">
       <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(rgba(247,241,232,0.04)_1px,transparent_1px)] [background-size:32px_32px] [mask-image:linear-gradient(90deg,transparent_0%,black_30%,black_70%,transparent_100%)]" />
-      <div className="sticky top-0 grid min-h-screen items-center gap-12 px-5 py-20 lg:grid-cols-[0.46fr_0.54fr] lg:px-12">
+      <div className="sticky top-0 grid min-h-screen items-center gap-12 px-5 py-20 lg:grid-cols-[0.44fr_0.56fr] lg:px-12">
         <div className="relative z-[1] mx-auto w-full max-w-lg">
           <CCAnimatedContent distance={12}>
             <p className="cc-eyebrow cc-eyebrow-dot">Dashboard</p>
@@ -88,15 +89,23 @@ function DashboardPanel({ active }: { active: number }) {
   return (
     <div className="relative mx-auto w-full max-w-4xl rounded-[var(--r-xl)] border border-[rgba(247,241,232,0.08)] bg-[rgba(26,24,23,0.86)] p-5 shadow-[0_40px_80px_-20px_rgba(0,0,0,0.5)] backdrop-blur">
       <div className="pointer-events-none absolute -right-[12%] -top-[16%] z-0 h-[480px] w-[480px] rounded-full bg-[radial-gradient(circle,rgba(217,119,87,0.28)_0%,rgba(217,119,87,0.10)_35%,transparent_70%)] blur-[40px]" />
-      <div className="pointer-events-none absolute -left-12 top-16 z-20 hidden rounded-[var(--r-md)] border border-[rgba(247,241,232,0.10)] bg-[rgba(15,14,13,0.85)] px-4 py-3 shadow-[var(--shadow-dark)] backdrop-blur-md lg:block">
-        <p className="font-mono text-[11px] uppercase tracking-[0.14em] text-[rgba(247,241,232,0.44)]">BALANCE</p>
-        <strong className="mt-1 block font-mono text-[18px] text-[var(--cream)]">$462.6342</strong>
+      {/* Unified Horizontal Floating Metrics Panel */}
+      <div className="pointer-events-none absolute -left-12 top-16 z-20 hidden items-center gap-4 rounded-[var(--r-md)] border border-[rgba(247,241,232,0.10)] bg-[rgba(15,14,13,0.85)] px-5 py-3 shadow-[var(--shadow-dark)] backdrop-blur-md lg:flex">
+        <div>
+          <p className="font-mono text-[10px] uppercase tracking-[0.14em] text-[rgba(247,241,232,0.44)]">BALANCE</p>
+          <strong className="mt-1 block font-mono text-[17px] font-bold text-[var(--cream)] tabular-nums">
+            <span className="text-[0.88em] text-[rgba(247,241,232,0.6)] font-normal mr-0.5">$</span>462.6342
+          </strong>
+        </div>
+        <div className="h-8 w-[0.5px] bg-coral/18" />
+        <div>
+          <p className="font-mono text-[10px] uppercase tracking-[0.14em] text-[rgba(247,241,232,0.44)]">REQUESTS</p>
+          <strong className="mt-1 block text-[17px] font-[600] text-[var(--cream)]">
+            321<span className="font-mono text-[13px] text-[rgba(247,241,232,0.6)] font-normal ml-1">requests</span>
+          </strong>
+        </div>
       </div>
-      <div className="pointer-events-none absolute -right-8 bottom-24 z-20 hidden rounded-[var(--r-md)] border border-[rgba(247,241,232,0.10)] bg-[rgba(15,14,13,0.85)] px-4 py-3 shadow-[var(--shadow-dark)] backdrop-blur-md lg:block">
-        <p className="font-mono text-[11px] uppercase tracking-[0.14em] text-[rgba(247,241,232,0.44)]">REQUESTS</p>
-        <strong className="mt-1 block font-mono text-[18px] text-[var(--cream)]">321 REQUESTS</strong>
-      </div>
-      <div className="pointer-events-none absolute right-6 top-6 z-10 hidden w-56 lg:block">
+      <div className="absolute right-6 top-6 z-10 hidden w-64 lg:block pointer-events-auto">
         <CodeBlockFloat
           lines={[
             '$ export ANTHROPIC_API_KEY="sk-clco-..."',
@@ -104,6 +113,14 @@ function DashboardPanel({ active }: { active: number }) {
             "$ curl https://api.clcocloud.kr/v1/usage"
           ]}
         />
+        <div className="mt-2 text-right">
+          <DashboardGateLink className="group relative inline-flex items-center text-[11px] font-semibold text-coral-soft hover:text-coral transition-colors duration-200">
+            <span className="relative">
+              더 많은 명령어 보기 →
+              <span className="absolute left-0 bottom-[-2px] w-full h-[0.5px] bg-coral transition-transform duration-300 origin-left scale-x-100 group-hover:scale-x-110" />
+            </span>
+          </DashboardGateLink>
+        </div>
       </div>
       <div className="relative z-[1] flex items-center justify-between border-b border-[var(--line-dark)] pb-5">
         <div>

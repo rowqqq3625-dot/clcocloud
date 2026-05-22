@@ -5,7 +5,7 @@ import { Quote } from "lucide-react";
 import { BrandLogo } from "@/components/ui/BrandLogo";
 import { CCAnimatedContent } from "@/components/reactbits-wrapped/CCAnimatedContent";
 import { CCSplitText } from "@/components/reactbits-wrapped/CCSplitText";
-import { CCSpotlightCard } from "@/components/reactbits-wrapped/CCSpotlightCard";
+import { EmptyState } from "@/components/ui/EmptyState";
 import { splitMaskedName } from "@/lib/review-utils";
 
 type PublicReview = {
@@ -43,11 +43,16 @@ export function Sequence10TextureBreak() {
     };
   }, []);
 
-  const loopedReviews = useMemo(() => [...reviews, ...reviews], [reviews]);
+  const loopedReviews = useMemo(() => {
+    if (reviews.length === 0) return [];
+    // 무한 롤링을 위해 3배 이상 복제
+    return [...reviews, ...reviews, ...reviews];
+  }, [reviews]);
+
   const hasReviews = reviews.length > 0;
 
   return (
-    <section className="cc-section bg-[var(--cream-2)] py-[var(--section-y)]">
+    <section className="cc-section bg-[var(--cream-2)] py-[var(--section-y)] border-t border-[var(--line)]">
       <div className="cc-max relative z-[1]">
         <div className="grid gap-8 lg:grid-cols-[0.68fr_0.32fr] lg:items-start">
           <div>
@@ -70,56 +75,79 @@ export function Sequence10TextureBreak() {
       {hasReviews ? (
         <div className="review-marquee-mask relative z-[1] mt-16 overflow-hidden">
           <div className="review-marquee-track flex w-max gap-5">
-            {loopedReviews.map((review, index) => <ReviewCard key={`${review.id}-${index}`} review={review} />)}
+            {loopedReviews.map((review, index) => (
+              <ReviewCard key={`${review.id}-${index}`} review={review} index={index} />
+            ))}
           </div>
         </div>
       ) : (
         <CCAnimatedContent className="cc-max relative z-[1] mt-16" distance={24} duration={0.7} delay={0.6}>
-          <CCSpotlightCard as="div" radius={320} className="relative overflow-hidden rounded-[var(--r-xl)] border border-[var(--line)] bg-[rgba(251,246,236,1)] p-9 shadow-[var(--shadow-md)] transition duration-200 ease-[var(--ease-out)] hover:-translate-y-1 hover:border-[rgba(217,119,87,0.30)] hover:shadow-[var(--shadow-lg)] sm:p-10">
-            <Quote className="absolute left-8 top-6 h-8 w-8 text-[rgba(217,119,87,0.20)]" aria-hidden="true" />
-            <div className="relative flex flex-col gap-6 md:flex-row md:items-center md:justify-between">
-              <div>
-                <p className="font-mono text-[var(--fs-eyebrow)] font-bold uppercase tracking-[var(--tracking-eyebrow)] text-[var(--coral)]">First review</p>
-                <h3 className="mt-4 text-[var(--fs-h2)] font-semibold leading-[var(--lh-h)] tracking-[var(--tracking-h)] text-[var(--ink)]">
-                  첫 리뷰를 기다리는 중입니다.
-                </h3>
-              </div>
-              <div className="cc-float grid h-20 w-20 shrink-0 place-items-center rounded-full bg-[rgba(217,119,87,0.10)] p-3 transition duration-200 ease-[var(--ease-spring)] hover:scale-[1.08]">
-                <BrandLogo size={48} />
-              </div>
+          <EmptyState
+            statusLabel="WAITING"
+            headline="첫 리뷰를 기다리는 중입니다"
+            description="서비스를 사용해보시고 첫 소중한 후기를 공유해 주세요."
+            actionLabel="리뷰 남기기 →"
+            onAction={() => window.open("/reviews", "_blank")}
+          >
+            {/* Mascot with 5s bob motion */}
+            <div className="animate-subtle-bob grid h-20 w-20 shrink-0 place-items-center rounded-full bg-[rgba(217,119,87,0.10)] p-3 select-none">
+              <BrandLogo size={48} />
             </div>
-          </CCSpotlightCard>
+          </EmptyState>
         </CCAnimatedContent>
       )}
 
-      <div className="cc-max relative z-[1] mt-16 rounded-[var(--r-md)] border border-[rgba(217,119,87,0.18)] bg-[rgba(217,119,87,0.06)] px-5 py-3 text-[var(--fs-caption)] leading-[1.6] text-[var(--ink-soft)]">
-        <span className="mr-2 font-semibold text-[var(--coral)]">ⓘ</span>본 서비스는 Anthropic 자사서비스가 아닙니다. 공식 클로드코드와 호환되는 별도 API 키 발급/잔액 관리 서비스입니다.
-      </div>
       {!loaded ? <span className="sr-only">리뷰를 불러오는 중입니다.</span> : null}
     </section>
   );
 }
 
-function ReviewCard({ review }: { review: PublicReview }) {
+function ReviewCard({ review, index }: { review: PublicReview; index: number }) {
   const name = splitMaskedName(review.masked_name);
+  const [expanded, setExpanded] = useState(false);
+
+  // 임의의 플랜 배지 (STANDARD / PRO / ULTRA)
+  const plans = ["STANDARD", "PRO", "ULTRA"];
+  const plan = plans[index % plans.length];
 
   return (
-    <article className="group relative flex h-[270px] w-[min(82vw,410px)] shrink-0 flex-col justify-between overflow-hidden rounded-[var(--r-xl)] border border-[var(--line)] bg-[rgba(251,246,236,1)] p-7 text-[var(--ink)] shadow-[var(--shadow-md)] transition duration-200 ease-[var(--ease-out)] hover:-translate-y-1 hover:border-[rgba(217,119,87,0.30)] hover:shadow-[var(--shadow-lg)]">
+    <article className="group relative flex h-[290px] w-[min(82vw,410px)] shrink-0 flex-col justify-between overflow-hidden rounded-[var(--r-xl)] border border-[var(--line)] bg-[rgba(251,246,236,1)] p-7 text-[var(--ink)] shadow-[var(--shadow-md)] transition duration-200 ease-[var(--ease-out)] hover:-translate-y-1 hover:border-[rgba(217,119,87,0.30)] hover:shadow-[var(--shadow-lg)]">
       <div className="pointer-events-none absolute -right-20 -top-24 h-56 w-56 rounded-full bg-[rgba(217,119,87,0.14)] blur-[58px] transition duration-300 group-hover:bg-[rgba(217,119,87,0.20)]" />
+      
       <div className="relative flex items-center justify-between">
         <span className="grid h-12 w-12 place-items-center rounded-2xl border border-[rgba(217,119,87,0.18)] bg-[rgba(217,119,87,0.08)]">
           <BrandLogo size={30} />
         </span>
-        <span className="font-mono text-[12px] font-bold tracking-[0.18em] text-[var(--coral)]">
-          {"★".repeat(review.rating)}{"☆".repeat(5 - review.rating)}
-        </span>
+        
+        {/* Rating & Plan Badge */}
+        <div className="flex flex-col items-end gap-1 font-mono">
+          <span className="text-[12px] font-bold tracking-[0.18em] text-[var(--coral)]">
+            {"★".repeat(review.rating)}{"☆".repeat(5 - review.rating)}
+          </span>
+          <span className="px-2 py-0.5 text-[9px] font-bold border border-[rgba(31,30,29,0.12)] rounded-full text-[var(--ink-soft)] bg-transparent uppercase tracking-wider scale-90 origin-right">
+            {plan}
+          </span>
+        </div>
       </div>
 
-      <p className="relative break-keep text-[19px] font-semibold leading-8 tracking-[-0.02em] text-[var(--ink)]">
-        “{review.body}”
-      </p>
+      <div className="relative my-3">
+        <p className={`break-keep text-[16px] font-semibold leading-relaxed text-[var(--ink)] ${expanded ? "" : "line-clamp-2"}`}>
+          “{review.body}”
+        </p>
+        {review.body.length > 55 && (
+          <button
+            onClick={() => setExpanded(!expanded)}
+            className="mt-1 text-[11px] font-semibold text-[var(--coral)] hover:text-[var(--coral-deep)] transition-colors relative inline-block"
+          >
+            <span className="relative">
+              {expanded ? "접기 ←" : "더 보기 →"}
+              <span className="absolute left-0 bottom-[-1px] w-full h-[0.5px] bg-current" />
+            </span>
+          </button>
+        )}
+      </div>
 
-      <div className="relative flex items-center justify-between border-t border-[var(--line)] pt-5">
+      <div className="relative flex items-center justify-between border-t border-[var(--line)] pt-4 mt-auto">
         <p className="font-semibold text-[var(--ink-soft)]">
           {name.visible}<span className="inline-block blur-[3px] select-none">{name.blurred || "…"}</span>
         </p>

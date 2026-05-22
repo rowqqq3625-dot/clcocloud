@@ -10,9 +10,10 @@ type PrimaryButtonProps = {
   href?: string;
   onClick?: (event: React.MouseEvent<HTMLButtonElement>) => void;
   children: ReactNode;
-  variant?: "dark" | "light";
+  variant?: "dark" | "light" | "coral-solid" | "secondary";
   arrow?: "↘" | "↗" | "→";
   pulse?: boolean;
+  className?: string;
 };
 
 export function PrimaryButton({
@@ -21,13 +22,19 @@ export function PrimaryButton({
   children,
   variant = "dark",
   arrow = "↘",
-  pulse = false
+  pulse = false,
+  className = ""
 }: PrimaryButtonProps) {
   const [ripples, setRipples] = useState<Array<{ id: number; x: number; y: number }>>([]);
+  
   const base =
     variant === "dark"
-      ? "bg-primary text-cream"
-      : "bg-cream text-primary";
+      ? "bg-primary text-cream border border-transparent"
+      : variant === "light"
+      ? "bg-cream text-primary border border-transparent"
+      : variant === "coral-solid"
+      ? "bg-coral text-cream border border-coral-deep hover:bg-coral-deep"
+      : "bg-cream text-coral border border-coral/30 hover:border-coral/60";
 
   const createRipple = (clientX: number, clientY: number, currentTarget: HTMLElement) => {
     const rect = currentTarget.getBoundingClientRect();
@@ -61,15 +68,15 @@ export function PrimaryButton({
     </>
   );
 
-  const className = `group relative inline-flex min-h-12 items-center gap-px overflow-hidden rounded-xl p-1 pl-5 text-[15px] font-semibold shadow-md transition duration-200 ease-cinematic will-change-transform hover:-translate-y-px hover:shadow-lg active:scale-[.97] ${base}`;
+  const combinedClassName = `group relative inline-flex min-h-12 items-center justify-between gap-px overflow-hidden rounded-xl p-1 pl-5 text-[15px] font-semibold shadow-md transition duration-200 ease-cinematic will-change-transform hover:-translate-y-px hover:shadow-lg active:scale-[.97] ${base} ${className}`;
 
   if (href) {
     return (
-      <motion.div whileTap={squashTap} className="inline-flex">
+      <motion.div whileTap={squashTap} className="inline-flex w-full">
         <Link
           href={href}
           onClick={(e) => createRipple(e.clientX, e.clientY, e.currentTarget)}
-          className={className}
+          className={combinedClassName}
         >
           {content}
         </Link>
@@ -78,14 +85,14 @@ export function PrimaryButton({
   }
 
   return (
-    <motion.div whileTap={squashTap} className="inline-flex">
+    <motion.div whileTap={squashTap} className="inline-flex w-full">
       <button
         type="button"
         onClick={(e) => {
           createRipple(e.clientX, e.clientY, e.currentTarget);
           if (onClick) onClick(e);
         }}
-        className={className}
+        className={combinedClassName}
       >
         {content}
       </button>

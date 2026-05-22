@@ -27,9 +27,9 @@ const underlineVariants = {
   visible: {
     clipPath: "inset(0% 0% 0% 0%)",
     transition: {
-      duration: 0.34,
+      duration: 0.6,
       ease: [0.16, 1, 0.3, 1],
-      delay: 28 * 0.008 + 0.08,
+      delay: 24 * 0.008 + 0.08,
     }
   }
 };
@@ -42,7 +42,7 @@ const dotVariants = {
       duration: 0.22,
       times: [0, 0.45, 1],
       ease: "easeOut",
-      delay: 29 * 0.008 + 0.12,
+      delay: 36 * 0.008 + 0.12,
     }
   }
 };
@@ -125,48 +125,49 @@ export function SplitHeadline({
   parallaxY: MotionValue<number>;
 }) {
   return (
-    <motion.h1
+    <motion.div
       style={{ y, opacity, filter: blur, letterSpacing, x: parallaxX, translateY: parallaxY }}
-      className="hero3d-split-headline max-w-[790px] text-left text-[clamp(34px,10.4vw,48px)] font-bold leading-[1.015] tracking-[-0.047em] text-primary sm:text-[clamp(46px,7.05vw,76px)] md:text-[clamp(62px,6.05vw,96px)]"
-      aria-label="언제 끊길지 모르는 불안한 구독계정, 이제는 클코클라우드."
+      className="hero3d-split-headline max-w-[790px] text-left"
     >
-      <span className="block">
-        {/* Line 1 */}
-        <span className="block">
-          <AnimatedChars text="언제 끊길지 모르는" startIndex={0} />
-        </span>
+      {/* Micro Meta Slot: mono 11px, letter-spacing 0.12em */}
+      <span className="font-mono text-[11px] font-semibold uppercase tracking-[0.12em] text-ink-65 mb-4 block">
+        · 4개 도구 호환 · 잔액 만료 없음
+      </span>
 
-        {/* Line 2 */}
+      <motion.h1
+        className="text-[clamp(28px,6vw,56px)] font-bold leading-[1.18] tracking-[-0.047em] text-primary break-keep"
+        aria-label="언제 끊길지 모르는 불안한 구독 계정, 이제는 클코클라우드."
+      >
         <span className="block">
-          <span data-emphasis className="font-serif text-[1.04em] font-medium italic tracking-[-0.045em]">
-            <AnimatedChars text="불안한" startIndex={10} />
+          {/* Line 1: 언제 끊길지 모르는 불안한 구독 계정, */}
+          <span className="block">
+            <AnimatedChars text="언제 끊길지 모르는 불안한 구독 계정," startIndex={0} />
           </span>
-          <AnimatedChars text=" 구독계정," startIndex={13} />
-        </span>
 
-        {/* Line 3 */}
-        <span className="block">
-          <AnimatedChars text="이제는 " startIndex={19} className="inline-block text-primary" />
-          <span className="hero3d-coral-word relative inline-block text-coral">
-            <AnimatedChars text="클코클라우드" startIndex={23} />
+          {/* Line 2: 이제는 클코클라우드. */}
+          <span className="block">
+            <AnimatedChars text="이제는 " startIndex={21} className="inline-block text-primary" />
+            <span className="font-serif text-[1.04em] font-medium italic tracking-[-0.045em] hero3d-coral-word relative inline-block text-coral">
+              <AnimatedChars text="클코클라우드" startIndex={25} />
+              <motion.span
+                variants={underlineVariants}
+                initial="hidden"
+                animate="visible"
+                className="hero3d-coral-underline"
+                aria-hidden="true"
+              />
+            </span>
             <motion.span
-              variants={underlineVariants}
+              variants={dotVariants}
               initial="hidden"
               animate="visible"
-              className="hero3d-coral-underline"
-              aria-hidden="true"
-            />
+              className="inline-block text-coral"
+            >
+              .
+            </motion.span>
           </span>
-          <motion.span
-            variants={dotVariants}
-            initial="hidden"
-            animate="visible"
-            className="inline-block text-coral"
-          >
-            .
-          </motion.span>
         </span>
-      </span>
-    </motion.h1>
+      </motion.h1>
+    </motion.div>
   );
 }

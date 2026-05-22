@@ -1,82 +1,104 @@
 import { BrandLogo } from "@/components/ui/BrandLogo";
 import { DashboardGateLink } from "@/components/navigation/DashboardGateLink";
 
-const groups: Array<{ title: string; links: Array<{ label: string; href: string }> }> = [
-  {
-    title: "메뉴",
-    links: [
-      { label: "가격", href: "#pricing" },
-      { label: "사용법", href: "#flow" },
-      { label: "대시보드", href: "/dashboard" },
-      { label: "FAQ", href: "#faq" }
-    ]
-  },
-  {
-    title: "구매",
-    links: [
-      { label: "플랜 계산", href: "#calculator" },
-      { label: "구매 옵션", href: "#pricing" },
-      { label: "발급 안내", href: "#flow" },
-      { label: "문의하기", href: "#final" }
-    ]
-  },
-  {
-    title: "안내",
-    links: [
-      { label: "환불 정책", href: "#faq" },
-      { label: "비공식 서비스 안내", href: "#faq" },
-      { label: "잔액 대시보드", href: "/dashboard" }
-    ]
-  },
-  {
-    title: "법적",
-    links: [
-      { label: "이용약관", href: "#faq" },
-      { label: "개인정보처리방침", href: "#faq" }
-    ]
-  }
-];
-
 export function Sequence13Footer() {
   return (
     <footer className="dark-panel noise px-5 py-16">
-      <div className="container-cinematic grid gap-12 lg:grid-cols-[.38fr_.62fr]">
-        <div>
-          <a href="/" className="flex items-center gap-3 text-lg font-semibold">
+      {/* 1px line & mono meta line */}
+      <div className="container-cinematic mb-12">
+        <div className="flex items-center justify-between border-b border-white/10 pb-4">
+          <span className="font-mono text-[11px] tracking-[0.12em] uppercase text-cream/50">
+            · clcocloud.kr · v1.0
+          </span>
+        </div>
+      </div>
+
+      <div className="container-cinematic grid gap-12 sm:grid-cols-2 lg:grid-cols-4">
+        {/* 1. 브랜드 */}
+        <div className="flex flex-col gap-4">
+          <a href="/" className="flex items-center gap-3 text-lg font-semibold text-cream">
             <BrandLogo size={32} className="drop-shadow-[0_10px_24px_rgba(217,119,87,.18)]" />
             클코클라우드
           </a>
-          <p className="mt-5 max-w-sm leading-7 text-cream/54">
-            클코클라우드는 Anthropic 공식 서비스가 아닌 별도 API 키 발급/잔액 관리 서비스입니다.
-          </p>
+          <div className="text-xs leading-relaxed text-cream/60 font-normal">
+            상호: 클코클라우드 <br />
+            대표자: 김정후 <br />
+            사업자등록번호: 656-01-03812 <br />
+            문의: support.clcocloud@gmail.com
+          </div>
         </div>
-        <nav className="grid gap-8 sm:grid-cols-2 lg:grid-cols-4" aria-label="푸터 탐색">
-          {groups.map(({ title, links }) => (
-            <div key={title}>
-              <h3 className="font-semibold text-cream">{title}</h3>
-              <ul className="mt-4 grid gap-3 text-sm text-cream/54">
-                {links.map((link) => (
-                  <li key={link.label}>
-                    {link.href === "/dashboard" ? (
-                      <DashboardGateLink
-                        className="group inline-flex items-center gap-2 border-b border-transparent pb-0.5 transition hover:border-coral hover:text-coral"
-                        dotClassName="h-1 w-1 rounded-full bg-coral opacity-0 transition duration-200 group-hover:opacity-100"
-                      >
-                        {link.label}
-                      </DashboardGateLink>
-                    ) : (
-                      <a href={link.href} className="group inline-flex items-center gap-2 border-b border-transparent pb-0.5 transition hover:border-coral hover:text-coral">
-                        <span className="h-1 w-1 rounded-full bg-coral opacity-0 transition duration-200 group-hover:opacity-100" />
-                        {link.label}
-                      </a>
-                    )}
-                  </li>
-                ))}
-              </ul>
-            </div>
-          ))}
-        </nav>
+
+        {/* 2. 제품 */}
+        <div>
+          <h3 className="font-semibold text-cream text-[15px]">제품</h3>
+          <ul className="mt-4 grid gap-3 text-sm text-cream/54">
+            <li>
+              <a href="#pricing" className="hover:text-coral transition-colors duration-200">
+                가격
+              </a>
+            </li>
+            <li>
+              <a href="#flow" className="hover:text-coral transition-colors duration-200">
+                사용법
+              </a>
+            </li>
+            <li>
+              <DashboardGateLink className="hover:text-coral transition-colors duration-200">
+                대시보드
+              </DashboardGateLink>
+            </li>
+            <li>
+              <a href="#flow" className="hover:text-coral transition-colors duration-200">
+                문서
+              </a>
+            </li>
+          </ul>
+        </div>
+
+        {/* 3. 고객지원 */}
+        <div>
+          <h3 className="font-semibold text-cream text-[15px]">고객지원</h3>
+          <ul className="mt-4 grid gap-3 text-sm text-cream/54">
+            <li>
+              <a href="#faq" className="hover:text-coral transition-colors duration-200">
+                FAQ
+              </a>
+            </li>
+            <li>
+              <a href="#pricing" className="hover:text-coral transition-colors duration-200">
+                잔액충전 문의
+              </a>
+            </li>
+          </ul>
+        </div>
+
+        {/* 4. 법적 */}
+        <div className="lg:text-right lg:items-end flex flex-col">
+          <h3 className="font-semibold text-cream text-[15px]">법적</h3>
+          <ul className="mt-4 grid gap-3 text-sm text-cream/54 lg:text-right">
+            <li>
+              <a 
+                href="/docs/terms" 
+                className="hover:text-coral transition-all duration-200 underline decoration-coral/30 decoration-[0.5px] underline-offset-4 opacity-80 hover:opacity-100"
+              >
+                이용약관
+              </a>
+            </li>
+            <li>
+              <a 
+                href="/docs/privacy" 
+                className="hover:text-coral transition-all duration-200 underline decoration-coral/30 decoration-[0.5px] underline-offset-4 opacity-80 hover:opacity-100"
+              >
+                개인정보 처리방침
+              </a>
+            </li>
+            <li className="text-[11px] text-cream/40 mt-3 max-w-[240px] lg:max-w-none leading-relaxed font-normal">
+              Anthropic 비공식 고지: 본 서비스는 Anthropic 자사서비스가 아니며 공식 클로드코드와 호환되는 별도 API 키 발급/잔액 관리 서비스입니다.
+            </li>
+          </ul>
+        </div>
       </div>
+
       <div className="container-cinematic mt-14 border-t border-white/10 pt-6 text-sm text-cream/42">
         ⓒ 2026 클코클라우드. 모든 권리 보유.
       </div>

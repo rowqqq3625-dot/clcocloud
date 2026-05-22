@@ -1,7 +1,7 @@
 "use client";
 
-import React from "react";
-import { motion } from "framer-motion";
+import React, { useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 
 interface BundleCardProps {
   productCode: string;
@@ -31,16 +31,18 @@ export default function BundleCard({
   index,
 }: BundleCardProps) {
   const isAvailable = priceKrw !== null;
+  const [formOpen, setFormOpen] = useState(false);
+  const [phone, setPhone] = useState("");
+  const [submitting, setSubmitting] = useState(false);
+  const [errorMsg, setErrorMsg] = useState("");
+  const [success, setSuccess] = useState(false);
 
-  // 파트너별 표시용 텍스트 및 로고 이니셜/플레이스홀더
-  let partnerDisplay = "Gemini";
-  let logoInitial = "G";
+  // 파트너별 표시용 텍스트
+  let partnerDisplay = "GEMINI";
   if (aiPartner === "gpt") {
     partnerDisplay = "GPT";
-    logoInitial = "O";
   } else if (aiPartner === "perplexity") {
-    partnerDisplay = "Perplexity";
-    logoInitial = "P";
+    partnerDisplay = "PERPLEXITY";
   }
 
   // 모션 제어 (prefers-reduced-motion 대응)
@@ -59,11 +61,61 @@ export default function BundleCard({
     },
   };
 
-  const handleClick = () => {
+  const handleMainAction = () => {
     if (isAvailable && priceKrw) {
       onCheckout(productCode, priceKrw, displayName);
+    } else {
+      setFormOpen((prev) => !prev);
     }
   };
+
+  const handleFormSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setErrorMsg("");
+    setSubmitting(true);
+
+    const phoneClean = phone.replace(/[^0-9]/g, "");
+    if (!phoneClean || phoneClean.length < 10) {
+      setErrorMsg("올바른 휴대폰 번호를 입력해주세요.");
+      setSubmitting(false);
+      return;
+    }
+
+    try {
+      const res = await fetch("/api/topup/inquiry", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          desiredUsd: 1000, // 최소값 고정으로 유효성 검사 통과
+          buyerName: "AI 번들 알림 신청자",
+          buyerPhone: phoneClean,
+          memo: `[AI 번들 출시 알림 신청] ${displayName}`,
+        }),
+      });
+
+      const data = await res.json();
+      if (!res.ok || !data.success) {
+        setErrorMsg(data.error || "알림 신청에 실패했습니다. 다시 시도해주세요.");
+      } else {
+        setSuccess(true);
+        setPhone("");
+        setTimeout(() => {
+          setFormOpen(false);
+          setSuccess(false);
+        }, 2200);
+      }
+    } catch (err) {
+      setErrorMsg("서버 오류로 인해 접수에 실패했습니다.");
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const renderStatusBadge = () => (
+    <span className="inline-flex px-2 py-0.5 text-[9px] font-semibold tracking-wider border border-[rgba(232,224,210,0.06)] bg-[rgba(232,224,210,0.04)] rounded text-[var(--cream-soft)]/50 select-none">
+      준비 중
+    </span>
+  );
 
   return (
     <motion.div
@@ -71,10 +123,10 @@ export default function BundleCard({
       initial="hidden"
       whileInView="visible"
       viewport={{ once: true, margin: "-40px" }}
-      className={`relative w-full rounded-[20px] p-8 border flex flex-col gap-5 overflow-hidden transition-all duration-300 ${
+      className={`relative w-full rounded-[20px] p-8 border flex flex-col gap-6 overflow-hidden transition-all duration-300 ${
         isFeatured
           ? "bg-gradient-to-br from-[var(--surface-dark-2)] via-[var(--surface-dark-2)] to-[rgba(229,148,120,0.06)] border-[rgba(229,148,120,0.22)] shadow-[inset_0_0_24px_rgba(229,148,120,0.05)] hover:shadow-[inset_0_0_32px_rgba(229,148,120,0.12)]"
-          : "bg-[var(--surface-dark-2)] border-[rgba(232,224,210,0.08)] shadow-[inset_0_0_20px_rgba(232,224,210,0.01)] hover:shadow-[inset_0_0_24px_rgba(229,148,120,0.08)]"
+          : "bg-[var(--surface-dark-2)] border-[rgba(232,224,210,0.08)] shadow-[inset_0_0_24px_rgba(247,241,232,0.02)] hover:shadow-[inset_0_0_32px_rgba(247,241,232,0.05)]"
       } group hover:-translate-y-[3px]`}
       style={{
         "--line-opacity": isFeatured ? "0.18" : "0.08",
@@ -100,13 +152,17 @@ export default function BundleCard({
 
       {/* Header Slot */}
       <div className="flex justify-between items-center relative z-[2]">
-        {/* Monogram logo slot */}
-        <div className="w-9 h-9 rounded-xl bg-[rgba(229,148,120,0.08)] border border-[rgba(229,148,120,0.15)] flex items-center justify-center text-[var(--coral)] font-bold text-sm select-none">
-          {logoInitial}
-        </div>
-        <span className="font-mono text-[10px] tracking-widest text-[var(--cream-soft)] opacity-60 uppercase">
+        <span className="font-mono text-[11px] font-bold tracking-[0.12em] text-[var(--cream-soft)] uppercase">
           BUNDLE · {partnerDisplay}
         </span>
+        
+        {/* 우상단 5px 코럴 점 */}
+        <div className="relative flex h-2 w-2">
+          {isFeatured && (
+            <span className="animate-dot-pulse absolute inline-flex h-full w-full rounded-full bg-[var(--coral)] opacity-75" />
+          )}
+          <span className="relative inline-flex rounded-full h-2 w-2 bg-[var(--coral)]" />
+        </div>
       </div>
 
       {/* Title & Description */}
@@ -124,28 +180,37 @@ export default function BundleCard({
 
       {/* Product inclusion features */}
       <ul className="flex flex-col gap-3 relative z-[2] font-mono text-[12px] text-[var(--cream-soft)]/90">
-        <li className="flex items-center gap-2">
-          <svg className="w-3.5 h-3.5 text-[var(--coral)] flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
-            <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-          </svg>
-          <span>
-            클로드코드 API 키 잔액 ─ {includedBalance ? `$${includedBalance.toLocaleString()}` : "운영자 설정"}
+        <li className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <svg className="w-3.5 h-3.5 text-[var(--coral)] flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+            </svg>
+            <span>클로드코드 API 키 잔액</span>
+          </div>
+          <span className="text-right">
+            {includedBalance ? `$${includedBalance.toLocaleString()}` : renderStatusBadge()}
           </span>
         </li>
-        <li className="flex items-center gap-2">
-          <svg className="w-3.5 h-3.5 text-[var(--coral)] flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
-            <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-          </svg>
-          <span>
-            {partnerDisplay} 구독 ─ {periodMonths ? `${periodMonths}개월 연동` : "운영자 설정"}
+        <li className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <svg className="w-3.5 h-3.5 text-[var(--coral)] flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+            </svg>
+            <span>{partnerDisplay} 구독 연동</span>
+          </div>
+          <span className="text-right">
+            {periodMonths ? `${periodMonths}개월` : renderStatusBadge()}
           </span>
         </li>
-        <li className="flex items-center gap-2">
-          <svg className="w-3.5 h-3.5 text-[var(--coral)] flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
-            <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-          </svg>
-          <span>
-            기간 ─ {periodMonths ? `${periodMonths}개월` : "운영자 설정"}
+        <li className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <svg className="w-3.5 h-3.5 text-[var(--coral)] flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+            </svg>
+            <span>이용 기간</span>
+          </div>
+          <span className="text-right">
+            {periodMonths ? `${periodMonths}개월` : renderStatusBadge()}
           </span>
         </li>
       </ul>
@@ -171,24 +236,68 @@ export default function BundleCard({
         ) : (
           <div className="flex justify-between items-center py-2">
             <span className="text-[10px] uppercase font-mono text-[var(--cream-soft)]/60">출시 일정</span>
-            <span className="px-2.5 py-1 text-[10px] font-semibold border border-[var(--coral-soft)]/30 rounded-full text-[var(--coral-soft)] bg-[rgba(229,148,120,0.04)]">
-              준비 중
-            </span>
+            {renderStatusBadge()}
           </div>
         )}
       </div>
 
+      {/* Form Slide area (Inquiry Form) */}
+      <AnimatePresence>
+        {formOpen && !isAvailable && (
+          <motion.div
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: "auto", opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            transition={{ duration: 0.22, ease: [0.22, 1, 0.36, 1] }}
+            className="overflow-hidden relative z-[2] border-t border-[rgba(232,224,210,0.06)] pt-4"
+          >
+            {success ? (
+              <div className="py-3 text-center text-xs font-semibold text-[var(--coral-soft)] font-sans">
+                ✓ 출시 알림 신청이 완료되었습니다!
+              </div>
+            ) : (
+              <form onSubmit={handleFormSubmit} className="flex flex-col gap-2.5">
+                <div className="flex gap-2">
+                  <input
+                    type="text"
+                    required
+                    placeholder="휴대폰 번호 (010-XXXX-XXXX)"
+                    value={phone}
+                    onChange={(e) => setPhone(e.target.value)}
+                    disabled={submitting}
+                    className="flex-1 rounded-lg bg-[var(--surface-dark)] border border-[rgba(232,224,210,0.12)] px-3 py-2 text-xs text-[var(--cream)] placeholder-[var(--cream-soft)]/35 focus:outline-none focus:border-[var(--coral)] transition-colors"
+                  />
+                  <button
+                    type="submit"
+                    disabled={submitting}
+                    className="rounded-lg bg-[var(--coral)] px-4 py-2 text-xs font-bold text-[var(--surface-dark)] hover:bg-[var(--coral-soft)] active:bg-[var(--coral-deep)] disabled:opacity-50 transition-colors"
+                  >
+                    {submitting ? "신청중" : "신청"}
+                  </button>
+                </div>
+                {errorMsg && (
+                  <p className="text-[10px] text-red-400 font-sans tracking-wide">
+                    {errorMsg}
+                  </p>
+                )}
+              </form>
+            )}
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       {/* CTA Button */}
       <button
-        onClick={handleClick}
-        disabled={!isAvailable}
+        onClick={handleMainAction}
         className={`w-full py-3.5 rounded-xl font-bold text-center text-xs tracking-wider transition-all duration-300 relative z-[2] ${
           isAvailable
             ? "bg-[var(--coral)] text-[var(--surface-dark)] hover:bg-[var(--coral-soft)] active:bg-[var(--coral-deep)] hover:shadow-[0_4px_16px_rgba(229,148,120,0.25)]"
-            : "bg-[rgba(232,224,210,0.06)] text-[var(--cream-soft)]/40 cursor-not-allowed border border-[rgba(232,224,210,0.02)] hover:bg-[rgba(232,224,210,0.08)]"
+            : formOpen
+            ? "bg-[rgba(232,224,210,0.12)] text-[var(--cream)] border border-[rgba(232,224,210,0.15)]"
+            : "bg-[rgba(232,224,210,0.06)] text-[var(--cream-soft)]/60 border border-[rgba(232,224,210,0.02)] hover:bg-[rgba(232,224,210,0.08)]"
         }`}
       >
-        {isAvailable ? "이 패키지로 시작 →" : "곧 만나요"}
+        {isAvailable ? "이 패키지로 시작 →" : formOpen ? "닫기" : "출시 알림 받기"}
       </button>
 
       <style jsx global>{`
@@ -202,6 +311,23 @@ export default function BundleCard({
         }
         .animate-sweep {
           animation: sweep-animation 3.5s cubic-bezier(0.25, 0.46, 0.45, 0.94) infinite;
+        }
+        @keyframes dot-pulse-animation {
+          0% {
+            transform: scale(0.95);
+            box-shadow: 0 0 0 0 rgba(217, 119, 87, 0.7);
+          }
+          70% {
+            transform: scale(1);
+            box-shadow: 0 0 0 6px rgba(217, 119, 87, 0);
+          }
+          100% {
+            transform: scale(0.95);
+            box-shadow: 0 0 0 0 rgba(217, 119, 87, 0);
+          }
+        }
+        .animate-dot-pulse {
+          animation: dot-pulse-animation 1s infinite;
         }
       `}</style>
     </motion.div>

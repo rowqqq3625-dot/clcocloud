@@ -48,9 +48,12 @@ export function Sequence06Pricing() {
             </motion.div>
           ))}
         </div>
-        <p className="mt-8 text-sm leading-6 text-cream/50">
+        <p className="mt-8 font-mono text-[11px] uppercase tracking-[0.12em] opacity-60">
           API 키 발급 후 잔액을 사용한 경우 환불 불가. API 키 자체가 사용 불가로 판단될 경우 교체 또는 환불을 지원합니다.
         </p>
+
+        {/* Separator line and 40px spacing */}
+        <div className="mt-12 mb-10 h-[0.5px] w-full bg-[rgba(247,241,232,0.1)]" />
         
         {/* 잔액충전 문의 드래그 슬라이더 아코디언 */}
         <TopupInquiryPanel />
