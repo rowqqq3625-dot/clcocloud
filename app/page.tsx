@@ -2,6 +2,7 @@ import { HomeStructuredData } from "@/components/seo/HomeStructuredData";
 import { Sequence01Hero } from "@/components/sequences/Sequence01Hero";
 import { Sequence02TrustStrip } from "@/components/sequences/Sequence02TrustStrip";
 import { Sequence03Dashboard } from "@/components/sequences/Sequence03Dashboard";
+import BundleSection from "@/components/bundle/BundleSection";
 import { Sequence04Compare } from "@/components/sequences/Sequence04Compare";
 import { Sequence05Simulator } from "@/components/sequences/Sequence05Simulator";
 import { Sequence06Pricing } from "@/components/sequences/Sequence06Pricing";
@@ -20,6 +21,7 @@ export default function Page() {
       <Sequence01Hero />
       <Sequence02TrustStrip />
       <Sequence03Dashboard />
+      <BundleSection />
       <Sequence04Compare />
       <Sequence05Simulator />
       <Sequence06Pricing />

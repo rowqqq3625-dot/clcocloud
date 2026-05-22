@@ -13,6 +13,7 @@ type PricingCardTiltProps = {
   discount: number;
   note: string;
   popular: boolean;
+  onSelectPlan?: (planId: string, price: number, name: string) => void;
 };
 
 export function PricingCardTilt({
@@ -22,7 +23,8 @@ export function PricingCardTilt({
   price,
   discount,
   note,
-  popular
+  popular,
+  onSelectPlan
 }: PricingCardTiltProps) {
   const mouseX = useMotionValue(0);
   const mouseY = useMotionValue(0);
@@ -100,7 +102,13 @@ export function PricingCardTilt({
         ))}
       </ul>
       <motion.div className="relative mt-9 self-end" style={{ x: shiftX, y: shiftY }}>
-        <PrimaryButton href={`/checkout?plan=${id}`} variant={popular ? "light" : "dark"} arrow="→" pulse={popular}>
+        <PrimaryButton
+          onClick={onSelectPlan ? () => onSelectPlan(id.toUpperCase(), price, `${name} 플랜 ($${balance})`) : undefined}
+          href={onSelectPlan ? undefined : `/checkout?plan=${id}`}
+          variant={popular ? "light" : "dark"}
+          arrow="→"
+          pulse={popular}
+        >
           이 잔액으로 시작
         </PrimaryButton>
       </motion.div>

@@ -7,7 +7,8 @@ import { useState } from "react";
 import { squashTap } from "@/lib/motion";
 
 type PrimaryButtonProps = {
-  href: string;
+  href?: string;
+  onClick?: (event: React.MouseEvent<HTMLButtonElement>) => void;
   children: ReactNode;
   variant?: "dark" | "light";
   arrow?: "↘" | "↗" | "→";
@@ -16,6 +17,7 @@ type PrimaryButtonProps = {
 
 export function PrimaryButton({
   href,
+  onClick,
   children,
   variant = "dark",
   arrow = "↘",
@@ -27,41 +29,66 @@ export function PrimaryButton({
       ? "bg-primary text-cream"
       : "bg-cream text-primary";
 
-  const createRipple = (event: MouseEvent<HTMLAnchorElement>) => {
-    const rect = event.currentTarget.getBoundingClientRect();
+  const createRipple = (clientX: number, clientY: number, currentTarget: HTMLElement) => {
+    const rect = currentTarget.getBoundingClientRect();
     const id = Date.now();
     setRipples((current) => [
       ...current,
-      { id, x: event.clientX - rect.left, y: event.clientY - rect.top }
+      { id, x: clientX - rect.left, y: clientY - rect.top }
     ]);
     window.setTimeout(() => {
       setRipples((current) => current.filter((ripple) => ripple.id !== id));
     }, 500);
   };
 
+  const content = (
+    <>
+      {ripples.map((ripple) => (
+        <span
+          key={ripple.id}
+          className="pointer-events-none absolute h-5 w-5 rounded-full bg-coral/60 animate-ripple-expand"
+          style={{ left: ripple.x - 10, top: ripple.y - 10 }}
+        />
+      ))}
+      <span className="relative z-[1] pr-4 transition-colors duration-200">{children}</span>
+      <span
+        className={`relative z-[1] grid min-h-10 min-w-10 place-items-center rounded-lg bg-coral px-3 text-cream transition-all duration-200 group-hover:min-w-[3.2rem] group-hover:bg-coral-hi group-hover:shadow-coral ${pulse ? "animate-arrow-pulse" : ""}`}
+      >
+        <span className="transition-transform duration-200 group-hover:translate-x-1">
+          {arrow}
+        </span>
+      </span>
+    </>
+  );
+
+  const className = `group relative inline-flex min-h-12 items-center gap-px overflow-hidden rounded-xl p-1 pl-5 text-[15px] font-semibold shadow-md transition duration-200 ease-cinematic will-change-transform hover:-translate-y-px hover:shadow-lg active:scale-[.97] ${base}`;
+
+  if (href) {
+    return (
+      <motion.div whileTap={squashTap} className="inline-flex">
+        <Link
+          href={href}
+          onClick={(e) => createRipple(e.clientX, e.clientY, e.currentTarget)}
+          className={className}
+        >
+          {content}
+        </Link>
+      </motion.div>
+    );
+  }
+
   return (
     <motion.div whileTap={squashTap} className="inline-flex">
-      <Link
-        href={href}
-        onClick={createRipple}
-        className={`group relative inline-flex min-h-12 items-center gap-px overflow-hidden rounded-xl p-1 pl-5 text-[15px] font-semibold shadow-md transition duration-200 ease-cinematic will-change-transform hover:-translate-y-px hover:shadow-lg active:scale-[.97] ${base}`}
+      <button
+        type="button"
+        onClick={(e) => {
+          createRipple(e.clientX, e.clientY, e.currentTarget);
+          if (onClick) onClick(e);
+        }}
+        className={className}
       >
-        {ripples.map((ripple) => (
-          <span
-            key={ripple.id}
-            className="pointer-events-none absolute h-5 w-5 rounded-full bg-coral/60 animate-ripple-expand"
-            style={{ left: ripple.x - 10, top: ripple.y - 10 }}
-          />
-        ))}
-        <span className="relative z-[1] pr-4 transition-colors duration-200">{children}</span>
-        <span
-          className={`relative z-[1] grid min-h-10 min-w-10 place-items-center rounded-lg bg-coral px-3 text-cream transition-all duration-200 group-hover:min-w-[3.2rem] group-hover:bg-coral-hi group-hover:shadow-coral ${pulse ? "animate-arrow-pulse" : ""}`}
-        >
-          <span className="transition-transform duration-200 group-hover:translate-x-1">
-            {arrow}
-          </span>
-        </span>
-      </Link>
+        {content}
+      </button>
     </motion.div>
   );
 }
