@@ -38,7 +38,7 @@ export function DashboardView({ apiKey }: DashboardViewProps) {
   }, [apiKey, eventsData]);
   const recentRequests = useMemo(() => data?.recentRequests ?? [], [data]);
   const slicedRequests = useMemo(() => {
-    return recentRequests.slice((page - 1) * 4, page * 4);
+    return recentRequests.slice((page - 1) * 10, page * 10);
   }, [recentRequests, page]);
 
   const fetchedAt = events.updatedAt ? events.updatedAt.toISOString() : undefined;
@@ -60,7 +60,7 @@ export function DashboardView({ apiKey }: DashboardViewProps) {
   }, [balanceUsd]);
 
   useEffect(() => {
-    setPage((current) => Math.min(current, Math.max(1, Math.ceil(recentRequests.length / 4))));
+    setPage((current) => Math.min(current, Math.max(1, Math.ceil(recentRequests.length / 10))));
   }, [recentRequests.length]);
 
   // Automatically refresh/refetch when period range changes
@@ -155,7 +155,7 @@ export function DashboardView({ apiKey }: DashboardViewProps) {
 
   if (!data) return null;
 
-  const totalPages = Math.min(3, Math.max(1, Math.ceil(recentRequests.length / 4)));
+  const totalPages = Math.min(3, Math.max(1, Math.ceil(recentRequests.length / 10)));
 
   return (
     <>

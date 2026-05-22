@@ -94,7 +94,7 @@ function useAipRequest<T>(
       const requestBody =
         kind === 'summary'
           ? { apiKey, range }
-          : { apiKey, range, page: 1, pageSize: 10 };
+          : { apiKey, range, page: 1, pageSize: 30 };
       
       const customHeaders: Record<string, string> = {};
       if (isFirstFetchRef.current) {
