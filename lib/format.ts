@@ -22,7 +22,20 @@ export function formatTimeAgo(isoDate: string | null | undefined): string {
 export function formatDateTime(isoDate: string | null | undefined): string {
   if (!isoDate) return "N/A";
   try {
-    return format(parseISO(isoDate), "yyyy-MM-dd HH:mm:ss");
+    const date = new Date(isoDate);
+    if (isNaN(date.getTime())) return "N/A";
+    
+    // Always render as KST (UTC + 9)
+    const kstDate = new Date(date.getTime() + 9 * 60 * 60 * 1000);
+    const pad = (n: number) => String(n).padStart(2, '0');
+    const yyyy = kstDate.getUTCFullYear();
+    const MM = pad(kstDate.getUTCMonth() + 1);
+    const dd = pad(kstDate.getUTCDate());
+    const hh = pad(kstDate.getUTCHours());
+    const mm = pad(kstDate.getUTCMinutes());
+    const ss = pad(kstDate.getUTCSeconds());
+    
+    return `${yyyy}-${MM}-${dd} ${hh}:${mm}:${ss}`;
   } catch {
     return "N/A";
   }

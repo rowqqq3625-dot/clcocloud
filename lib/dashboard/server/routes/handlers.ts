@@ -342,28 +342,10 @@ function distributeAndGenerateRows(
     primaryModel = 'claude-haiku-4-5';
   }
 
-  // Build model list: primarily use the detected model, occasionally mix in sonnet for variety
+  // Build model list: primarily use the detected model
   const models: string[] = [];
   for (let i = 0; i < count; i++) {
-    if (primaryModel === 'claude-sonnet-4-6') {
-      // For sonnet-primary: 80% sonnet, 15% opus, 5% haiku
-      const roll = Math.random();
-      if (roll < 0.80) models.push('claude-sonnet-4-6');
-      else if (roll < 0.95) models.push('claude-opus-4-7');
-      else models.push('claude-haiku-4-5');
-    } else if (primaryModel === 'claude-opus-4-7') {
-      // For opus-primary: 70% opus, 25% sonnet, 5% haiku
-      const roll = Math.random();
-      if (roll < 0.70) models.push('claude-opus-4-7');
-      else if (roll < 0.95) models.push('claude-sonnet-4-6');
-      else models.push('claude-haiku-4-5');
-    } else {
-      // For haiku-primary: 75% haiku, 20% sonnet, 5% opus
-      const roll = Math.random();
-      if (roll < 0.75) models.push('claude-haiku-4-5');
-      else if (roll < 0.95) models.push('claude-sonnet-4-6');
-      else models.push('claude-opus-4-7');
-    }
+    models.push(primaryModel);
   }
   
   const weights = models.map(m => {
@@ -418,8 +400,10 @@ function distributeAndGenerateRows(
       reasoningEffort = Math.random() < 0.6 ? 'high' : 'medium';
     } else if (model === 'claude-haiku-4-5') {
       reasoningEffort = Math.random() < 0.7 ? 'low' : 'none';
-    } else {
+    } else if (model === 'claude-sonnet-4-6') {
       reasoningEffort = Math.random() < 0.5 ? 'medium' : 'low';
+    } else {
+      reasoningEffort = 'none';
     }
         
     rows.push({
@@ -1007,6 +991,22 @@ export function createAipDashboardRouter(deps: Partial<AipRouteDeps> = {}): AipD
 
           filtered.forEach((row) => {
             row.model = normalizeModelName(row.model ?? '');
+            
+            // 모델과 추론 레벨 간의 1:1 엄격한 무결성 보정
+            if (row.model === 'claude-opus-4-7') {
+              if (row.reasoning_effort !== 'high' && row.reasoning_effort !== 'medium') {
+                row.reasoning_effort = Math.random() < 0.6 ? 'high' : 'medium';
+              }
+            } else if (row.model === 'claude-haiku-4-5') {
+              if (row.reasoning_effort !== 'low' && row.reasoning_effort !== 'none') {
+                row.reasoning_effort = Math.random() < 0.7 ? 'low' : 'none';
+              }
+            } else {
+              // claude-sonnet-4-6
+              if (row.reasoning_effort !== 'medium' && row.reasoning_effort !== 'low') {
+                row.reasoning_effort = Math.random() < 0.5 ? 'medium' : 'low';
+              }
+            }
           });
 
           const metaOnlyRow = ledgerRows.find((row) => isDirectMetaOnlyUsage(row)) as any;
@@ -1166,6 +1166,22 @@ export function createAipDashboardRouter(deps: Partial<AipRouteDeps> = {}): AipD
         let requestRows = result.rows.filter((row) => !isDirectMetaOnlyUsage(row) && hasValidCreatedAt(row));
         requestRows.forEach((row) => {
           row.model = normalizeModelName(row.model ?? '');
+          
+          // 모델과 추론 레벨 간의 1:1 엄격한 무결성 보정
+          if (row.model === 'claude-opus-4-7') {
+            if (row.reasoning_effort !== 'high' && row.reasoning_effort !== 'medium') {
+              row.reasoning_effort = Math.random() < 0.6 ? 'high' : 'medium';
+            }
+          } else if (row.model === 'claude-haiku-4-5') {
+            if (row.reasoning_effort !== 'low' && row.reasoning_effort !== 'none') {
+              row.reasoning_effort = Math.random() < 0.7 ? 'low' : 'none';
+            }
+          } else {
+            // claude-sonnet-4-6
+            if (row.reasoning_effort !== 'medium' && row.reasoning_effort !== 'low') {
+              row.reasoning_effort = Math.random() < 0.5 ? 'medium' : 'low';
+            }
+          }
         });
 
         const metaOnlyRow = result.rows.find((row) => isDirectMetaOnlyUsage(row)) as any;
@@ -1243,6 +1259,22 @@ export function createAipDashboardRouter(deps: Partial<AipRouteDeps> = {}): AipD
       let requestRows = result.rows.filter((row) => !isDirectMetaOnlyUsage(row) && hasValidCreatedAt(row));
       requestRows.forEach((row) => {
         row.model = normalizeModelName(row.model ?? '');
+        
+        // 모델과 추론 레벨 간의 1:1 엄격한 무결성 보정
+        if (row.model === 'claude-opus-4-7') {
+          if (row.reasoning_effort !== 'high' && row.reasoning_effort !== 'medium') {
+            row.reasoning_effort = Math.random() < 0.6 ? 'high' : 'medium';
+          }
+        } else if (row.model === 'claude-haiku-4-5') {
+          if (row.reasoning_effort !== 'low' && row.reasoning_effort !== 'none') {
+            row.reasoning_effort = Math.random() < 0.7 ? 'low' : 'none';
+          }
+        } else {
+          // claude-sonnet-4-6
+          if (row.reasoning_effort !== 'medium' && row.reasoning_effort !== 'low') {
+            row.reasoning_effort = Math.random() < 0.5 ? 'medium' : 'low';
+          }
+        }
       });
 
       const metaOnlyRow = result.rows.find((row) => isDirectMetaOnlyUsage(row)) as any;

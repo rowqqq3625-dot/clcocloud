@@ -13,22 +13,29 @@ type UsageChartProps = {
   dataState?: "ready" | "empty" | "unavailable";
 };
 
-// Catmull-Rom to Cubic Bezier smooth curve interpolation
+// Catmull-Rom to Cubic Bezier smooth curve interpolation with horizontal end extension
 function getBezierPath(points: Array<{ x: number; y: number }>) {
   if (points.length === 0) return "";
   if (points.length === 1) {
-    // Elegant horizontal flow across the entire chart area to prevent squeezed oval disc caps
-    return `M 0 ${points[0].y.toFixed(2)} L 100 ${points[0].y.toFixed(2)}`;
+    // Elegant horizontal flow across the entire chart area (extended to overflow boundaries to prevent oval caps)
+    return `M -5 ${points[0].y.toFixed(2)} L 105 ${points[0].y.toFixed(2)}`;
   }
 
-  const k = 0.22; // smoothness coefficient (Catmull-Rom-like tension)
-  let d = `M ${points[0].x.toFixed(2)} ${points[0].y.toFixed(2)}`;
+  // Extend points to -5% and 105% to push strokeLinecap="butt" ends completely off screen
+  const extendedPoints = [
+    { x: -5, y: points[0].y },
+    ...points,
+    { x: 105, y: points[points.length - 1].y }
+  ];
 
-  for (let i = 0; i < points.length - 1; i++) {
-    const p0 = points[Math.max(i - 1, 0)];
-    const p1 = points[i];
-    const p2 = points[i + 1];
-    const p3 = points[Math.min(i + 2, points.length - 1)];
+  const k = 0.22; // smoothness coefficient (Catmull-Rom-like tension)
+  let d = `M ${extendedPoints[0].x.toFixed(2)} ${extendedPoints[0].y.toFixed(2)}`;
+
+  for (let i = 0; i < extendedPoints.length - 1; i++) {
+    const p0 = extendedPoints[Math.max(i - 1, 0)];
+    const p1 = extendedPoints[i];
+    const p2 = extendedPoints[i + 1];
+    const p3 = extendedPoints[Math.min(i + 2, extendedPoints.length - 1)];
 
     const cp1x = p1.x + (p2.x - p0.x) * k;
     const cp1y = p1.y + (p2.y - p0.y) * k;
@@ -134,7 +141,7 @@ export function UsageChart({
                 }}
               />
 
-              <svg viewBox="0 0 100 100" preserveAspectRatio="none" className="relative z-[1] h-full w-full overflow-visible">
+              <svg viewBox="0 0 100 100" preserveAspectRatio="none" className="relative z-[1] h-full w-full overflow-hidden rounded-2xl">
                 <defs>
                   {/* Subtle soft coral area fill */}
                   <linearGradient id="dashboardUsageFill" x1="0" x2="0" y1="0" y2="1">
@@ -146,37 +153,37 @@ export function UsageChart({
                   {/* Horizontal linearGradient blending premium curated HSL brand colors */}
                   <linearGradient id="dashboardUsageLineGradient" x1="0" x2="1" y1="0" y2="0">
                     <stop offset="0%" stopColor="#DE6E5C" /> {/* Total: Soft Coral */}
-                    <stop offset="35%" stopColor="#E4A853" /> {/* Sonnet: Gold */}
-                    <stop offset="70%" stopColor="#6B9A7C" /> {/* Haiku: Sage Green */}
+                    <stop offset="33%" stopColor="#E4A853" /> {/* Sonnet: Gold */}
+                    <stop offset="66%" stopColor="#6B9A7C" /> {/* Haiku: Sage Green */}
                     <stop offset="100%" stopColor="#3A3734" /> {/* Opus: Charcoal */}
                   </linearGradient>
                 </defs>
-                <path d={`${path} L 100 100 L 0 100 Z`} fill="url(#dashboardUsageFill)" />
+                <path d={`${path} L 105 100 L -5 100 Z`} fill="url(#dashboardUsageFill)" />
                 
-                {/* Continuous Glow under-layer path */}
+                {/* Continuous Glow under-layer path with zero squeezed caps */}
                 <motion.path
                   d={path}
                   fill="none"
                   stroke="url(#dashboardUsageLineGradient)"
-                  strokeWidth="5.5"
-                  strokeLinecap="round"
+                  strokeWidth="7.0"
+                  strokeLinecap="butt"
                   strokeLinejoin="round"
                   vectorEffect="non-scaling-stroke"
-                  opacity="0.18"
-                  style={{ filter: "blur(4px)" }}
+                  opacity="0.25"
+                  style={{ filter: "blur(6px)" }}
                   initial={{ pathLength: 0 }}
                   whileInView={{ pathLength: 1 }}
                   viewport={{ once: true, amount: 0.4 }}
                   transition={{ duration: 1.2, ease: [0.22, 1, 0.36, 1] }}
                 />
 
-                {/* Continuous Primary path with opacity=1 */}
+                {/* Continuous Primary path with premium solid thickness */}
                 <motion.path
                   d={path}
                   fill="none"
                   stroke="url(#dashboardUsageLineGradient)"
-                  strokeWidth="2.5"
-                  strokeLinecap="round"
+                  strokeWidth="3.5"
+                  strokeLinecap="butt"
                   strokeLinejoin="round"
                   vectorEffect="non-scaling-stroke"
                   opacity="1"
