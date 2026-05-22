@@ -2,9 +2,14 @@
 
 import { motion, useMotionValue, useMotionValueEvent, useScroll, useSpring, useTransform } from "framer-motion";
 import { useRef, useState } from "react";
+import dynamic from "next/dynamic";
 import { HeroBackground } from "@/components/hero3d/HeroBackground";
 import { HeroCTAGroup } from "@/components/hero3d/HeroCTAGroup";
-import MascotCanvas from "@/components/hero3d/MascotCanvas";
+
+const MascotCanvas = dynamic(() => import("@/components/hero3d/MascotCanvas"), {
+  ssr: false,
+});
+
 import { SplitHeadline } from "@/components/hero3d/SplitHeadline";
 import { WatermarkText } from "@/components/hero3d/WatermarkText";
 import { SiteHeader } from "@/components/navigation/SiteHeader";

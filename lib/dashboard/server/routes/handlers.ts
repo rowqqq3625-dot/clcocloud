@@ -87,82 +87,6 @@ const noStoreHeaders = {
 const MAX_RECENT_USAGE_ROWS = 30;
 const EVENTS_CACHE_TTL_MS = 2_000;
 
-function getSeededRandom(seedStr: string): () => number {
-  let h = 1779033703 ^ seedStr.length;
-  for (let i = 0; i < seedStr.length; i++) {
-    h = Math.imul(h ^ seedStr.charCodeAt(i), 3432918353);
-    h = (h << 13) | (h >>> 19);
-  }
-  return () => {
-    h = Math.imul(h ^ (h >>> 16), 2246822507);
-    h = Math.imul(h ^ (h >>> 13), 3266489909);
-    return ((h ^= h >>> 16) >>> 0) / 4294967296;
-  };
-}
-
-function generateMockRequestRows(identifierForRows: string, range: LookupRange): UsageEventDto[] {
-  const seedStr = `${identifierForRows}-${rangeLabel(range)}`;
-  const seededRandom = getSeededRandom(seedStr);
-
-  const resolved = resolveRange(range);
-  const startMs = Date.parse(resolved.startDate + 'T00:00:00Z');
-  const endMs = Date.parse(resolved.endDate + 'T23:59:59Z');
-  const span = endMs - startMs;
-
-  const models = [
-    'claude-3-5-sonnet',
-    'claude-3-opus',
-    'claude-3-haiku',
-  ];
-
-  const rows: UsageEventDto[] = [];
-  for (let i = 0; i < 60; i++) {
-    const fraction = i / 59;
-    const randomOffset = seededRandom();
-    const timeOffset = fraction * span + (randomOffset - 0.5) * (span / 60);
-    const rowTimeMs = startMs + Math.max(0, Math.min(span, timeOffset));
-    const created_at = new Date(rowTimeMs).toISOString();
-
-    const model = models[Math.floor(seededRandom() * models.length)];
-    const input_tokens = Math.floor(500 + seededRandom() * 4500);
-    const output_tokens = Math.floor(100 + seededRandom() * 1900);
-    const total_tokens = input_tokens + output_tokens;
-
-    let cost = 0.000015 * input_tokens + 0.000075 * output_tokens;
-    if (model.includes('haiku') || model.includes('mini')) {
-      cost = 0.000003 * input_tokens + 0.000015 * output_tokens;
-    } else if (model.includes('opus')) {
-      cost = 0.000045 * input_tokens + 0.000225 * output_tokens;
-    }
-    cost = Math.round(cost * 100000) / 100000;
-
-    const isReasoning = model.includes('reasoner') || seededRandom() > 0.8;
-    const reasoningLabel = isReasoning
-      ? ['high', 'medium', 'low'][Math.floor(seededRandom() * 3)]
-      : '기본값';
-
-    rows.push({
-      keyIdentifier: identifierForRows,
-      model,
-      input_tokens,
-      output_tokens,
-      total_tokens,
-      cost,
-      actual_cost: cost,
-      duration_ms: Math.floor(300 + seededRandom() * 2700),
-      created_at,
-      reasoningLabel,
-      status: '성공',
-    } as any);
-  }
-
-  return rows.sort((a, b) => {
-    const timeA = a.created_at ? Date.parse(a.created_at) : 0;
-    const timeB = b.created_at ? Date.parse(b.created_at) : 0;
-    return timeB - timeA;
-  });
-}
-
 function defaultDeps(): AipRouteDeps {
   return {
     getOperatorSession: () => operatorSessionService.getSession(),
@@ -342,6 +266,10 @@ function timeValue(row: UsageEventDto): number {
   return Number.isFinite(parsed) ? parsed : 0;
 }
 
+function hasValidCreatedAt(row: UsageEventDto): boolean {
+  return timeValue(row) > 0;
+}
+
 function recentFirst(rows: UsageEventDto[]): UsageEventDto[] {
   return [...rows].sort((left, right) => timeValue(right) - timeValue(left));
 }
@@ -360,7 +288,39 @@ function stringValue(value: unknown): string | null {
 }
 
 function isSlashCommandUsage(row: UsageEventDto): boolean {
-  return false;
+  const metadata = nestedRecordValue(row, 'metadata');
+  const request = nestedRecordValue(row, 'request');
+  const candidates = [
+    recordValue(row, 'prompt'),
+    recordValue(row, 'input'),
+    recordValue(row, 'message'),
+    recordValue(row, 'command'),
+    metadata.command,
+    metadata.prompt,
+    metadata.input,
+    metadata.message,
+    request.command,
+    request.prompt,
+    request.input,
+    request.message,
+  ];
+
+  const typeStr = stringValue(recordValue(row, 'type'))?.toLowerCase();
+  if (typeStr === 'system' || typeStr?.includes('slash') === true) {
+    return true;
+  }
+  const metaTypeStr = stringValue(metadata.type)?.toLowerCase();
+  if (metaTypeStr === 'system' || metaTypeStr?.includes('slash') === true) {
+    return true;
+  }
+  if (recordValue(row, 'is_slash_command') === true || metadata.is_slash_command === true) {
+    return true;
+  }
+
+  return candidates.some((candidate) => {
+    const text = stringValue(candidate);
+    return text !== null && (text.startsWith('/') || text.includes('_directMetaOnly') || text.includes('model_stats'));
+  });
 }
 
 function isDirectMetaOnlyUsage(row: UsageEventDto): boolean {
@@ -508,6 +468,11 @@ interface EventsResponseBody {
   pageSize: number;
   credit: CreditSummary;
   summary: Pick<SummaryResponseBody, 'requests' | 'tokensIn' | 'tokensOut' | 'costUsd' | 'actualCostUsd'>;
+  dataState: 'ready' | 'empty' | 'unavailable';
+  diagnostic?: {
+    code: string;
+    message: string;
+  };
   syncing?: boolean;
 }
 
@@ -544,7 +509,19 @@ function emptyEventsBody(page: number, pageSize: number): EventsResponseBody {
       costUsd: 0,
       actualCostUsd: 0,
     },
+    dataState: 'empty',
     syncing: true,
+  };
+}
+
+function unavailableEventsBody(page: number, pageSize: number): EventsResponseBody {
+  return {
+    ...emptyEventsBody(page, pageSize),
+    dataState: 'unavailable',
+    diagnostic: {
+      code: 'USAGE_LOG_UNAVAILABLE',
+      message: 'Actual usage logs could not be confirmed from the upstream source.',
+    },
   };
 }
 
@@ -818,7 +795,7 @@ export function createAipDashboardRouter(deps: Partial<AipRouteDeps> = {}): AipD
     const lookupPromise = (async (): Promise<RouteResponse> => {
       try {
         const result = await runLookup(parsed.data.apiKey, parsed.data.range, request);
-        const requestRows = result.rows.filter((row) => !isDirectMetaOnlyUsage(row));
+        const requestRows = result.rows.filter((row) => !isDirectMetaOnlyUsage(row) && hasValidCreatedAt(row));
         logRowDiagnostic(parsed.data.apiKey, result.rows, requestRows);
         const recentRows = recentFirst(requestRows).slice(0, MAX_RECENT_USAGE_ROWS);
         const visible = pickColumns(recentRows, VISIBLE_COLUMNS);
@@ -838,6 +815,7 @@ export function createAipDashboardRouter(deps: Partial<AipRouteDeps> = {}): AipD
             costUsd: aggregate.costUsd,
             actualCostUsd: aggregate.actualCostUsd,
           },
+          dataState: visible.length > 0 ? 'ready' : 'empty',
         };
 
       resolvedDeps.logAudit({
@@ -858,7 +836,7 @@ export function createAipDashboardRouter(deps: Partial<AipRouteDeps> = {}): AipD
           200,
           stale !== null
             ? staleEventsBody(stale)
-            : emptyEventsBody(page, pageSize)
+            : unavailableEventsBody(page, pageSize)
         );
       } finally {
         eventsInFlight.delete(cacheKey);
@@ -885,7 +863,7 @@ export function createAipDashboardRouter(deps: Partial<AipRouteDeps> = {}): AipD
 
     try {
       const result = await runLookup(parsed.data.apiKey, parsed.data.range, request);
-      const requestRows = result.rows.filter((row) => !isDirectMetaOnlyUsage(row));
+      const requestRows = result.rows.filter((row) => !isDirectMetaOnlyUsage(row) && hasValidCreatedAt(row));
       assertAllRowsBelongToKey(requestRows, {
         fingerprint: '',
         identifierForRows: result.identifierForRows,

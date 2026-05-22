@@ -3,6 +3,8 @@ import { z } from "zod";
 export const ApiKeyRecentRequestSchema = z.object({
   requestId: z.string(),
   requestedModel: z.string(),
+  inputTokens: z.number().optional(),
+  outputTokens: z.number().optional(),
   totalTokens: z.number(),
   costUsd: z.number(),
   latencyMs: z.number(),

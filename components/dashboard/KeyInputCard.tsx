@@ -53,8 +53,7 @@ export function KeyInputCard({ onKeySubmit, savedKeys = [] }: KeyInputCardProps)
   };
 
   return (
-    <motion.div
-      variants={cardReveal}
+    <div
       className="mx-auto w-full max-w-[560px] rounded-2xl border border-[var(--border-subtle)] bg-cream p-6 shadow-md sm:p-10"
     >
       <div className="mb-7">
@@ -132,6 +131,6 @@ export function KeyInputCard({ onKeySubmit, savedKeys = [] }: KeyInputCardProps)
       <a href="/#faq" className="mt-3 inline-flex text-[13px] font-semibold text-coral underline decoration-coral/30 underline-offset-4 transition hover:decoration-coral">
         키를 분실하셨나요? →
       </a>
-    </motion.div>
+    </div>
   );
 }

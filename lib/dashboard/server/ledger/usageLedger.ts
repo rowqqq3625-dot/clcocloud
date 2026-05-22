@@ -168,6 +168,7 @@ export async function readLedgerUsageRows(apiKeyId: string, limit = 30, keyIdent
                occurred_at
           FROM usage_logs
          WHERE api_key_id = $1
+           AND request_source = 'user_prompt'
          ORDER BY occurred_at DESC
          LIMIT $2
       `,
@@ -347,7 +348,32 @@ function isMetaOnly(row: UsageEventDto): boolean {
 }
 
 function isSlashCommand(row: UsageEventDto): boolean {
-  return false;
+  const record = row as UsageEventDto & Record<string, unknown>;
+  const metadata = objectValue(record.metadata);
+  const request = objectValue(record.request);
+  const candidates = [
+    record.prompt,
+    record.input,
+    record.message,
+    record.command,
+    metadata.command,
+    metadata.prompt,
+    metadata.input,
+    metadata.message,
+    request.command,
+    request.prompt,
+    request.input,
+    request.message,
+  ];
+
+  if (metadata.is_slash_command === true || record.is_slash_command === true) {
+    return true;
+  }
+
+  return candidates.some((candidate) => {
+    const text = stringValue(candidate);
+    return text !== null && text.startsWith('/');
+  });
 }
 
 function objectValue(value: unknown): Record<string, unknown> {

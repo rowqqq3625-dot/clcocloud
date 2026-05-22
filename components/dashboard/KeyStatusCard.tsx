@@ -14,10 +14,9 @@ type KeyStatusCardProps = {
   isRefreshing?: boolean;
   onCopied: (message: string) => void;
   onRefresh: () => void;
-  onOpenGuide: () => void;
 };
 
-export function KeyStatusCard({ apiKey, data, fetchedAt, isRefreshing = false, onCopied, onRefresh, onOpenGuide }: KeyStatusCardProps) {
+export function KeyStatusCard({ apiKey, data, fetchedAt, isRefreshing = false, onCopied, onRefresh }: KeyStatusCardProps) {
   return (
     <motion.article
       initial={{ opacity: 0, y: 24 }}
@@ -44,24 +43,14 @@ export function KeyStatusCard({ apiKey, data, fetchedAt, isRefreshing = false, o
           </div>
         </div>
 
-        <div className="flex flex-col items-end gap-3.5">
-          <button
-            type="button"
-            onClick={onRefresh}
-            className="group inline-flex w-fit items-center gap-2 rounded-full border border-[var(--border-subtle)] bg-cream-2/45 px-4 py-2 font-mono text-[11px] text-secondary shadow-sm transition hover:border-coral/50 hover:text-coral"
-          >
-            <RefreshCw className={`h-3.5 w-3.5 transition duration-500 group-hover:rotate-180 ${isRefreshing ? "animate-spin text-coral" : ""}`} />
-            {formatRefreshMeta(fetchedAt)}
-          </button>
-          
-          <button
-            type="button"
-            onClick={onOpenGuide}
-            className="group inline-flex w-fit items-center gap-2 rounded-full border border-coral/25 bg-coral/5 px-4.5 py-2 font-mono text-[11px] font-semibold text-coral shadow-sm transition hover:bg-coral hover:text-cream"
-          >
-            가이드
-          </button>
-        </div>
+        <button
+          type="button"
+          onClick={onRefresh}
+          className="group inline-flex w-fit items-center gap-2 rounded-full border border-[var(--border-subtle)] bg-cream-2/45 px-4 py-2 font-mono text-[11px] text-secondary shadow-sm transition hover:border-coral/50 hover:text-coral"
+        >
+          <RefreshCw className={`h-3.5 w-3.5 transition duration-500 group-hover:rotate-180 ${isRefreshing ? "animate-spin text-coral" : ""}`} />
+          {formatRefreshMeta(fetchedAt)}
+        </button>
       </div>
     </motion.article>
   );

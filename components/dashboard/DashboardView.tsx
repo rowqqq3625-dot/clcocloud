@@ -1,7 +1,7 @@
 "use client";
 
-import { AlertCircle } from "lucide-react";
-import { useEffect, useState } from "react";
+import { AlertCircle, BookOpen } from "lucide-react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useAipEvents } from "@/lib/dashboard/client/context/useAipData";
 import { useAipContext } from "@/lib/dashboard/client/context/AipContext";
@@ -12,6 +12,7 @@ import { KeyStatusCard } from "@/components/dashboard/KeyStatusCard";
 import { RecentRequestsTable, formatCompactToken } from "@/components/dashboard/RecentRequestsTable";
 import { Toast } from "@/components/dashboard/Toast";
 import { UsageChart } from "@/components/dashboard/UsageChart";
+import { DashboardGuideModal } from "@/components/dashboard/DashboardGuideModal";
 
 type DashboardViewProps = {
   apiKey: string;
@@ -24,67 +25,45 @@ export function DashboardView({ apiKey }: DashboardViewProps) {
   const [toast, setToast] = useState<string | null>(null);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [showLowBalanceModal, setShowLowBalanceModal] = useState(false);
-  const [isGuideOpen, setIsGuideOpen] = useState(false);
-  const [guideTab, setGuideTab] = useState<"macOS" | "PowerShell" | "CMD" | "Linux">("macOS");
-
-  const cliInstallCode = "npm install -g @anthropic-ai/claude-code";
-  
-  const envCodes = {
-    macOS: `sed -i '' '/export ANTHROPIC_API_KEY/d' ~/.zshrc
-echo 'export ANTHROPIC_BASE_URL="https://api-anthropic.com/v1"' >> ~/.zshrc
-echo 'export ANTHROPIC_AUTH_TOKEN="${apiKey}"' >> ~/.zshrc
-echo 'export CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC="1"' >> ~/.zshrc
-unset ANTHROPIC_API_KEY
-source ~/.zshrc
-claude /logout`,
-
-    PowerShell: `[Environment]::SetEnvironmentVariable("ANTHROPIC_BASE_URL", "https://api-anthropic.com/v1", "User")
-[Environment]::SetEnvironmentVariable("ANTHROPIC_AUTH_TOKEN", "${apiKey}", "User")
-[Environment]::SetEnvironmentVariable("CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC", "1", "User")
-Remove-Item Env:\\ANTHROPIC_API_KEY -ErrorAction SilentlyContinue
-
-$env:ANTHROPIC_BASE_URL="https://api-anthropic.com/v1"
-$env:ANTHROPIC_AUTH_TOKEN="${apiKey}"
-$env:CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC="1"
-Remove-Item Env:\\ANTHROPIC_API_KEY -ErrorAction SilentlyContinue
-claude /logout`,
-
-    CMD: `setx ANTHROPIC_BASE_URL "https://api-anthropic.com/v1"
-setx ANTHROPIC_AUTH_TOKEN "${apiKey}"
-setx CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC "1"
-reg delete "HKCU\\Environment" /v ANTHROPIC_API_KEY /f 2>nul`,
-
-    Linux: `sed -i '/export ANTHROPIC_API_KEY/d' ~/.bashrc
-echo 'export ANTHROPIC_BASE_URL="https://api-anthropic.com/v1"' >> ~/.bashrc
-echo 'export ANTHROPIC_AUTH_TOKEN="${apiKey}"' >> ~/.bashrc
-echo 'export CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC="1"' >> ~/.bashrc
-unset ANTHROPIC_API_KEY
-source ~/.bashrc
-claude /logout`
-  };
+  const [showGuideModal, setShowGuideModal] = useState(false);
 
   const { basePath } = useAipContext();
   const events = useAipEvents(apiKey, range, page);
+  const eventsData = events.data;
+  const eventTotal = eventsData?.total ?? 0;
+  const eventRefetchRef = useRef(events.refetch);
 
-  const data = events.data ? adaptStats(events.data, null, apiKey) : null;
+  const data = useMemo(() => {
+    return eventsData ? adaptStats(eventsData, null, apiKey) : null;
+  }, [apiKey, eventsData]);
   const fetchedAt = events.updatedAt ? events.updatedAt.toISOString() : undefined;
   const isLoading = events.loading;
-  const isSyncing = events.data?.syncing === true;
+  const isSyncing = eventsData?.syncing === true;
+  const dataState = eventsData?.dataState ?? ((data?.recentRequests?.length ?? 0) > 0 ? "ready" : "empty");
+  const balanceUsd = data?.balanceUsd;
 
   useEffect(() => {
-    if (data && typeof data.balanceUsd === 'number' && data.balanceUsd < 1) {
+    eventRefetchRef.current = events.refetch;
+  }, [events.refetch]);
+
+  useEffect(() => {
+    if (typeof balanceUsd === 'number' && balanceUsd < 1) {
       setShowLowBalanceModal(true);
     } else {
       setShowLowBalanceModal(false);
     }
-  }, [data?.balanceUsd]);
+  }, [balanceUsd]);
+
+  useEffect(() => {
+    setPage((current) => Math.min(current, 3));
+  }, [eventTotal]);
 
   // Automatically refresh/refetch when period range changes
   useEffect(() => {
     const triggerAutoRefresh = async () => {
       setIsRefreshing(true);
       try {
-        await events.refetch(true);
+        await eventRefetchRef.current(true);
       } catch (e) {
         console.error(e);
       } finally {
@@ -171,11 +150,17 @@ claude /logout`
 
   if (!data) return null;
 
-  const totalPages = Math.min(3, Math.max(1, Math.ceil((events.data?.total ?? 0) / 10)));
+  const totalPages = Math.min(3, Math.max(1, Math.ceil(eventTotal / 10)));
 
   return (
     <>
       <Toast message={toast} />
+      <DashboardGuideModal
+        apiKey={apiKey}
+        open={showGuideModal}
+        onClose={() => setShowGuideModal(false)}
+        onCopied={showToast}
+      />
       
       <AnimatePresence>
         {showLowBalanceModal && (
@@ -234,147 +219,6 @@ claude /logout`
         )}
       </AnimatePresence>
 
-      <AnimatePresence>
-        {isGuideOpen && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-            <div 
-              className="absolute inset-0 bg-ink/40 backdrop-blur-sm transition-opacity cursor-pointer" 
-              onClick={() => setIsGuideOpen(false)}
-            />
-            <motion.div 
-              initial={{ opacity: 0, scale: 0.95, y: 15 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.95, y: 15 }}
-              transition={{ duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
-              className="relative z-10 w-full max-w-2xl overflow-hidden rounded-2xl border border-[var(--border-subtle)] bg-cream shadow-2xl"
-            >
-              {/* Apple-style window titlebar */}
-              <div className="flex items-center justify-between border-b border-[var(--border-subtle)] bg-cream-2/45 px-5 py-4">
-                <div className="flex items-center gap-2">
-                  <button 
-                    type="button"
-                    onClick={() => setIsGuideOpen(false)}
-                    className="h-3 w-3 rounded-full bg-[#ff5f56] border border-[#e0443e] hover:brightness-75 transition cursor-pointer"
-                  />
-                  <div className="h-3 w-3 rounded-full bg-[#ffbd2e] border border-[#dfa223]" />
-                  <div className="h-3 w-3 rounded-full bg-[#27c93f] border border-[#1aab29]" />
-                </div>
-                <span className="font-mono text-[11px] uppercase tracking-[0.12em] text-secondary">
-                  CLI 설치 및 환경 변수 설정
-                </span>
-                <div className="w-14" />
-              </div>
-
-              <div className="p-6 md:p-8 space-y-6">
-                {/* 1. CLI 설치 */}
-                <div>
-                  <h4 className="text-[15px] font-bold text-primary tracking-[-0.01em]">CLI 설치</h4>
-                  <div className="relative mt-2.5 overflow-hidden rounded-xl border border-[var(--border-subtle)] bg-[#1d1b18] font-mono text-[13px] text-cream">
-                    <div className="flex items-center justify-between bg-[#2d2a25] px-4 py-2 border-b border-[#3c3933]">
-                      <span className="text-secondary/60 text-[11px] font-mono">BASH</span>
-                      <button
-                        type="button"
-                        onClick={() => {
-                          navigator.clipboard.writeText(cliInstallCode);
-                          showToast("CLI 설치 코드가 복사되었습니다.");
-                        }}
-                        className="text-[11px] text-coral hover:text-coral-hi font-semibold"
-                      >
-                        복사
-                      </button>
-                    </div>
-                    <pre className="p-4 overflow-x-auto whitespace-pre font-mono leading-[1.6]">
-                      <code className="text-[#a9ffaf] font-mono"><span className="text-secondary/30 select-none mr-3">1</span>{cliInstallCode}</code>
-                    </pre>
-                  </div>
-                </div>
-
-                {/* 2. 환경 변수 설정 */}
-                <div>
-                  <h4 className="text-[15px] font-bold text-primary tracking-[-0.01em]">환경 변수 설정</h4>
-                  
-                  {/* Tabs */}
-                  <div className="mt-3 flex flex-wrap gap-1 rounded-xl border border-[var(--border-subtle)] bg-cream-2/45 p-1">
-                    {(["macOS", "PowerShell", "CMD", "Linux"] as const).map((tab) => (
-                      <button
-                        key={tab}
-                        type="button"
-                        onClick={() => setGuideTab(tab)}
-                        className={`flex-1 rounded-lg py-1.5 text-center font-sans text-[12px] font-semibold transition cursor-pointer ${
-                          guideTab === tab
-                            ? "bg-cream text-coral shadow-sm border border-[var(--border-subtle)]"
-                            : "text-secondary hover:text-primary"
-                        }`}
-                      >
-                        {tab === "PowerShell" ? "Windows PowerShell" : tab === "CMD" ? "Windows CMD" : tab}
-                      </button>
-                    ))}
-                  </div>
-
-                  {/* Terminal Card */}
-                  <div className="relative mt-3 overflow-hidden rounded-xl border border-[var(--border-subtle)] bg-[#1d1b18] font-mono text-[13px] text-cream">
-                    {/* Header */}
-                    <div className="flex items-center justify-between bg-[#2d2a25] px-4 py-2 border-b border-[#3c3933]">
-                      <span className="text-secondary/60 text-[11px] font-mono">
-                        {guideTab === "CMD" ? "CMD" : "BASH"}
-                      </span>
-                      <button
-                        type="button"
-                        onClick={() => {
-                          navigator.clipboard.writeText(envCodes[guideTab]);
-                          showToast("환경 변수 코드가 복사되었습니다.");
-                        }}
-                        className="text-[11px] text-coral hover:text-coral-hi font-semibold"
-                      >
-                        복사
-                      </button>
-                    </div>
-                    {/* Shell Lines */}
-                    <pre className="p-4 overflow-x-auto whitespace-pre font-mono leading-[1.6] text-left">
-                      <code className="font-mono text-[#f8f8f2]">
-                        {envCodes[guideTab].split("\n").map((line, index) => {
-                          let lineClass = "text-[#f8f8f2]";
-                          if (line.includes("export ANTHROPIC_AUTH_TOKEN") || line.includes("SetEnvironmentVariable(\"ANTHROPIC_AUTH_TOKEN\"") || line.includes("setx ANTHROPIC_AUTH_TOKEN")) {
-                            lineClass = "text-[#ff79c6]"; // highlight key line
-                          } else if (line.startsWith("#")) {
-                            lineClass = "text-[#6272a4]";
-                          }
-                          return (
-                            <div key={index} className="flex gap-4">
-                              <span className="w-4 select-none text-secondary/30 text-right font-mono">{index + 1}</span>
-                              <span className={`${lineClass} font-mono break-all whitespace-pre-wrap`}>{line}</span>
-                            </div>
-                          );
-                        })}
-                      </code>
-                    </pre>
-                  </div>
-                </div>
-
-                {/* Footer buttons */}
-                <div className="mt-8 flex items-center justify-between border-t border-[rgba(232,224,210,0.55)] pt-5">
-                  <a
-                    href="/docs/installation"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="inline-flex items-center gap-1 font-sans text-[11px] font-semibold text-secondary/50 hover:text-coral transition underline"
-                  >
-                    자세히 보기
-                  </a>
-                  <button
-                    type="button"
-                    onClick={() => setIsGuideOpen(false)}
-                    className="rounded-xl border border-[var(--border-subtle)] bg-cream px-5 py-2.5 font-sans text-[13px] font-semibold text-secondary transition hover:bg-cream-2 hover:text-primary shadow-sm cursor-pointer"
-                  >
-                    닫기
-                  </button>
-                </div>
-              </div>
-            </motion.div>
-          </div>
-        )}
-      </AnimatePresence>
-
       <motion.div
         initial={{ opacity: 0, y: 28 }}
         animate={{ opacity: 1, y: 0 }}
@@ -388,8 +232,30 @@ claude /logout`
           isRefreshing={isRefreshing || isSyncing}
           onCopied={showToast}
           onRefresh={refresh}
-          onOpenGuide={() => setIsGuideOpen(true)}
         />
+
+        <div className="flex justify-end">
+          <button
+            type="button"
+            onClick={() => setShowGuideModal(true)}
+            className="inline-flex min-h-10 items-center gap-2 rounded-xl border border-[var(--border-subtle)] bg-cream px-4 text-sm font-bold text-primary shadow-sm transition hover:border-coral/50 hover:text-coral"
+          >
+            <BookOpen size={15} />
+            가이드
+          </button>
+        </div>
+
+        {dataState !== "ready" ? (
+          <div className={`rounded-2xl border p-5 text-sm leading-6 shadow-sm ${
+            dataState === "unavailable"
+              ? "border-coral/25 bg-coral/10 text-primary"
+              : "border-[var(--border-subtle)] bg-cream text-secondary"
+          }`}>
+            {dataState === "unavailable"
+              ? "실제 요청 로그를 upstream에서 확인하지 못했습니다. 가짜 데이터는 표시하지 않습니다."
+              : "이 키로 확인된 실제 요청이 아직 없습니다."}
+          </div>
+        ) : null}
 
         {/* Dynamic & Beautiful Cinematic Toolbar */}
         <div className="flex flex-wrap items-center justify-between gap-4 rounded-2xl border border-[var(--border-subtle)] bg-cream p-5 shadow-md">
@@ -512,10 +378,15 @@ claude /logout`
           </motion.article>
         </div>
 
-        <UsageChart requests={data.recentRequests} onRefresh={refresh} isRefreshing={isRefreshing || isSyncing} />
+        <UsageChart
+          requests={data.recentRequests}
+          onRefresh={refresh}
+          isRefreshing={isRefreshing || isSyncing}
+          dataState={dataState}
+        />
 
         <div className="grid gap-3">
-          <RecentRequestsTable requests={data.recentRequests} />
+          <RecentRequestsTable requests={data.recentRequests} dataState={dataState} />
 
           {/* Premium Pagination Controls */}
           <div className="flex items-center justify-between px-2">

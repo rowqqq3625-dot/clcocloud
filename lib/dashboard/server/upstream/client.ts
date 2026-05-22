@@ -850,7 +850,42 @@ function looksLikeUsageRows(value: unknown[], key: string): boolean {
 }
 
 function isSlashCommandRow(row: unknown): boolean {
-  return false;
+  if (!isRecord(row)) {
+    return false;
+  }
+
+  const metadata = nestedRecord(row, 'metadata');
+  const request = nestedRecord(row, 'request');
+  const candidates = [
+    row.prompt,
+    row.input,
+    row.message,
+    row.command,
+    row.tool,
+    metadata.command,
+    metadata.prompt,
+    metadata.input,
+    metadata.message,
+    request.command,
+    request.prompt,
+    request.input,
+    request.message,
+  ];
+
+  if (stringFrom(row.type)?.toLowerCase().includes('slash') === true) {
+    return true;
+  }
+  if (stringFrom(metadata.type)?.toLowerCase().includes('slash') === true) {
+    return true;
+  }
+  if (metadata.is_slash_command === true || row.is_slash_command === true) {
+    return true;
+  }
+
+  return candidates.some((candidate) => {
+    const text = stringFrom(candidate);
+    return text !== null && text.startsWith('/');
+  });
 }
 
 function withDirectMetaRows(rows: unknown[], root: Record<string, unknown>, dataRecord: Record<string, unknown>): unknown[] {

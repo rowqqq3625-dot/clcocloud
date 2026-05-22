@@ -17,6 +17,11 @@ export interface EventsBody {
   pageSize: number;
   credit?: CreditSummary;
   summary?: Pick<SummaryBody, 'requests' | 'tokensIn' | 'tokensOut' | 'costUsd' | 'actualCostUsd'>;
+  dataState?: 'ready' | 'empty' | 'unavailable';
+  diagnostic?: {
+    code: string;
+    message: string;
+  };
   syncing?: boolean;
 }
 

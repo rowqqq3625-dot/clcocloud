@@ -1,29 +1,68 @@
 import type { EventsBody, SummaryBody } from './client/context/types';
 import type { ApiKeyStatus, ApiKeyRecentRequest, ApiKeyStats } from '../keys/types';
 
+function stringValue(value: unknown, fallback = ''): string {
+  if (typeof value === 'string' && value.trim() !== '') {
+    return value;
+  }
+  if (typeof value === 'number' && Number.isFinite(value)) {
+    return String(value);
+  }
+  return fallback;
+}
+
+function numberValue(value: unknown, fallback = 0): number {
+  if (typeof value === 'number' && Number.isFinite(value)) {
+    return value;
+  }
+  if (typeof value === 'string') {
+    const parsed = Number(value.replace(/,/g, ''));
+    return Number.isFinite(parsed) ? parsed : fallback;
+  }
+  return fallback;
+}
+
+function validDateString(value: unknown): string | null {
+  const text = stringValue(value);
+  if (text === '') {
+    return null;
+  }
+  return Number.isFinite(Date.parse(text)) ? new Date(text).toISOString() : null;
+}
+
 export function adaptRecentRequests(rows: Record<string, string | number | null>[]): ApiKeyRecentRequest[] {
-  return rows.map((row, index) => {
-    const model = String(row['모델명'] ?? 'unknown');
-    const totalTokens = Number(row['토큰'] ?? 0);
-    const costUsd = Number(row['비용'] ?? 0);
-    const createdAt = String(row['시간'] ?? new Date().toISOString());
-    const reasoningEffort = row['추론난이도'] !== undefined && row['추론난이도'] !== null ? String(row['추론난이도']) : '기본값';
-    const processing = row['처리'] !== undefined && row['처리'] !== null ? String(row['처리']) : '성공';
+  return rows.flatMap((row, index) => {
+    const createdAt =
+      validDateString(row.createdAt) ??
+      validDateString(row['created_at']) ??
+      validDateString(row['?쒓컙']);
+    if (createdAt === null) {
+      return [];
+    }
 
-    // Generate a deterministic and unique requestId for React list rendering and animation keys
-    const requestId = `${createdAt}-${model}-${totalTokens}-${costUsd}-${index}`;
+    const requestedModel = stringValue(row.model ?? row['model_name'] ?? row['紐⑤뜽紐?'], 'unknown');
+    const inputTokens = numberValue(row.inputTokens ?? row['input_tokens']);
+    const outputTokens = numberValue(row.outputTokens ?? row['output_tokens']);
+    const totalTokens = numberValue(row.totalTokens ?? row['total_tokens'] ?? row['?좏겙'], inputTokens + outputTokens);
+    const costUsd = numberValue(row.costUsd ?? row['actual_cost'] ?? row['cost'] ?? row['鍮꾩슜']);
+    const requestId = stringValue(
+      row.requestId ?? row['request_id'] ?? row['message_id'],
+      `${createdAt}-${requestedModel}-${totalTokens}-${costUsd}-${index}`
+    );
 
-    return {
+    return [{
       requestId,
-      requestedModel: model,
+      requestedModel,
+      inputTokens,
+      outputTokens,
       totalTokens,
       costUsd,
-      latencyMs: 0,
-      statusCode: 200,
+      latencyMs: numberValue(row.latencyMs ?? row['duration_ms']),
+      statusCode: numberValue(row.statusCode ?? row['status_code'], 200),
       createdAt,
-      reasoningEffort,
-      processing,
-    };
+      reasoningEffort: stringValue(row.reasoningEffort ?? row['reasoning_effort'] ?? row['異붾줎?쒖씠??'], 'default'),
+      processing: stringValue(row.processing ?? row.status ?? row['泥섎━'], 'success'),
+    }];
   });
 }
 
@@ -35,31 +74,18 @@ export function adaptStats(
   const credit = events?.credit ?? summary?.credit;
   const eventsSummary = events?.summary ?? summary;
 
-  const valid = !!credit;
   const balanceUsd = credit?.remainingUsd ?? 0;
-  
-  // Spend cap is mapped to the monthly limit (baselineUsd or limitUsd)
   const monthlySpendCapUsd = credit?.baselineUsd ?? credit?.limitUsd ?? null;
-
-  // Prefix extraction
   const prefix = apiKey.substring(0, 10);
-
-  // Status mapping
   const status = (credit?.status ?? 'active').toUpperCase();
 
-  // Allowed models: extract unique models from event rows, or fallback to sensible Claude defaults
-  let allowedModels = ['claude-3-5-sonnet', 'claude-3-opus', 'claude-3-haiku'];
-  if (events && events.rows && events.rows.length > 0) {
-    const uniqueModels = Array.from(new Set(events.rows.map((row) => String(row['모델명'] ?? ''))))
-      .filter((model) => model !== '');
-    if (uniqueModels.length > 0) {
-      allowedModels = uniqueModels;
-    }
-  }
+  const recentRequests = events ? adaptRecentRequests(events.rows) : [];
+  const allowedModels = recentRequests.length > 0
+    ? Array.from(new Set(recentRequests.map((request) => request.requestedModel)))
+    : [];
 
-  // Summary statistics mapping
   const totalCostUsd = eventsSummary?.costUsd ?? eventsSummary?.actualCostUsd ?? 0;
-  const totalRequests = eventsSummary?.requests ?? events?.total ?? 0;
+  const totalRequests = eventsSummary?.requests ?? 0;
   const totalTokens = (eventsSummary?.tokensIn ?? 0) + (eventsSummary?.tokensOut ?? 0);
 
   const stats: ApiKeyStats = {
@@ -71,10 +97,8 @@ export function adaptStats(
     last7dTokens: totalTokens,
   };
 
-  const recentRequests = events ? adaptRecentRequests(events.rows) : [];
-
   return {
-    valid,
+    valid: !!credit,
     prefix,
     status,
     rateLimitRpm: 1000,
@@ -86,7 +110,7 @@ export function adaptStats(
     usedUsd: credit?.usedUsd ?? null,
     stats,
     recentRequests,
-    createdAt: credit?.lastUsedAt ?? new Date().toISOString(),
-    lastUsedAt: credit?.lastUsedAt ?? new Date().toISOString(),
+    createdAt: credit?.lastUsedAt ?? null,
+    lastUsedAt: credit?.lastUsedAt ?? null,
   };
 }

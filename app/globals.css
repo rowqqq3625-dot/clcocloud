@@ -3,6 +3,7 @@
 @tailwind utilities;
 
 :root {
+  --clco-css-ready: 1;
   --cream: #F7F1E8;
   --cream-2: #FBF6EC;
   --peach: #F0E2D2;
