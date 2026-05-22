@@ -87,7 +87,7 @@ const adminLoginBodySchema = z.object({
 const noStoreHeaders = {
   'Cache-Control': 'no-store',
 };
-const MAX_RECENT_USAGE_ROWS = 60;
+const MAX_RECENT_USAGE_ROWS = 10;
 const EVENTS_CACHE_TTL_MS = 2_000;
 
 function defaultDeps(): AipRouteDeps {
@@ -812,10 +812,10 @@ export function createAipDashboardRouter(deps: Partial<AipRouteDeps> = {}): AipD
           ]);
 
           const lookupRange = resolveRange(rangeVal);
-          let filtered = ledgerRows;
+          let filtered = ledgerRows.filter((row) => !isDirectMetaOnlyUsage(row) && !isSlashCommandUsage(row));
           if (lookupRange.startDate !== undefined && lookupRange.startDate !== '') {
             const rangeStartMs = Date.parse(lookupRange.startDate);
-            filtered = ledgerRows.filter(row => {
+            filtered = filtered.filter(row => {
               if (!row.created_at) return true; // occurred_at이 null인 경우 "확인 중" 처리를 위해 보존
               const t = Date.parse(row.created_at);
               return Number.isNaN(t) || t >= rangeStartMs;

@@ -65,7 +65,7 @@ export function RecentRequestsTable({ requests = [], dataState = "ready" }: Rece
                 </td>
               </tr>
             ) : (
-              requests.slice(0, 20).map((request) => (
+              requests.map((request) => (
                 <motion.tr
                   key={request.requestId}
                   initial={{ opacity: 0, y: 8 }}
@@ -98,10 +98,32 @@ export function RecentRequestsTable({ requests = [], dataState = "ready" }: Rece
                     {formatDateTime(request.createdAt)}
                   </td>
                   <td className="px-5 py-4 text-center">
-                    <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-500/10 px-2.5 py-1 font-mono text-[11px] font-semibold text-emerald-600">
-                      <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
-                      {statusLabel(request.processing)}
-                    </span>
+                    {(() => {
+                      const code = request.statusCode ?? 200;
+                      const is4xx = code >= 400 && code < 500;
+                      const is5xx = code >= 500;
+                      
+                      let badgeClass = "bg-[#5A8A6B]/10 text-[#5A8A6B]";
+                      let dotClass = "bg-[#5A8A6B]";
+                      let text = "200";
+
+                      if (is4xx) {
+                        badgeClass = "bg-coral/10 text-coral";
+                        dotClass = "bg-coral";
+                        text = String(code);
+                      } else if (is5xx) {
+                        badgeClass = "bg-primary/10 text-primary";
+                        dotClass = "bg-primary";
+                        text = String(code);
+                      }
+
+                      return (
+                        <span className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 font-mono text-[11px] font-semibold ${badgeClass}`}>
+                          <span className={`h-1.5 w-1.5 rounded-full ${dotClass}`} />
+                          {text}
+                        </span>
+                      );
+                    })()}
                   </td>
                 </motion.tr>
               ))

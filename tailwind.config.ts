@@ -21,7 +21,9 @@ const config: Config = {
         live: "var(--live)",
         primary: "var(--text-primary)",
         secondary: "var(--text-secondary)",
-        tertiary: "var(--text-tertiary)"
+        tertiary: "var(--text-tertiary)",
+        ink: "var(--ink)",
+        "ink-soft": "var(--ink-soft)"
       },
       fontFamily: {
         sans: ["var(--font-pretendard)", "var(--font-inter)", "system-ui", "sans-serif"],

@@ -131,9 +131,6 @@ export default function DashboardPage() {
   return (
     <AipProvider basePath="/api/dashboard/aip">
       <main className="dashboard-page-shell noise relative overflow-hidden py-16 sm:py-24">
-        <div className="pointer-events-none absolute -right-40 top-24 h-[520px] w-[520px] rounded-full bg-coral/10 blur-[200px]" />
-        <div className="pointer-events-none absolute -bottom-44 left-[-12rem] h-[520px] w-[520px] rounded-full bg-coral/10 blur-[240px]" />
-
         {/* Validation Overlay */}
         {isValidating && (
           <div className="fixed inset-0 z-50 flex items-center justify-center bg-cream/60 backdrop-blur-[2px]">
@@ -187,17 +184,16 @@ export default function DashboardPage() {
         <div className="container-cinematic relative z-[1]">
           <section className="mb-10 flex flex-col gap-7 lg:flex-row lg:items-end lg:justify-between">
             <div className="max-w-[760px] border-l border-coral pl-5">
-              <p className="font-mono text-[11px] uppercase tracking-[0.16em] text-coral/75">· DASHBOARD</p>
               <SplitHeading
                 as="h1"
                 className="mt-4 max-w-[720px] text-[clamp(38px,6vw,76px)] font-[680] leading-[1.15] tracking-[-0.025em] text-primary"
                 lines={isAdmin ? ["관리자 제어반"] : ["API 키 상태 조회"]}
               />
-              <p className="mt-5 max-w-[620px] text-[clamp(16px,1.4vw,18px)] leading-[1.65] tracking-[-0.01em] text-secondary">
-                {isAdmin 
-                  ? "잔액 부족으로 등록 차단 처리된 전체 활성 키 목록을 확인 및 관리합니다."
-                  : "발급받으신 API 키를 입력하여 잔액과 사용량을 실시간으로 확인하세요."}
-              </p>
+              {isAdmin && (
+                <p className="mt-5 max-w-[620px] text-[clamp(16px,1.4vw,18px)] leading-[1.65] tracking-[-0.01em] text-secondary">
+                  잔액 부족으로 등록 차단 처리된 전체 활성 키 목록을 확인 및 관리합니다.
+                </p>
+              )}
               <motion.span
                 className="mt-6 block h-[1.5px] w-10 bg-coral"
                 initial="hidden"

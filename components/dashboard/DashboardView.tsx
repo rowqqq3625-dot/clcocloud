@@ -36,10 +36,15 @@ export function DashboardView({ apiKey }: DashboardViewProps) {
   const data = useMemo(() => {
     return eventsData ? adaptStats(eventsData, null, apiKey) : null;
   }, [apiKey, eventsData]);
+  const recentRequests = useMemo(() => data?.recentRequests ?? [], [data]);
+  const slicedRequests = useMemo(() => {
+    return recentRequests.slice((page - 1) * 4, page * 4);
+  }, [recentRequests, page]);
+
   const fetchedAt = events.updatedAt ? events.updatedAt.toISOString() : undefined;
   const isLoading = events.loading;
   const isSyncing = eventsData?.syncing === true;
-  const dataState = eventsData?.dataState ?? ((data?.recentRequests?.length ?? 0) > 0 ? "ready" : "empty");
+  const dataState = eventsData?.dataState ?? (recentRequests.length > 0 ? "ready" : "empty");
   const balanceUsd = data?.balanceUsd;
 
   useEffect(() => {
@@ -55,8 +60,8 @@ export function DashboardView({ apiKey }: DashboardViewProps) {
   }, [balanceUsd]);
 
   useEffect(() => {
-    setPage((current) => Math.min(current, 3));
-  }, [eventTotal]);
+    setPage((current) => Math.min(current, Math.max(1, Math.ceil(recentRequests.length / 4))));
+  }, [recentRequests.length]);
 
   // Automatically refresh/refetch when period range changes
   useEffect(() => {
@@ -150,7 +155,7 @@ export function DashboardView({ apiKey }: DashboardViewProps) {
 
   if (!data) return null;
 
-  const totalPages = Math.min(3, Math.max(1, Math.ceil(eventTotal / 20)));
+  const totalPages = Math.min(3, Math.max(1, Math.ceil(recentRequests.length / 4)));
 
   return (
     <>
@@ -296,21 +301,19 @@ export function DashboardView({ apiKey }: DashboardViewProps) {
           </div>
         </div>
 
-        <div className="grid gap-5 lg:grid-cols-3">
-          {/* 1. 사용가능 잔액 Card */}
-          <motion.article
-            initial={{ opacity: 0, y: 24 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true, amount: 0.35 }}
-            transition={{ delay: 0.05, duration: 0.55, ease: [0.22, 1, 0.36, 1] }}
-            className="group relative flex flex-col justify-between min-h-[220px] overflow-hidden rounded-2xl border border-[var(--border-subtle)] bg-cream p-7 shadow-md transition duration-200 hover:-translate-y-0.5 hover:border-coral/50 hover:shadow-lg"
-          >
-            <div>
-              <span className="font-mono text-[11px] uppercase tracking-[0.16em] text-coral/75">· BALANCE</span>
-              <h4 className="mt-1 text-[13px] font-semibold text-secondary">사용가능 잔액</h4>
-              <div className="mt-4 flex items-baseline text-[clamp(32px,3.5vw,42px)] font-bold leading-none tracking-[-0.025em] text-primary">
-                ${data.balanceUsd.toFixed(2)}
-              </div>
+        <motion.div
+          initial={{ opacity: 0, y: 24 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, amount: 0.35 }}
+          transition={{ duration: 0.55, ease: [0.22, 1, 0.36, 1] }}
+          className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 divide-y lg:divide-y-0 lg:divide-x divide-[var(--border-subtle)] bg-cream border border-[var(--border-subtle)] rounded-2xl p-7 shadow-md"
+        >
+          {/* 1. 사용가능 잔액 Section */}
+          <div className="pb-6 lg:pb-0 lg:pr-7">
+            <span className="font-mono text-[11px] uppercase tracking-[0.16em] text-coral/75">· BALANCE</span>
+            <h4 className="mt-1 text-[13px] font-semibold text-secondary">사용가능 잔액</h4>
+            <div className="mt-4 flex items-baseline text-[clamp(32px,3.5vw,42px)] font-bold leading-none tracking-[-0.025em] text-primary">
+              ${data.balanceUsd.toFixed(2)}
             </div>
             
             <div className="mt-5 border-t border-[rgba(232,224,210,0.55)] pt-4 text-[12px] text-secondary grid grid-cols-3 gap-2">
@@ -327,66 +330,44 @@ export function DashboardView({ apiKey }: DashboardViewProps) {
                 <span className="font-semibold text-coral font-mono">${typeof data.usedUsd === 'number' ? data.usedUsd.toFixed(3) : '0.000'}</span>
               </div>
             </div>
-            <span className="absolute right-5 top-5 h-px w-12 bg-coral/20 transition group-hover:bg-coral/50" />
-            <span className="absolute -right-10 -top-10 h-32 w-32 rounded-full border border-coral/10" />
-          </motion.article>
+          </div>
 
-          {/* 2. 총 사용 토큰 Card */}
-          <motion.article
-            initial={{ opacity: 0, y: 24 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true, amount: 0.35 }}
-            transition={{ delay: 0.15, duration: 0.55, ease: [0.22, 1, 0.36, 1] }}
-            className="group relative flex flex-col justify-between min-h-[220px] overflow-hidden rounded-2xl border border-[var(--border-subtle)] bg-cream p-7 shadow-md transition duration-200 hover:-translate-y-0.5 hover:border-coral/50 hover:shadow-lg"
-          >
-            <div>
-              <span className="font-mono text-[11px] uppercase tracking-[0.16em] text-coral/75">· TOTAL TOKENS</span>
-              <h4 className="mt-1 text-[13px] font-semibold text-secondary">총 사용 토큰</h4>
-              <div className="mt-4 flex items-baseline text-[clamp(32px,3.5vw,42px)] font-bold leading-none tracking-[-0.025em] text-primary">
-                {formatCompactToken(data.stats?.totalTokens ?? 0)}
-                <span className="ml-1.5 font-mono text-[13px] font-semibold uppercase tracking-[0.1em] text-secondary">TOKENS</span>
-              </div>
+          {/* 2. 총 사용 토큰 Section */}
+          <div className="py-6 lg:py-0 lg:px-7">
+            <span className="font-mono text-[11px] uppercase tracking-[0.16em] text-coral/75">· TOTAL TOKENS</span>
+            <h4 className="mt-1 text-[13px] font-semibold text-secondary">총 사용 토큰</h4>
+            <div className="mt-4 flex items-baseline text-[clamp(32px,3.5vw,42px)] font-bold leading-none tracking-[-0.025em] text-primary">
+              {formatCompactToken(data.stats?.totalTokens ?? 0)}
+              <span className="ml-1.5 font-mono text-[13px] font-semibold uppercase tracking-[0.1em] text-secondary">TOKENS</span>
             </div>
             <p className="mt-5 border-t border-[rgba(232,224,210,0.55)] pt-4 text-[13px] leading-[1.6] text-secondary">
               선택한 조회 기간 동안 모델 추론에 소비된 전체 토큰 수(입력 + 출력)입니다.
             </p>
-            <span className="absolute right-5 top-5 h-px w-12 bg-coral/20 transition group-hover:bg-coral/50" />
-            <span className="absolute -right-10 -top-10 h-32 w-32 rounded-full border border-coral/10" />
-          </motion.article>
+          </div>
 
-          {/* 3. 총 요청 건수 Card */}
-          <motion.article
-            initial={{ opacity: 0, y: 24 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true, amount: 0.35 }}
-            transition={{ delay: 0.25, duration: 0.55, ease: [0.22, 1, 0.36, 1] }}
-            className="group relative flex flex-col justify-between min-h-[220px] overflow-hidden rounded-2xl border border-[var(--border-subtle)] bg-cream p-7 shadow-md transition duration-200 hover:-translate-y-0.5 hover:border-coral/50 hover:shadow-lg"
-          >
-            <div>
-              <span className="font-mono text-[11px] uppercase tracking-[0.16em] text-coral/75">· TOTAL REQUESTS</span>
-              <h4 className="mt-1 text-[13px] font-semibold text-secondary">총 요청 건수</h4>
-              <div className="mt-4 flex items-baseline text-[clamp(32px,3.5vw,42px)] font-bold leading-none tracking-[-0.025em] text-primary">
-                {(data.stats?.totalRequests ?? 0).toLocaleString()}
-                <span className="ml-1.5 font-mono text-[13px] font-semibold uppercase tracking-[0.1em] text-secondary">REQ</span>
-              </div>
+          {/* 3. 총 요청 건수 Section */}
+          <div className="pt-6 lg:pt-0 lg:pl-7">
+            <span className="font-mono text-[11px] uppercase tracking-[0.16em] text-coral/75">· TOTAL REQUESTS</span>
+            <h4 className="mt-1 text-[13px] font-semibold text-secondary">총 요청 건수</h4>
+            <div className="mt-4 flex items-baseline text-[clamp(32px,3.5vw,42px)] font-bold leading-none tracking-[-0.025em] text-primary">
+              {(data.stats?.totalRequests ?? 0).toLocaleString()}
+              <span className="ml-1.5 font-mono text-[13px] font-semibold uppercase tracking-[0.1em] text-secondary">REQ</span>
             </div>
             <p className="mt-5 border-t border-[rgba(232,224,210,0.55)] pt-4 text-[13px] leading-[1.6] text-secondary">
               선택한 조회 기간 동안 발생한 누적 API 요청 성공 횟수입니다.
             </p>
-            <span className="absolute right-5 top-5 h-px w-12 bg-coral/20 transition group-hover:bg-coral/50" />
-            <span className="absolute -right-10 -top-10 h-32 w-32 rounded-full border border-coral/10" />
-          </motion.article>
-        </div>
+          </div>
+        </motion.div>
 
         <UsageChart
-          requests={data.recentRequests}
+          requests={recentRequests}
           onRefresh={refresh}
           isRefreshing={isRefreshing || isSyncing}
           dataState={dataState}
         />
 
         <div className="grid gap-3">
-          <RecentRequestsTable requests={data.recentRequests} dataState={dataState} />
+          <RecentRequestsTable requests={slicedRequests} dataState={dataState} />
 
           {/* Premium Pagination Controls */}
           <div className="flex items-center justify-between px-2">
@@ -412,7 +393,7 @@ export function DashboardView({ apiKey }: DashboardViewProps) {
               </button>
             </div>
             <p className="font-mono text-[11px] text-secondary/40 select-none">
-              Total: {events.data?.total ?? 0} requests
+              Total: {recentRequests.length} requests
             </p>
           </div>
         </div>

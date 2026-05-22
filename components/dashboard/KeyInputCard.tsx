@@ -4,6 +4,7 @@ import type { FormEvent } from "react";
 import { useState } from "react";
 import { motion } from "framer-motion";
 import { cardReveal } from "@/lib/motion";
+import { Eye, EyeOff } from "lucide-react";
 
 export type SavedDashboardKey = {
   id: string;
@@ -23,6 +24,7 @@ type KeyInputCardProps = {
 
 export function KeyInputCard({ onKeySubmit, savedKeys = [] }: KeyInputCardProps) {
   const [apiKey, setApiKey] = useState("");
+  const [showKey, setShowKey] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -71,15 +73,26 @@ export function KeyInputCard({ onKeySubmit, savedKeys = [] }: KeyInputCardProps)
           <div className="group relative">
             <input
               id="apiKey"
-              type="password"
+              type={showKey ? "text" : "password"}
               value={apiKey}
               onChange={(event) => setApiKey(event.target.value)}
-              placeholder="sk-••••••••••••"
-              className="min-h-[52px] w-full rounded-[10px] border border-[var(--border-subtle)] bg-cream-2/45 px-4 pr-10 font-mono text-[14px] tracking-[0.01em] text-primary shadow-sm transition duration-200 placeholder:text-secondary/45 focus:border-coral focus:outline-none focus:ring-4 focus:ring-coral/10"
+              placeholder="클로드 API키를 입력하세요."
+              className="min-h-[52px] w-full rounded-[10px] border border-[var(--border-subtle)] bg-cream-2/45 px-4 pr-12 font-mono text-[14px] tracking-[0.01em] text-primary shadow-sm transition duration-200 placeholder:text-secondary/45 focus:border-coral focus:outline-none focus:ring-4 focus:ring-coral/10"
               autoComplete="off"
               spellCheck="false"
             />
-            <span className="pointer-events-none absolute right-4 top-1/2 hidden h-5 w-px -translate-y-1/2 animate-soft-pulse bg-coral group-focus-within:block" />
+            <button
+              type="button"
+              onClick={() => setShowKey(!showKey)}
+              className="absolute right-4 top-1/2 -translate-y-1/2 text-ink-soft hover:text-ink transition-colors opacity-40 focus:opacity-100 group-focus-within:opacity-100 p-1 rounded-md focus:outline-none"
+              title={showKey ? "비밀번호 숨기기" : "비밀번호 표시"}
+            >
+              {showKey ? (
+                <EyeOff className="h-5 w-5" />
+              ) : (
+                <Eye className="h-5 w-5" />
+              )}
+            </button>
           </div>
           {error ? <p className="text-sm font-medium text-coral">{error}</p> : null}
         </div>

@@ -94,7 +94,7 @@ function useAipRequest<T>(
       const requestBody =
         kind === 'summary'
           ? { apiKey, range }
-          : { apiKey, range, page: page ?? 1, pageSize: 20 };
+          : { apiKey, range, page: 1, pageSize: 10 };
       
       const customHeaders: Record<string, string> = {};
       if (isFirstFetchRef.current) {
@@ -133,7 +133,7 @@ function useAipRequest<T>(
   }, [refetch]);
 
   useEffect(() => {
-    if (apiKey === '' || fingerprint === '') {
+    if (apiKey === '' || fingerprint === '' || !visible) {
       return;
     }
 
@@ -180,7 +180,7 @@ export function useAipEvents(apiKey: string, range: RangeValue, page = 1): LoadS
   return useAipRequest<EventsBody>(
     apiKey,
     range,
-    page,
+    undefined,
     'events',
     '/lookup/events'
   );
