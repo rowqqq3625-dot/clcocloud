@@ -1,9 +1,9 @@
 "use client";
 
-import { RefreshCw } from "lucide-react";
-import { motion } from "framer-motion";
+import { useState, useRef } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import type { ApiKeyRecentRequest } from "@/lib/keys/types";
-import { buildSvgPath, buildUsageSeries } from "@/lib/dashboard-utils";
+import { buildUsageSeries } from "@/lib/dashboard-utils";
 import { formatCompactToken } from "@/components/dashboard/RecentRequestsTable";
 
 type UsageChartProps = {
@@ -13,17 +13,49 @@ type UsageChartProps = {
   dataState?: "ready" | "empty" | "unavailable";
 };
 
+// Catmull-Rom to Cubic Bezier smooth curve interpolation
+function getBezierPath(points: Array<{ x: number; y: number }>) {
+  if (points.length === 0) return "";
+  if (points.length === 1) {
+    return `M ${points[0].x - 10} ${points[0].y} L ${points[0].x + 10} ${points[0].y}`;
+  }
+
+  const k = 0.22; // smoothness coefficient (Catmull-Rom-like tension)
+  let d = `M ${points[0].x.toFixed(2)} ${points[0].y.toFixed(2)}`;
+
+  for (let i = 0; i < points.length - 1; i++) {
+    const p0 = points[Math.max(i - 1, 0)];
+    const p1 = points[i];
+    const p2 = points[i + 1];
+    const p3 = points[Math.min(i + 2, points.length - 1)];
+
+    const cp1x = p1.x + (p2.x - p0.x) * k;
+    const cp1y = p1.y + (p2.y - p0.y) * k;
+
+    const cp2x = p2.x - (p3.x - p1.x) * k;
+    const cp2y = p2.y - (p3.y - p1.y) * k;
+
+    d += ` C ${cp1x.toFixed(2)} ${cp1y.toFixed(2)}, ${cp2x.toFixed(2)} ${cp2y.toFixed(2)}, ${p2.x.toFixed(2)} ${p2.y.toFixed(2)}`;
+  }
+
+  return d;
+}
+
 export function UsageChart({
   requests = [],
   onRefresh,
   isRefreshing = false,
   dataState = "ready",
 }: UsageChartProps) {
+  const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
+  const chartContainerRef = useRef<HTMLDivElement | null>(null);
+
   const points = buildUsageSeries(requests);
-  const path = buildSvgPath(points);
+  const path = getBezierPath(points);
   const totalTokens = points.reduce((sum, point) => sum + point.value, 0);
   const totalRequests = points.reduce((sum, point) => sum + point.requests, 0);
   const isEmpty = points.length === 0;
+
   const emptyText = dataState === "unavailable"
     ? "실제 요청 로그를 확인하지 못했습니다."
     : "표시할 실제 사용량 흐름이 아직 없습니다.";
@@ -41,65 +73,142 @@ export function UsageChart({
           <p className="font-mono text-[11px] uppercase tracking-[0.16em] text-coral/75">USAGE FLOW</p>
           <h3 className="mt-2 text-[24px] font-[560] tracking-[-0.018em] text-primary">사용량 흐름</h3>
         </div>
-        <button
-          type="button"
-          onClick={onRefresh}
-          disabled={isRefreshing}
-          className="inline-flex items-center gap-2 rounded-full border border-[var(--border-subtle)] bg-cream-2/60 px-3 py-2 font-mono text-[11px] font-semibold uppercase tracking-[0.12em] text-secondary transition hover:border-coral/50 hover:text-coral disabled:opacity-50"
-        >
-          <RefreshCw size={13} className={isRefreshing ? "animate-spin" : ""} />
-          30s live
-        </button>
       </div>
 
       <div className="grid gap-5 p-6 sm:p-7 lg:grid-cols-[1fr_220px]">
-        <div className="relative h-[260px] overflow-hidden rounded-2xl border border-[var(--border-subtle)] bg-[linear-gradient(180deg,rgba(251,246,236,.96),rgba(240,226,210,.42))] p-4">
+        <div
+          ref={chartContainerRef}
+          className="relative h-[260px] overflow-hidden rounded-2xl border border-[var(--border-subtle)] bg-[linear-gradient(180deg,rgba(251,246,236,.96),rgba(240,226,210,.42))] p-4"
+        >
           <div className="pointer-events-none absolute inset-4 grid grid-rows-4">
             {[0, 1, 2, 3].map((line) => (
               <span key={line} className="border-t border-primary/[0.06]" />
             ))}
           </div>
+
           {isEmpty ? (
             <div className="relative z-[1] grid h-full place-items-center text-center">
               <p className="max-w-sm text-sm leading-6 text-secondary">{emptyText}</p>
             </div>
           ) : (
-            <svg viewBox="0 0 100 100" preserveAspectRatio="none" className="relative z-[1] h-full w-full overflow-visible">
-              <defs>
-                <linearGradient id="dashboardUsageFill" x1="0" x2="0" y1="0" y2="1">
-                  <stop offset="0%" stopColor="var(--coral)" stopOpacity="0.28" />
-                  <stop offset="68%" stopColor="var(--coral)" stopOpacity="0.08" />
-                  <stop offset="100%" stopColor="var(--coral)" stopOpacity="0" />
-                </linearGradient>
-                <filter id="dashboardUsageGlow" x="-20%" y="-20%" width="140%" height="140%">
-                  <feGaussianBlur stdDeviation="1.8" result="blur" />
-                  <feMerge>
-                    <feMergeNode in="blur" />
-                    <feMergeNode in="SourceGraphic" />
-                  </feMerge>
-                </filter>
-              </defs>
-              <path d={`${path} L 100 100 L 0 100 Z`} fill="url(#dashboardUsageFill)" />
-              <motion.path
-                d={path}
-                fill="none"
-                stroke="var(--coral)"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                vectorEffect="non-scaling-stroke"
-                filter="url(#dashboardUsageGlow)"
-                initial={{ pathLength: 0 }}
-                whileInView={{ pathLength: 1 }}
-                viewport={{ once: true, amount: 0.4 }}
-                transition={{ duration: 1.1, ease: [0.22, 1, 0.36, 1] }}
-              />
-              {points.map((point) => (
-                <g key={point.label}>
-                  <circle cx={point.x} cy={point.y} r="2.2" fill="var(--cream)" stroke="var(--coral)" strokeWidth="1.4" vectorEffect="non-scaling-stroke" />
-                </g>
-              ))}
-            </svg>
+            <>
+              <svg viewBox="0 0 100 100" preserveAspectRatio="none" className="relative z-[1] h-full w-full overflow-visible">
+                <defs>
+                  <linearGradient id="dashboardUsageFill" x1="0" x2="0" y1="0" y2="1">
+                    <stop offset="0%" stopColor="var(--coral)" stopOpacity="0.28" />
+                    <stop offset="68%" stopColor="var(--coral)" stopOpacity="0.08" />
+                    <stop offset="100%" stopColor="var(--coral)" stopOpacity="0" />
+                  </linearGradient>
+                </defs>
+                <path d={`${path} L 100 100 L 0 100 Z`} fill="url(#dashboardUsageFill)" />
+                
+                {/* Glow under-layer path */}
+                <motion.path
+                  d={path}
+                  fill="none"
+                  stroke="var(--coral)"
+                  strokeWidth="5"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  vectorEffect="non-scaling-stroke"
+                  opacity="0.2"
+                  style={{ filter: "blur(3px)" }}
+                  initial={{ pathLength: 0 }}
+                  whileInView={{ pathLength: 1 }}
+                  viewport={{ once: true, amount: 0.4 }}
+                  transition={{ duration: 1.1, ease: [0.22, 1, 0.36, 1] }}
+                />
+
+                {/* Primary path with opacity=1 */}
+                <motion.path
+                  d={path}
+                  fill="none"
+                  stroke="var(--coral)"
+                  strokeWidth="2.2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  vectorEffect="non-scaling-stroke"
+                  opacity="1"
+                  initial={{ pathLength: 0 }}
+                  whileInView={{ pathLength: 1 }}
+                  viewport={{ once: true, amount: 0.4 }}
+                  transition={{ duration: 1.1, ease: [0.22, 1, 0.36, 1] }}
+                />
+              </svg>
+
+              {/* HTML Absolute-positioned Hover Dots */}
+              <div className="absolute inset-4 pointer-events-none">
+                {points.map((point, index) => (
+                  <div
+                    key={point.label}
+                    className="absolute pointer-events-auto cursor-pointer"
+                    style={{
+                      left: `${point.x}%`,
+                      top: `${point.y}%`,
+                      transform: "translate(-50%, -50%)",
+                      width: "24px",
+                      height: "24px",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                    }}
+                    onMouseEnter={() => setHoveredIndex(index)}
+                    onMouseLeave={() => setHoveredIndex(null)}
+                  >
+                    <motion.div
+                      animate={{
+                        scale: hoveredIndex === index ? 1.4 : 1,
+                        backgroundColor: hoveredIndex === index ? "var(--coral)" : "var(--cream)",
+                        borderColor: "var(--coral)",
+                      }}
+                      transition={{
+                        type: "spring",
+                        stiffness: 400,
+                        damping: 22,
+                      }}
+                      className="h-3.5 w-3.5 rounded-full border-2 shadow-md"
+                    />
+                  </div>
+                ))}
+              </div>
+
+              {/* Tooltip Overlay */}
+              <div className="absolute inset-4 pointer-events-none">
+                <AnimatePresence>
+                  {hoveredIndex !== null && points[hoveredIndex] && (
+                    <motion.div
+                      initial={{ opacity: 0, y: 10, scale: 0.95 }}
+                      animate={{ opacity: 1, y: 0, scale: 1 }}
+                      exit={{ opacity: 0, y: 10, scale: 0.95 }}
+                      transition={{ type: "spring", stiffness: 400, damping: 22 }}
+                      className="absolute z-10 rounded-xl border border-[var(--border-subtle)] bg-cream-2/95 backdrop-blur-md p-4 shadow-xl pointer-events-none"
+                      style={{
+                        left: `${points[hoveredIndex].x}%`,
+                        top: `${points[hoveredIndex].y - 8}%`,
+                        transform: "translateX(-50%) translateY(-100%)",
+                        minWidth: "120px",
+                      }}
+                    >
+                      <p className="font-mono text-[10px] uppercase tracking-wider text-secondary">
+                        {points[hoveredIndex].label}
+                      </p>
+                      <div className="mt-1.5 flex items-center justify-between gap-3">
+                        <span className="text-[11px] font-semibold text-secondary">요청</span>
+                        <span className="font-mono text-xs font-bold text-primary">
+                          {points[hoveredIndex].requests.toLocaleString()}
+                        </span>
+                      </div>
+                      <div className="flex items-center justify-between gap-3">
+                        <span className="text-[11px] font-semibold text-secondary">토큰</span>
+                        <span className="font-mono text-xs font-bold text-coral">
+                          {formatCompactToken(points[hoveredIndex].value)}
+                        </span>
+                      </div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
+            </>
           )}
         </div>
 

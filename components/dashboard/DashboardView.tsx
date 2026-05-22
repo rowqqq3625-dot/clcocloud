@@ -1,6 +1,6 @@
 "use client";
 
-import { AlertCircle, BookOpen } from "lucide-react";
+import { AlertCircle } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useAipEvents } from "@/lib/dashboard/client/context/useAipData";
@@ -237,18 +237,8 @@ export function DashboardView({ apiKey }: DashboardViewProps) {
           isRefreshing={isRefreshing || isSyncing}
           onCopied={showToast}
           onRefresh={refresh}
+          onGuide={() => setShowGuideModal(true)}
         />
-
-        <div className="flex justify-end">
-          <button
-            type="button"
-            onClick={() => setShowGuideModal(true)}
-            className="inline-flex min-h-10 items-center gap-2 rounded-xl border border-[var(--border-subtle)] bg-cream px-4 text-sm font-bold text-primary shadow-sm transition hover:border-coral/50 hover:text-coral"
-          >
-            <BookOpen size={15} />
-            가이드
-          </button>
-        </div>
 
         {dataState !== "ready" ? (
           <div className={`rounded-2xl border p-5 text-sm leading-6 shadow-sm ${

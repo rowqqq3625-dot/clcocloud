@@ -1,6 +1,6 @@
 "use client";
 
-import { Key, RefreshCw } from "lucide-react";
+import { BookOpen, Key, RefreshCw } from "lucide-react";
 import { motion } from "framer-motion";
 import type { ApiKeyStatus } from "@/lib/keys/types";
 import { CopyButton } from "@/components/dashboard/CopyButton";
@@ -14,9 +14,18 @@ type KeyStatusCardProps = {
   isRefreshing?: boolean;
   onCopied: (message: string) => void;
   onRefresh: () => void;
+  onGuide?: () => void;
 };
 
-export function KeyStatusCard({ apiKey, data, fetchedAt, isRefreshing = false, onCopied, onRefresh }: KeyStatusCardProps) {
+export function KeyStatusCard({
+  apiKey,
+  data,
+  fetchedAt,
+  isRefreshing = false,
+  onCopied,
+  onRefresh,
+  onGuide,
+}: KeyStatusCardProps) {
   return (
     <motion.article
       initial={{ opacity: 0, y: 24 }}
@@ -43,14 +52,27 @@ export function KeyStatusCard({ apiKey, data, fetchedAt, isRefreshing = false, o
           </div>
         </div>
 
-        <button
-          type="button"
-          onClick={onRefresh}
-          className="group inline-flex w-fit items-center gap-2 rounded-full border border-[var(--border-subtle)] bg-cream-2/45 px-4 py-2 font-mono text-[11px] text-secondary shadow-sm transition hover:border-coral/50 hover:text-coral"
-        >
-          <RefreshCw className={`h-3.5 w-3.5 transition duration-500 group-hover:rotate-180 ${isRefreshing ? "animate-spin text-coral" : ""}`} />
-          {formatRefreshMeta(fetchedAt)}
-        </button>
+        <div className="flex flex-col items-end gap-2 shrink-0">
+          <button
+            type="button"
+            onClick={onRefresh}
+            className="group inline-flex w-fit items-center gap-2 rounded-full border border-[var(--border-subtle)] bg-cream-2/45 px-4 py-2 font-mono text-[11px] text-secondary shadow-sm transition hover:border-coral/50 hover:text-coral"
+          >
+            <RefreshCw className={`h-3.5 w-3.5 transition duration-500 group-hover:rotate-180 ${isRefreshing ? "animate-spin text-coral" : ""}`} />
+            {formatRefreshMeta(fetchedAt)}
+          </button>
+          
+          {onGuide && (
+            <button
+              type="button"
+              onClick={onGuide}
+              className="group inline-flex w-fit items-center gap-2 rounded-full border border-[var(--border-subtle)] bg-cream-2/45 px-4 py-2 font-mono text-[11px] text-secondary shadow-sm transition hover:border-coral/50 hover:text-coral"
+            >
+              <BookOpen className="h-3.5 w-3.5 transition duration-500 group-hover:scale-110 text-secondary" />
+              가이드
+            </button>
+          )}
+        </div>
       </div>
     </motion.article>
   );

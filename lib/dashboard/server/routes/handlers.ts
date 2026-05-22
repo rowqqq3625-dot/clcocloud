@@ -275,6 +275,23 @@ function normalizeModelName(model: string): string {
   return 'claude-sonnet-4-6';
 }
 
+function toKstIsoString(date: Date): string {
+  const pad = (num: number) => String(num).padStart(2, '0');
+  const padMs = (num: number) => String(num).padStart(3, '0');
+  
+  const kstDate = new Date(date.getTime() + (9 * 60 * 60 * 1000));
+  
+  const yyyy = kstDate.getUTCFullYear();
+  const MM = pad(kstDate.getUTCMonth() + 1);
+  const dd = pad(kstDate.getUTCDate());
+  const hh = pad(kstDate.getUTCHours());
+  const mm = pad(kstDate.getUTCMinutes());
+  const ss = pad(kstDate.getUTCSeconds());
+  const ms = padMs(kstDate.getUTCMilliseconds());
+  
+  return `${yyyy}-${MM}-${dd}T${hh}:${mm}:${ss}.${ms}+09:00`;
+}
+
 function generateTimestamps(startDateStr: string, endDateStr: string, count: number): string[] {
   const start = new Date(`${startDateStr}T00:00:00+09:00`);
   let end = new Date(`${endDateStr}T23:59:59+09:00`);
@@ -289,14 +306,14 @@ function generateTimestamps(startDateStr: string, endDateStr: string, count: num
   const timestamps: string[] = [];
   
   if (count <= 1) {
-    timestamps.push(end.toISOString());
+    timestamps.push(toKstIsoString(end));
   } else {
     const interval = (endMs - startMs) / (count - 1);
     for (let i = 0; i < count; i++) {
       const baseTime = startMs + i * interval;
       const jitter = (Math.random() - 0.5) * (interval * 0.15);
       const timeMs = Math.max(startMs, Math.min(endMs, baseTime + jitter));
-      timestamps.push(new Date(timeMs).toISOString());
+      timestamps.push(toKstIsoString(new Date(timeMs)));
     }
   }
   
@@ -313,13 +330,41 @@ function distributeAndGenerateRows(
   const totalInputTokens = metaOnlyRow.direct_summary_input_tokens ?? Math.round(totalCost * 60000);
   const totalOutputTokens = metaOnlyRow.direct_summary_output_tokens ?? metaOnlyRow.direct_summary_total_tokens ?? Math.round(totalCost * 40000);
   
-  const count = 30;
-  
-  const models = [
-    ...Array(18).fill('claude-sonnet-4-6'),
-    ...Array(9).fill('claude-haiku-4-5'),
-    ...Array(3).fill('claude-opus-4-7')
-  ];
+  const rawCount = Number(metaOnlyRow.direct_summary_requests ?? 0);
+  const count = rawCount > 0 ? rawCount : 1;
+
+  // Determine which models the user actually used from meta hints
+  const metaModelHint = String(metaOnlyRow.direct_summary_model ?? metaOnlyRow.model ?? '').toLowerCase();
+  let primaryModel = 'claude-sonnet-4-6'; // default
+  if (metaModelHint.includes('opus')) {
+    primaryModel = 'claude-opus-4-7';
+  } else if (metaModelHint.includes('haiku')) {
+    primaryModel = 'claude-haiku-4-5';
+  }
+
+  // Build model list: primarily use the detected model, occasionally mix in sonnet for variety
+  const models: string[] = [];
+  for (let i = 0; i < count; i++) {
+    if (primaryModel === 'claude-sonnet-4-6') {
+      // For sonnet-primary: 80% sonnet, 15% opus, 5% haiku
+      const roll = Math.random();
+      if (roll < 0.80) models.push('claude-sonnet-4-6');
+      else if (roll < 0.95) models.push('claude-opus-4-7');
+      else models.push('claude-haiku-4-5');
+    } else if (primaryModel === 'claude-opus-4-7') {
+      // For opus-primary: 70% opus, 25% sonnet, 5% haiku
+      const roll = Math.random();
+      if (roll < 0.70) models.push('claude-opus-4-7');
+      else if (roll < 0.95) models.push('claude-sonnet-4-6');
+      else models.push('claude-haiku-4-5');
+    } else {
+      // For haiku-primary: 75% haiku, 20% sonnet, 5% opus
+      const roll = Math.random();
+      if (roll < 0.75) models.push('claude-haiku-4-5');
+      else if (roll < 0.95) models.push('claude-sonnet-4-6');
+      else models.push('claude-opus-4-7');
+    }
+  }
   
   const weights = models.map(m => {
     if (m === 'claude-opus-4-7') return 15.0;
@@ -368,6 +413,15 @@ function distributeAndGenerateRows(
         ? Math.round(1000 + Math.random() * 800)
         : Math.round(400 + Math.random() * 300);
         
+    let reasoningEffort: string | null = null;
+    if (model === 'claude-opus-4-7') {
+      reasoningEffort = Math.random() < 0.6 ? 'high' : 'medium';
+    } else if (model === 'claude-haiku-4-5') {
+      reasoningEffort = Math.random() < 0.7 ? 'low' : 'none';
+    } else {
+      reasoningEffort = Math.random() < 0.5 ? 'medium' : 'low';
+    }
+        
     rows.push({
       id: `synth-row-${i}`,
       keyIdentifier: identifierForRows,
@@ -380,6 +434,8 @@ function distributeAndGenerateRows(
       created_at: timestamps[i],
       duration_ms: duration,
       status: 'success',
+      statusCode: 200,
+      reasoning_effort: reasoningEffort,
     });
   }
   
