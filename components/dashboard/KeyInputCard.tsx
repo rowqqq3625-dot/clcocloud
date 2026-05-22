@@ -73,18 +73,21 @@ export function KeyInputCard({ onKeySubmit, savedKeys = [] }: KeyInputCardProps)
           <div className="group relative">
             <input
               id="apiKey"
-              type={showKey ? "text" : "password"}
+              type="text"
               value={apiKey}
               onChange={(event) => setApiKey(event.target.value)}
               placeholder="클로드 API키를 입력하세요."
-              className="min-h-[52px] w-full rounded-[10px] border border-[var(--border-subtle)] bg-cream-2/45 px-4 pr-12 font-mono text-[14px] tracking-[0.01em] text-primary shadow-sm transition duration-200 placeholder:text-secondary/45 focus:border-coral focus:outline-none focus:ring-4 focus:ring-coral/10"
+              className={`min-h-[52px] w-full rounded-[10px] border border-[var(--border-subtle)] bg-cream-2/45 px-4 pr-12 font-mono text-[14px] tracking-[0.01em] text-primary shadow-sm transition duration-200 placeholder:text-secondary/45 focus:border-coral focus:outline-none focus:ring-4 focus:ring-coral/10 ${!showKey ? "security-masked" : ""}`}
               autoComplete="off"
+              data-1p-ignore
+              data-lpignore="true"
+              data-bitwarden-no-filtering
               spellCheck="false"
             />
             <button
               type="button"
               onClick={() => setShowKey(!showKey)}
-              className="absolute right-4 top-1/2 -translate-y-1/2 text-ink-soft hover:text-ink transition-colors opacity-40 focus:opacity-100 group-focus-within:opacity-100 p-1 rounded-md focus:outline-none"
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-ink-soft hover:text-ink transition-colors opacity-40 focus:opacity-100 group-focus-within:opacity-100 p-1 rounded-md focus:outline-none"
               title={showKey ? "비밀번호 숨기기" : "비밀번호 표시"}
             >
               {showKey ? (

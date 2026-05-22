@@ -954,3 +954,23 @@ input {
   transform: translateZ(0);
   backface-visibility: hidden;
 }
+
+/* Hide browser-native password reveal and clear icons globally */
+input::-ms-reveal,
+input::-ms-clear,
+input::-webkit-contacts-auto-fill-button,
+input::-webkit-credentials-auto-fill-button,
+input::-webkit-password-reveal-button,
+input::-webkit-caps-lock-indicator {
+  display: none !important;
+  width: 0 !important;
+  height: 0 !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
+}
+
+.security-masked {
+  -webkit-text-security: disc !important;
+  text-security: disc !important;
+}
+

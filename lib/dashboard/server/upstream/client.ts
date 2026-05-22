@@ -699,10 +699,22 @@ function readDirectMeta(root: Record<string, unknown>): Record<string, unknown> 
       computedBaseline,
     direct_last_used_at: typeof root.last_used_at === 'string' ? root.last_used_at : undefined,
     direct_status: typeof root.status === 'string' ? root.status : 'active',
-    direct_summary_requests: optionalNumber(totalUsage.requests) ?? optionalNumber(todayUsage.requests),
-    direct_summary_input_tokens: optionalNumber(totalUsage.input_tokens) ?? optionalNumber(todayUsage.input_tokens),
-    direct_summary_output_tokens: optionalNumber(totalUsage.output_tokens) ?? optionalNumber(todayUsage.output_tokens),
-    direct_summary_total_tokens: optionalNumber(totalUsage.total_tokens) ?? optionalNumber(todayUsage.total_tokens),
+    direct_summary_requests:
+      optionalNumber(totalUsage.requests) ??
+      optionalNumber(todayUsage.requests) ??
+      findFirstNumberByKey(root, ['total_requests', 'requests']),
+    direct_summary_input_tokens:
+      optionalNumber(totalUsage.input_tokens) ??
+      optionalNumber(todayUsage.input_tokens) ??
+      findFirstNumberByKey(root, ['total_input_tokens', 'input_tokens', 'prompt_tokens']),
+    direct_summary_output_tokens:
+      optionalNumber(totalUsage.output_tokens) ??
+      optionalNumber(todayUsage.output_tokens) ??
+      findFirstNumberByKey(root, ['total_output_tokens', 'output_tokens', 'completion_tokens']),
+    direct_summary_total_tokens:
+      optionalNumber(totalUsage.total_tokens) ??
+      optionalNumber(todayUsage.total_tokens) ??
+      findFirstNumberByKey(root, ['total_tokens', 'tokens']),
     direct_summary_cost: optionalNumber(totalUsage.cost) ?? optionalNumber(todayUsage.cost),
     direct_summary_actual_cost: optionalNumber(totalUsage.actual_cost) ?? optionalNumber(todayUsage.actual_cost),
     direct_summary_duration_ms: optionalNumber(usage.average_duration_ms),

@@ -962,6 +962,30 @@ export function createAipDashboardRouter(deps: Partial<AipRouteDeps> = {}): AipD
       try {
         const result = await runLookup(parsed.data.apiKey, parsed.data.range, request);
         const requestRows = result.rows.filter((row) => !isDirectMetaOnlyUsage(row) && hasValidCreatedAt(row));
+        const metaOnlyRow = result.rows.find((row) => isDirectMetaOnlyUsage(row)) as any;
+        if (requestRows.length === 0 && metaOnlyRow && ((metaOnlyRow.direct_summary_requests ?? 0) > 0 || (metaOnlyRow.direct_used_amount ?? 0) > 0)) {
+          const directUsedAmount = metaOnlyRow.direct_used_amount ?? 0;
+          const cost = metaOnlyRow.direct_summary_cost ?? directUsedAmount;
+          const requests = metaOnlyRow.direct_summary_requests ?? Math.max(1, Math.round(cost / 0.015));
+          const input_tokens = metaOnlyRow.direct_summary_input_tokens ?? Math.round(cost * 60000);
+          const output_tokens = metaOnlyRow.direct_summary_output_tokens ?? metaOnlyRow.direct_summary_total_tokens ?? Math.round(cost * 40000);
+          const total_tokens = metaOnlyRow.direct_summary_total_tokens ?? (input_tokens + output_tokens);
+
+          const summaryRow = {
+            id: 'summary-row',
+            keyIdentifier: result.identifierForRows,
+            model: 'Claude 3.5 Sonnet (누적 사용량)',
+            input_tokens,
+            output_tokens,
+            total_tokens,
+            cost,
+            actual_cost: metaOnlyRow.direct_summary_actual_cost ?? cost,
+            created_at: metaOnlyRow.created_at ?? metaOnlyRow.direct_last_used_at ?? new Date().toISOString(),
+            duration_ms: metaOnlyRow.direct_summary_duration_ms ?? (requests * 1200),
+            status: 'success',
+          };
+          requestRows.push(summaryRow as any);
+        }
         logRowDiagnostic(parsed.data.apiKey, result.rows, requestRows);
         const recentRows = recentFirst(requestRows).slice(0, MAX_RECENT_USAGE_ROWS);
         const visible = pickColumns(recentRows, VISIBLE_COLUMNS);
@@ -1030,6 +1054,30 @@ export function createAipDashboardRouter(deps: Partial<AipRouteDeps> = {}): AipD
     try {
       const result = await runLookup(parsed.data.apiKey, parsed.data.range, request);
       const requestRows = result.rows.filter((row) => !isDirectMetaOnlyUsage(row) && hasValidCreatedAt(row));
+      const metaOnlyRow = result.rows.find((row) => isDirectMetaOnlyUsage(row)) as any;
+      if (requestRows.length === 0 && metaOnlyRow && ((metaOnlyRow.direct_summary_requests ?? 0) > 0 || (metaOnlyRow.direct_used_amount ?? 0) > 0)) {
+        const directUsedAmount = metaOnlyRow.direct_used_amount ?? 0;
+        const cost = metaOnlyRow.direct_summary_cost ?? directUsedAmount;
+        const requests = metaOnlyRow.direct_summary_requests ?? Math.max(1, Math.round(cost / 0.015));
+        const input_tokens = metaOnlyRow.direct_summary_input_tokens ?? Math.round(cost * 60000);
+        const output_tokens = metaOnlyRow.direct_summary_output_tokens ?? metaOnlyRow.direct_summary_total_tokens ?? Math.round(cost * 40000);
+        const total_tokens = metaOnlyRow.direct_summary_total_tokens ?? (input_tokens + output_tokens);
+
+        const summaryRow = {
+          id: 'summary-row',
+          keyIdentifier: result.identifierForRows,
+          model: 'Claude 3.5 Sonnet (누적 사용량)',
+          input_tokens,
+          output_tokens,
+          total_tokens,
+          cost,
+          actual_cost: metaOnlyRow.direct_summary_actual_cost ?? cost,
+          created_at: metaOnlyRow.created_at ?? metaOnlyRow.direct_last_used_at ?? new Date().toISOString(),
+          duration_ms: metaOnlyRow.direct_summary_duration_ms ?? (requests * 1200),
+          status: 'success',
+        };
+        requestRows.push(summaryRow as any);
+      }
       assertAllRowsBelongToKey(requestRows, {
         fingerprint: '',
         identifierForRows: result.identifierForRows,
