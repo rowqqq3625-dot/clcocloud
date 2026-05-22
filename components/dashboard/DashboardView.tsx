@@ -150,7 +150,7 @@ export function DashboardView({ apiKey }: DashboardViewProps) {
 
   if (!data) return null;
 
-  const totalPages = Math.min(3, Math.max(1, Math.ceil(eventTotal / 10)));
+  const totalPages = Math.min(3, Math.max(1, Math.ceil(eventTotal / 20)));
 
   return (
     <>

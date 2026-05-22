@@ -56,22 +56,54 @@ function AnimatedChars({
   startIndex: number; 
   className?: string; 
 }) {
+  const parts = text.split(/(\s+)/);
+  let charAccumulator = 0;
+
   return (
     <span className={className}>
-      {[...text].map((char, index) => {
-        const charIndex = startIndex + index;
-        return (
-          <motion.span
-            key={index}
-            custom={charIndex}
-            variants={charVariants}
-            initial="hidden"
-            animate="visible"
-            className="inline-block origin-[50%_100%] whitespace-pre"
-          >
-            {char === " " ? "\u00A0" : char}
-          </motion.span>
-        );
+      {parts.map((part, partIndex) => {
+        if (part === "") return null;
+
+        const isSpace = /^\s+$/.test(part);
+        if (isSpace) {
+          return [...part].map((char, charIdx) => {
+            const charIndex = startIndex + charAccumulator;
+            charAccumulator += 1;
+            return (
+              <motion.span
+                key={`space-${partIndex}-${charIdx}`}
+                custom={charIndex}
+                variants={charVariants}
+                initial="hidden"
+                animate="visible"
+                className="inline-block origin-[50%_100%] whitespace-pre"
+              >
+                {"\u00A0"}
+              </motion.span>
+            );
+          });
+        } else {
+          return (
+            <span key={`word-${partIndex}`} className="inline-block whitespace-nowrap">
+              {[...part].map((char, charIdx) => {
+                const charIndex = startIndex + charAccumulator;
+                charAccumulator += 1;
+                return (
+                  <motion.span
+                    key={charIdx}
+                    custom={charIndex}
+                    variants={charVariants}
+                    initial="hidden"
+                    animate="visible"
+                    className="inline-block origin-[50%_100%] whitespace-pre"
+                  >
+                    {char}
+                  </motion.span>
+                );
+              })}
+            </span>
+          );
+        }
       })}
     </span>
   );
@@ -100,7 +132,7 @@ export function SplitHeadline({
     >
       <span className="block">
         {/* Line 1 */}
-        <span className="block whitespace-nowrap">
+        <span className="block">
           <AnimatedChars text="언제 끊길지 모르는" startIndex={0} />
         </span>
 
@@ -113,7 +145,7 @@ export function SplitHeadline({
         </span>
 
         {/* Line 3 */}
-        <span className="block whitespace-nowrap">
+        <span className="block">
           <AnimatedChars text="이제는 " startIndex={19} className="inline-block text-primary" />
           <span className="hero3d-coral-word relative inline-block text-coral">
             <AnimatedChars text="클코클라우드" startIndex={23} />

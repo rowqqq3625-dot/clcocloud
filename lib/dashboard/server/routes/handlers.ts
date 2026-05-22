@@ -72,7 +72,7 @@ const eventsBodySchema = z.object({
   apiKey: z.string(),
   range: rangeSchema,
   page: z.number().int().min(1).default(1),
-  pageSize: z.number().int().min(1).max(500).default(10),
+  pageSize: z.number().int().min(1).max(500).default(20),
 });
 
 const exportBodySchema = z.object({
@@ -87,7 +87,7 @@ const adminLoginBodySchema = z.object({
 const noStoreHeaders = {
   'Cache-Control': 'no-store',
 };
-const MAX_RECENT_USAGE_ROWS = 30;
+const MAX_RECENT_USAGE_ROWS = 60;
 const EVENTS_CACHE_TTL_MS = 2_000;
 
 function defaultDeps(): AipRouteDeps {
@@ -339,7 +339,7 @@ function eventsPage(page: number): number {
 }
 
 function eventsPageSize(pageSize: number): number {
-  return Math.min(Math.max(pageSize, 1), 10);
+  return Math.min(Math.max(pageSize, 1), 20);
 }
 
 function hasOperatorCredentialEnv(): boolean {
@@ -785,7 +785,7 @@ export function createAipDashboardRouter(deps: Partial<AipRouteDeps> = {}): AipD
 
       const rangeVal = (bodyObj.range as LookupRange) || '7d';
       const pageVal = eventsPage(numberOrNull(bodyObj.page) ?? 1);
-      const pageSizeVal = eventsPageSize(numberOrNull(bodyObj.pageSize) ?? 10);
+      const pageSizeVal = eventsPageSize(numberOrNull(bodyObj.pageSize) ?? 20);
       const cacheKey = eventsCacheKey(fpValue, rangeVal, pageVal, pageSizeVal);
       const cacheControl = getHeader(request, 'cache-control') || '';
       const pragma = getHeader(request, 'pragma') || '';

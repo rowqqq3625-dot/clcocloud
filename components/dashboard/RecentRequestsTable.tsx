@@ -65,7 +65,7 @@ export function RecentRequestsTable({ requests = [], dataState = "ready" }: Rece
                 </td>
               </tr>
             ) : (
-              requests.slice(0, 10).map((request) => (
+              requests.slice(0, 20).map((request) => (
                 <motion.tr
                   key={request.requestId}
                   initial={{ opacity: 0, y: 8 }}
