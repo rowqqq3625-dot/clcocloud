@@ -74,21 +74,32 @@ export function RecentRequestsTable({ requests = [], dataState = "ready" }: Rece
                 >
                   <td className="sticky left-0 bg-cream px-5 py-4 font-mono text-[13px] text-primary transition group-hover:bg-cream-2/95">
                     <span className="absolute left-0 top-3 h-[calc(100%-24px)] w-px bg-coral opacity-0 transition group-hover:opacity-60" />
-                    <span className="break-all font-mono font-medium">{displayModelName(request.requestedModel)}</span>
+                    <div className="flex flex-col gap-0.5">
+                      <span className="break-all font-mono font-medium">{displayModelName(request.requestedModel)}</span>
+                      <span className="text-[10px] font-semibold text-secondary/60 tracking-wider uppercase font-mono">
+                        Reasoning: {request.reasoningEffort || "default"}
+                      </span>
+                    </div>
                   </td>
                   <td className="px-5 py-4 text-center">
                     {(() => {
                       const effort = (request.reasoningEffort || "default").toLowerCase();
                       let badgeClass = "bg-cream-2 text-secondary";
-                      if (effort.includes("high")) {
-                        badgeClass = "bg-coral/10 text-coral";
+                      if (effort.includes("max")) {
+                        badgeClass = "bg-[#3A3734]/15 text-[#3A3734] border border-[#3A3734]/25";
+                      } else if (effort.includes("xhigh")) {
+                        badgeClass = "bg-[#DE6E5C]/15 text-[#DE6E5C] border border-[#DE6E5C]/25";
+                      } else if (effort.includes("high")) {
+                        badgeClass = "bg-[#E4A853]/15 text-[#b27926] border border-[#E4A853]/25";
                       } else if (effort.includes("medium")) {
-                        badgeClass = "bg-[#E4A853]/15 text-[#b27926]";
+                        badgeClass = "bg-[#D0C4B0]/30 text-[#7C6E59] border border-[#D0C4B0]/30";
                       } else if (effort.includes("low")) {
-                        badgeClass = "bg-[#6B9A7C]/15 text-[#426a50]";
+                        badgeClass = "bg-[#6B9A7C]/15 text-[#426a50] border border-[#6B9A7C]/25";
+                      } else if (effort.includes("none")) {
+                        badgeClass = "bg-cream-2/70 text-secondary/50 border border-transparent";
                       }
                       return (
-                        <span className={`inline-flex items-center rounded-md px-2.5 py-1 font-mono text-[11px] font-semibold ${badgeClass}`}>
+                        <span className={`inline-flex items-center rounded-md px-2.5 py-0.5 font-mono text-[10px] font-semibold tracking-wide uppercase ${badgeClass}`}>
                           {request.reasoningEffort || "default"}
                         </span>
                       );

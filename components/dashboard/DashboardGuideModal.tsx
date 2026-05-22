@@ -168,15 +168,16 @@ export function DashboardGuideModal({ apiKey, open, onClose, onCopied }: Dashboa
                       <i className="h-2.5 w-2.5 rounded-full bg-[#ffbd2e]" />
                       <i className="h-2.5 w-2.5 rounded-full bg-[#28c840]" />
                     </span>
-                    <span className="font-mono text-xs text-cream/80">{activeTab.filename}</span>
+                    <span className="font-mono text-xs" style={{ color: "rgba(255, 255, 255, 0.85)" }}>{activeTab.filename}</span>
                   </div>
                   <div className="flex items-center gap-2">
-                    <span className="rounded-md bg-white/8 px-2 py-1 font-mono text-[11px] font-bold text-cream/55">{activeTab.lang}</span>
+                    <span className="rounded-md bg-white/10 px-2 py-1 font-mono text-[11px] font-bold" style={{ color: "rgba(255, 255, 255, 0.75)" }}>{activeTab.lang}</span>
                     <button
                       type="button"
                       onClick={copyCode}
                       aria-label="코드 복사"
-                      className="grid h-8 w-8 place-items-center rounded-lg border border-white/10 bg-white/[0.04] text-cream/70 transition hover:text-cream"
+                      className="grid h-8 w-8 place-items-center rounded-lg border border-white/10 bg-white/[0.04] transition hover:text-white"
+                      style={{ color: "rgba(255, 255, 255, 0.75)" }}
                     >
                       {copied ? <Check size={15} /> : <Copy size={15} />}
                     </button>
@@ -186,8 +187,8 @@ export function DashboardGuideModal({ apiKey, open, onClose, onCopied }: Dashboa
                   <code>
                     {lines.map((line, index) => (
                       <span key={`${activeTab.id}-${index}`} className={`grid grid-cols-[44px_1fr] border-l-2 ${index === 2 ? "border-coral bg-coral/14" : "border-transparent"}`}>
-                        <span className="select-none pr-4 text-right font-mono text-cream/32">{index + 1}</span>
-                        <span className="whitespace-pre pr-5 font-mono text-cream/90">{line || " "}</span>
+                        <span className="select-none pr-4 text-right font-mono text-white/30">{index + 1}</span>
+                        <span className="whitespace-pre pr-5 font-mono text-white/90">{line || " "}</span>
                       </span>
                     ))}
                   </code>

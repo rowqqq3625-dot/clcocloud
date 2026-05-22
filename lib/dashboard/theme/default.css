@@ -1,18 +1,18 @@
 :root {
-  --aip-bg: #ffffff;
-  --aip-surface: rgba(255, 255, 255, 0.78);
-  --aip-surface-muted: #f5f8ff;
-  --aip-border: #e8ebf0;
-  --aip-border-strong: #e1e5eb;
-  --aip-text: #222222;
-  --aip-text-muted: #646464;
-  --aip-text-soft: #8a8a8a;
-  --aip-primary: #1473ff;
-  --aip-primary-muted: #e7f0ff;
-  --aip-primary-text: #ffffff;
-  --aip-danger: #ef4444;
-  --aip-success: #1473ff;
-  --aip-focus: #1473ff;
+  --aip-bg: var(--cream, #F7F1E8);
+  --aip-surface: rgba(251, 246, 236, 0.78);
+  --aip-surface-muted: var(--cream-2, #FBF6EC);
+  --aip-border: var(--line, #E8E0D2);
+  --aip-border-strong: rgba(31, 30, 29, 0.15);
+  --aip-text: var(--ink, #1F1E1D);
+  --aip-text-muted: var(--ink-soft, #6B6863);
+  --aip-text-soft: var(--ink-faint, #A8A29C);
+  --aip-primary: var(--coral, #D97757);
+  --aip-primary-muted: rgba(217, 119, 87, 0.1);
+  --aip-primary-text: var(--cream, #F7F1E8);
+  --aip-danger: #D97757;
+  --aip-success: var(--success, #5A8A6B);
+  --aip-focus: var(--coral, #D97757);
   --aip-radius: 34px;
-  --aip-shadow: 0 28px 70px rgba(21, 31, 54, 0.08);
+  --aip-shadow: 0 28px 70px rgba(31, 30, 29, 0.08);
 }

@@ -193,7 +193,7 @@ export function DashboardView({ apiKey }: DashboardViewProps) {
                 <div className="mt-5 w-full rounded-xl bg-cream-2/45 p-4 border border-[var(--border-subtle)] text-left font-mono text-[13px]">
                   <div className="flex justify-between py-1">
                     <span className="text-secondary/70">현재 사용가능 잔액</span>
-                    <span className="font-bold text-coral">${data?.balanceUsd.toFixed(4)}</span>
+                    <span className="font-bold text-coral">${data?.balanceUsd.toFixed(2)}</span>
                   </div>
                   <div className="flex justify-between py-1 border-t border-[rgba(232,224,210,0.55)] mt-1.5 pt-1.5">
                     <span className="text-secondary/70 font-sans">기준 충전 단위</span>

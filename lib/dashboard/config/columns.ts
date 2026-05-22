@@ -7,5 +7,6 @@ export const VISIBLE_COLUMNS = [
   'totalTokens',
   'costUsd',
   'createdAt',
+  'latencyMs',
   'processing',
 ] as const;

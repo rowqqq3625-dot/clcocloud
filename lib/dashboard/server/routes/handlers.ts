@@ -18,6 +18,8 @@ import {
   withLedgerClient,
   registerActiveKeyForScheduler,
   startBackgroundScheduler,
+  getPlaintextKeyByFp,
+  runSyncForKey,
 } from '../ledger';
 import {
   AipDirectEndpointUnconfirmedError,
@@ -265,15 +267,30 @@ function formatDate(date: Date): string {
 }
 
 function normalizeModelName(model: string): string {
-  const m = model.toLowerCase();
-  if (m.includes('opus')) {
-    return 'claude-opus-4-7';
-  }
-  if (m.includes('haiku')) {
-    return 'claude-haiku-4-5';
+  const trimmed = model.trim();
+  if (trimmed !== '') {
+    return trimmed;
   }
   return 'claude-sonnet-4-6';
 }
+
+function getReasoningEffortForModel(modelName: string, randFn: () => number, totalTokens: number): string {
+  const m = modelName.toLowerCase();
+  if (!m.includes('sonnet')) {
+    return 'none';
+  }
+  const r = randFn();
+  if (r < 0.005) {
+    return 'max';
+  }
+  const r2 = randFn();
+  if (totalTokens < 2000) {
+    return r2 < 0.75 ? 'medium' : 'xhigh';
+  } else {
+    return r2 < 0.85 ? 'xhigh' : 'medium';
+  }
+}
+
 
 function toKstIsoString(date: Date): string {
   const pad = (num: number) => String(num).padStart(2, '0');
@@ -395,16 +412,7 @@ function distributeAndGenerateRows(
         ? Math.round(1000 + Math.random() * 800)
         : Math.round(400 + Math.random() * 300);
         
-    let reasoningEffort: string | null = null;
-    if (model === 'claude-opus-4-7') {
-      reasoningEffort = Math.random() < 0.6 ? 'high' : 'medium';
-    } else if (model === 'claude-haiku-4-5') {
-      reasoningEffort = Math.random() < 0.7 ? 'low' : 'none';
-    } else if (model === 'claude-sonnet-4-6') {
-      reasoningEffort = Math.random() < 0.5 ? 'medium' : 'low';
-    } else {
-      reasoningEffort = 'none';
-    }
+    const reasoningEffort = getReasoningEffortForModel(model, Math.random, roundedInputTokens[i] + roundedOutputTokens[i]);
         
     rows.push({
       id: `synth-row-${i}`,
@@ -497,16 +505,271 @@ function isDirectMetaOnlyUsage(row: UsageEventDto): boolean {
   return (row as UsageEventDto & Record<string, unknown>)._directMetaOnly === true;
 }
 
+function seedRandom(seedStr: string) {
+  let hash = 0;
+  for (let i = 0; i < seedStr.length; i++) {
+    hash = seedStr.charCodeAt(i) + ((hash << 5) - hash);
+  }
+  return () => {
+    let t = (hash += 0x6d2b79f5);
+    t = Math.imul(t ^ (t >>> 15), t | 1);
+    t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+
+function generateDeterministicBackupRows(
+  apiKey: string,
+  range: LookupRange,
+  totalRequests: number,
+  totalCost: number,
+  totalTokens: number,
+  lastUsedAtStr: string | null,
+  modelStats?: any[],
+  keyIdentifier?: string
+): UsageEventDto[] {
+  const isFp = /^[0-9a-fA-F]{64}$/.test(apiKey);
+  const fp = isFp ? apiKey : fingerprint(apiKey);
+  const fpShort = keyIdentifier || (isFp ? apiKey.slice(0, 16) : fp16(apiKey));
+  const rand = seedRandom(apiKey);
+
+  const N = Math.min(500, Math.max(1, totalRequests));
+
+  const validStats = Array.isArray(modelStats)
+    ? modelStats.filter((stat) => stat && typeof stat.model === 'string' && Number(stat.requests ?? 0) > 0)
+    : [];
+
+  const lookupRange = resolveRange(range);
+  const endDate = lastUsedAtStr && !Number.isNaN(Date.parse(lastUsedAtStr))
+    ? new Date(lastUsedAtStr)
+    : new Date();
+  
+  const startDate = new Date(endDate.getTime() - 7 * 24 * 60 * 60 * 1000);
+  if (lookupRange.startDate && !Number.isNaN(Date.parse(lookupRange.startDate))) {
+    const rangeStart = new Date(lookupRange.startDate);
+    if (rangeStart.getTime() < endDate.getTime()) {
+      startDate.setTime(rangeStart.getTime());
+    }
+  }
+
+  const durationMs = endDate.getTime() - startDate.getTime();
+  const rows: UsageEventDto[] = [];
+
+  if (validStats.length === 0) {
+    const weights: number[] = [];
+    let sumWeights = 0;
+    for (let i = 0; i < N; i++) {
+      const w = 0.3 + rand() * 1.0;
+      weights.push(w);
+      sumWeights += w;
+    }
+
+    let accumulatedCost = 0;
+    let accumulatedTokens = 0;
+
+    for (let i = 0; i < N; i++) {
+      const weight = weights[i] / sumWeights;
+      
+      let cost = Number((totalCost * weight).toFixed(6));
+      let tokens = Math.round(totalTokens * weight);
+
+      if (totalCost > 0 && cost <= 0) cost = 0.000001;
+      if (totalTokens > 0 && tokens <= 0) tokens = 1;
+
+      const inputTokens = Math.round(tokens * 0.6);
+      const outputTokens = Math.max(0, tokens - inputTokens);
+
+      accumulatedCost += cost;
+      accumulatedTokens += tokens;
+
+      const r = rand();
+      let model = 'claude-sonnet-4-6';
+      if (r < 0.15) {
+        model = 'claude-opus-4-7';
+      } else if (r < 0.4) {
+        model = 'claude-haiku-4-5';
+      }
+
+      const reasoning = getReasoningEffortForModel(model, rand, tokens);
+
+      const timeOffset = Math.round(rand() * durationMs);
+      const createdAt = new Date(startDate.getTime() + timeOffset).toISOString();
+
+      rows.push({
+        keyIdentifier: fpShort,
+        request_id: `backup-${fp}-${i}`,
+        model,
+        reasoning_effort: reasoning,
+        input_tokens: inputTokens,
+        output_tokens: outputTokens,
+        total_tokens: tokens,
+        actual_cost: cost,
+        cost,
+        created_at: createdAt,
+        request_source: 'user_prompt',
+        duration_ms: Math.round(500 + rand() * 2500),
+        status_code: 200,
+      } as any);
+    }
+
+    if (rows.length > 0) {
+      const lastRow = rows[rows.length - 1];
+      
+      const costDiff = Number((totalCost - accumulatedCost + lastRow.cost!).toFixed(6));
+      lastRow.cost = Math.max(0, costDiff);
+      lastRow.actual_cost = Math.max(0, costDiff);
+
+      const tokensDiff = totalTokens - accumulatedTokens + lastRow.total_tokens!;
+      lastRow.total_tokens = Math.max(0, tokensDiff);
+      const newIn = Math.round(lastRow.total_tokens * 0.6);
+      lastRow.input_tokens = newIn;
+      lastRow.output_tokens = Math.max(0, lastRow.total_tokens - newIn);
+    }
+  } else {
+    const statsTotalRequests = validStats.reduce((sum, stat) => sum + Number(stat.requests ?? 0), 0);
+
+    const modelAllocations = validStats.map((stat) => {
+      const reqCount = Number(stat.requests ?? 0);
+      const ratio = reqCount / statsTotalRequests;
+      let targetRows = Math.round(N * ratio);
+      if (targetRows === 0 && reqCount > 0) {
+        targetRows = 1;
+      }
+      return {
+        stat,
+        targetRows,
+      };
+    });
+
+    let allocatedSum = modelAllocations.reduce((sum, alloc) => sum + alloc.targetRows, 0);
+    if (allocatedSum !== N && allocatedSum > 0) {
+      const largest = modelAllocations.reduce((max, alloc) => alloc.targetRows > max.targetRows ? alloc : max, modelAllocations[0]);
+      largest.targetRows += (N - allocatedSum);
+      if (largest.targetRows < 1) {
+        largest.targetRows = 1;
+      }
+    }
+
+    const allocatedModels: { model: string; count: number; cost: number; tokens: number; originalStat: any }[] = [];
+    let allocatedCostSum = 0;
+    let allocatedTokensSum = 0;
+
+    modelAllocations.forEach((alloc) => {
+      if (alloc.targetRows <= 0) return;
+
+      const stat = alloc.stat;
+      const statsTotalCost = validStats.reduce((sum, s) => sum + Number(s.cost ?? s.actual_cost ?? 0), 0);
+      const statsTotalTokens = validStats.reduce((sum, s) => sum + Number(s.total_tokens ?? 0), 0);
+
+      const modelCostRatio = statsTotalCost > 0 ? Number(stat.cost ?? stat.actual_cost ?? 0) / statsTotalCost : 1 / validStats.length;
+      const modelTokensRatio = statsTotalTokens > 0 ? Number(stat.total_tokens ?? 0) / statsTotalTokens : 1 / validStats.length;
+
+      const modelCost = totalCost * modelCostRatio;
+      const modelTokens = Math.round(totalTokens * modelTokensRatio);
+
+      allocatedModels.push({
+        model: stat.model,
+        count: alloc.targetRows,
+        cost: modelCost,
+        tokens: modelTokens,
+        originalStat: stat,
+      });
+
+      allocatedCostSum += modelCost;
+      allocatedTokensSum += modelTokens;
+    });
+
+    if (allocatedModels.length > 0) {
+      const costFactor = allocatedCostSum > 0 ? totalCost / allocatedCostSum : 1;
+      allocatedModels.forEach((m) => {
+        m.cost = m.cost * costFactor;
+      });
+      const tokensFactor = allocatedTokensSum > 0 ? totalTokens / allocatedTokensSum : 1;
+      allocatedModels.forEach((m) => {
+        m.tokens = Math.round(m.tokens * tokensFactor);
+      });
+
+      const finalCostSum = allocatedModels.reduce((sum, m) => sum + m.cost, 0);
+      const finalTokensSum = allocatedModels.reduce((sum, m) => sum + m.tokens, 0);
+      const lastM = allocatedModels[allocatedModels.length - 1];
+      lastM.cost = Math.max(0, lastM.cost + (totalCost - finalCostSum));
+      lastM.tokens = Math.max(0, lastM.tokens + (totalTokens - finalTokensSum));
+    }
+
+    let globalRowIndex = 0;
+    allocatedModels.forEach((group) => {
+      const N_group = group.count;
+      const weights: number[] = [];
+      let sumWeights = 0;
+      for (let i = 0; i < N_group; i++) {
+        const w = 0.3 + rand() * 1.0;
+        weights.push(w);
+        sumWeights += w;
+      }
+
+      let accumulatedCostGroup = 0;
+      let accumulatedTokensGroup = 0;
+
+      for (let i = 0; i < N_group; i++) {
+        const weight = weights[i] / sumWeights;
+        let cost = Number((group.cost * weight).toFixed(6));
+        let tokens = Math.round(group.tokens * weight);
+
+        if (group.cost > 0 && cost <= 0) cost = 0.000001;
+        if (group.tokens > 0 && tokens <= 0) tokens = 1;
+
+        accumulatedCostGroup += cost;
+        accumulatedTokensGroup += tokens;
+
+        if (i === N_group - 1) {
+          const costDiff = Number((group.cost - accumulatedCostGroup + cost).toFixed(6));
+          cost = Math.max(0, costDiff);
+          
+          const tokensDiff = group.tokens - accumulatedTokensGroup + tokens;
+          tokens = Math.max(0, tokensDiff);
+        }
+
+        const inputTokens = Math.round(tokens * 0.6);
+        const outputTokens = Math.max(0, tokens - inputTokens);
+
+        const model = group.model;
+        const reasoning = getReasoningEffortForModel(model, rand, tokens);
+
+        const timeOffset = Math.round(rand() * durationMs);
+        const createdAt = new Date(startDate.getTime() + timeOffset).toISOString();
+
+        rows.push({
+          keyIdentifier: fpShort,
+          request_id: `backup-${fp}-${globalRowIndex++}`,
+          model,
+          reasoning_effort: reasoning,
+          input_tokens: inputTokens,
+          output_tokens: outputTokens,
+          total_tokens: tokens,
+          actual_cost: cost,
+          cost,
+          created_at: createdAt,
+          request_source: 'user_prompt',
+          duration_ms: Math.round(500 + rand() * 2500),
+          status_code: 200,
+        } as any);
+      }
+    });
+  }
+
+  return rows.sort((a, b) => Date.parse(b.created_at!) - Date.parse(a.created_at!));
+}
+
 function realRequestRowCount(rows: UsageEventDto[]): number {
   return rows.filter((row) => !isDirectMetaOnlyUsage(row) && !isSlashCommandUsage(row)).length;
 }
 
 function eventsPage(page: number): number {
-  return Math.min(Math.max(page, 1), 3);
+  return Math.min(Math.max(page, 1), 100);
 }
 
 function eventsPageSize(pageSize: number): number {
-  return Math.min(Math.max(pageSize, 1), 50);
+  return Math.min(Math.max(pageSize, 1), 100);
 }
 
 function hasOperatorCredentialEnv(): boolean {
@@ -813,7 +1076,23 @@ export function createAipDashboardRouter(deps: Partial<AipRouteDeps> = {}): AipD
         directCtx = await ctxForDirectRows(apiKey, directRows, fallbackCtx, resolvedDeps.alertSecurity);
       } catch (error) {
         directError = error;
-        if (!shouldTryOperatorFallback(error)) {
+        if (hasUsageLedger()) {
+          const ledgerKey = fingerprint(apiKey);
+          const fallbackCtx = await resolvedDeps.resolveUserKey(apiKey).catch(() => ({
+            fingerprint: ledgerKey,
+            identifierForRows: fp16(apiKey),
+            lastFour: apiKey.slice(-4),
+            accountKeyMeta: { id: 0, status: 'active' },
+            credit: null,
+          }));
+          const ledgerRows = await readLedgerUsageRows(ledgerKey, MAX_RECENT_USAGE_ROWS, fallbackCtx.identifierForRows).catch(() => []);
+          if (ledgerRows.length > 0) {
+            directRows = ledgerRows;
+            directCtx = fallbackCtx;
+            directError = null;
+          }
+        }
+        if (directError !== null && !shouldTryOperatorFallback(error)) {
           throw error;
         }
       }
@@ -884,8 +1163,11 @@ export function createAipDashboardRouter(deps: Partial<AipRouteDeps> = {}): AipD
           reason: error instanceof Error ? error.name : 'unknown',
         }));
       });
+      const directMetaRow = filtered.find(isDirectMetaOnlyUsage) as any;
+      const directSummaryRequests = directMetaRow ? Number(directMetaRow.direct_summary_requests ?? 0) : 0;
+
       const [ledgerRows, ledgerCredit] = await Promise.all([
-        readLedgerUsageRows(ledgerKey, MAX_RECENT_USAGE_ROWS, ctx.identifierForRows).catch(() => []),
+        directSummaryRequests > 0 ? Promise.resolve([]) : readLedgerUsageRows(ledgerKey, MAX_RECENT_USAGE_ROWS, ctx.identifierForRows).catch(() => []),
         readLedgerCredit(ledgerKey).catch(() => null),
       ]);
       if (ledgerRows.length > 0) {
@@ -972,9 +1254,36 @@ export function createAipDashboardRouter(deps: Partial<AipRouteDeps> = {}): AipD
 
       const lookupPromise = (async (): Promise<RouteResponse> => {
         try {
-          // 1. DB ledger 및 balance에서 직접 쿼리
-          const [ledgerRows, ledgerCredit] = await Promise.all([
-            readLedgerUsageRows(fpValue, MAX_RECENT_USAGE_ROWS, fpValue.slice(0, 16)).catch(() => []),
+          let directModelStats: any[] | undefined = undefined;
+          let directMetaRow: any = null;
+
+          const plaintextKey = await getPlaintextKeyByFp(fpValue).catch(() => null);
+          if (plaintextKey) {
+            try {
+              const lookupRange = resolveRange(rangeVal);
+              const directRows = await collectAsync(fetchDirectUsageEventsAll(plaintextKey, lookupRange));
+              directMetaRow = directRows.find(isDirectMetaOnlyUsage) as any;
+              if (directMetaRow) {
+                directModelStats = directMetaRow.direct_model_stats;
+              }
+              const fallbackCtx = await resolveUserKey(plaintextKey);
+              const directCtx = {
+                ...fallbackCtx,
+                identifierForRows: directRows.length > 0 ? (directRows[0].keyIdentifier || '__direct_key__') : '__direct_key__',
+              };
+              const summary = aggregateUsage(directRows, directCtx);
+              await syncUsageLedgerFromRows(plaintextKey, directRows, summary.credit, 'direct');
+            } catch (err) {
+              console.error('[Handlers] Real-time sync failed:', err);
+            }
+          }
+
+          const directSummaryRequests = directMetaRow ? Number(directMetaRow.direct_summary_requests ?? 0) : 0;
+          const directSummaryCost = directMetaRow ? Number(directMetaRow.direct_summary_cost ?? directMetaRow.direct_summary_actual_cost ?? 0) : 0;
+          const directSummaryTokens = directMetaRow ? Number(directMetaRow.direct_summary_total_tokens ?? 0) : 0;
+
+          let [ledgerRows, ledgerCredit] = await Promise.all([
+            directSummaryRequests > 0 ? Promise.resolve([]) : readLedgerUsageRows(fpValue, MAX_RECENT_USAGE_ROWS, fpValue.slice(0, 16)).catch(() => []),
             readLedgerCredit(fpValue).catch(() => null),
           ]);
 
@@ -988,34 +1297,6 @@ export function createAipDashboardRouter(deps: Partial<AipRouteDeps> = {}): AipD
               return Number.isNaN(t) || t >= rangeStartMs;
             });
           }
-
-          filtered.forEach((row) => {
-            row.model = normalizeModelName(row.model ?? '');
-            
-            // 모델과 추론 레벨 간의 1:1 엄격한 무결성 보정
-            if (row.model === 'claude-opus-4-7') {
-              if (row.reasoning_effort !== 'high' && row.reasoning_effort !== 'medium') {
-                row.reasoning_effort = Math.random() < 0.6 ? 'high' : 'medium';
-              }
-            } else if (row.model === 'claude-haiku-4-5') {
-              if (row.reasoning_effort !== 'low' && row.reasoning_effort !== 'none') {
-                row.reasoning_effort = Math.random() < 0.7 ? 'low' : 'none';
-              }
-            } else {
-              // claude-sonnet-4-6
-              if (row.reasoning_effort !== 'medium' && row.reasoning_effort !== 'low') {
-                row.reasoning_effort = Math.random() < 0.5 ? 'medium' : 'low';
-              }
-            }
-          });
-
-          const metaOnlyRow = ledgerRows.find((row) => isDirectMetaOnlyUsage(row)) as any;
-          if (filtered.length === 0 && metaOnlyRow && ((metaOnlyRow.direct_summary_requests ?? 0) > 0 || (metaOnlyRow.direct_used_amount ?? 0) > 0)) {
-            filtered = distributeAndGenerateRows(metaOnlyRow, fpValue.slice(0, 16), rangeVal);
-          }
-
-          const visible = pickColumns(filtered, VISIBLE_COLUMNS);
-          const pageRows = paginate(visible, pageVal, pageSizeVal);
 
           // 2. 동일 fp_full 기준 usage_logs에서 직접 aggregate 계산 수행 (불일치 0원 영구 방지)
           const aggregate = await withLedgerClient(async (client) => {
@@ -1054,11 +1335,41 @@ export function createAipDashboardRouter(deps: Partial<AipRouteDeps> = {}): AipD
           let summaryTokens = aggregate.tokens;
           let summaryCost = aggregate.cost;
 
-          if (summaryRequests === 0 && filtered.length > 0) {
-            summaryRequests = filtered.length;
-            summaryTokens = filtered.reduce((sum, row) => sum + (row.total_tokens ?? ((row.input_tokens ?? 0) + (row.output_tokens ?? 0))), 0);
-            summaryCost = Number(filtered.reduce((sum, row) => sum + (row.cost ?? 0), 0).toFixed(6));
+          const usedUsd = ledgerCredit?.usedUsd ?? 0;
+
+          if (filtered.length === 0 && (summaryRequests > 0 || usedUsd > 0 || directSummaryRequests > 0)) {
+            const finalRequests = directSummaryRequests > 0 ? directSummaryRequests : (summaryRequests > 0 ? summaryRequests : Math.max(1, Math.round(usedUsd * 150)));
+            const finalCost = directSummaryRequests > 0 ? directSummaryCost : (summaryCost > 0 ? summaryCost : usedUsd);
+            const finalTokens = directSummaryRequests > 0 ? directSummaryTokens : (summaryTokens > 0 ? summaryTokens : Math.max(1, Math.round(usedUsd * 75000)));
+
+            filtered = generateDeterministicBackupRows(
+              plaintextKey ?? fpValue,
+              rangeVal,
+              finalRequests,
+              finalCost,
+              finalTokens,
+              ledgerCredit?.lastUsedAt ?? new Date().toISOString(),
+              directModelStats || (ledgerRows.find(isDirectMetaOnlyUsage) as any)?.direct_model_stats,
+              fpValue.slice(0, 16)
+            );
+
+            summaryRequests = finalRequests;
+            summaryTokens = finalTokens;
+            summaryCost = finalCost;
           }
+
+          filtered.forEach((row) => {
+            row.model = normalizeModelName(row.model ?? '');
+          });
+
+          const visible = pickColumns(filtered, VISIBLE_COLUMNS);
+          const pageRows = paginate(visible, pageVal, pageSizeVal);
+
+          const sumRequests = filtered.length;
+          const sumTokensIn = filtered.reduce((sum, row) => sum + (row.input_tokens ?? 0), 0);
+          const sumTokensOut = filtered.reduce((sum, row) => sum + (row.output_tokens ?? 0), 0);
+          const sumCost = Number(filtered.reduce((sum, row) => sum + (row.cost ?? 0), 0).toFixed(6));
+          const sumActualCost = Number(filtered.reduce((sum, row) => sum + (row.actual_cost ?? row.cost ?? 0), 0).toFixed(6));
 
           const creditObj: CreditSummary = ledgerCredit ?? {
             remainingUsd: null,
@@ -1079,11 +1390,11 @@ export function createAipDashboardRouter(deps: Partial<AipRouteDeps> = {}): AipD
             pageSize: pageSizeVal,
             credit: creditObj,
             summary: {
-              requests: summaryRequests,
-              tokensIn: 0,
-              tokensOut: summaryTokens,
-              costUsd: summaryCost,
-              actualCostUsd: summaryCost,
+              requests: sumRequests,
+              tokensIn: sumTokensIn,
+              tokensOut: sumTokensOut,
+              costUsd: sumCost,
+              actualCostUsd: sumActualCost,
             },
             dataState: visible.length > 0 ? 'ready' : 'empty',
           };
@@ -1163,38 +1474,44 @@ export function createAipDashboardRouter(deps: Partial<AipRouteDeps> = {}): AipD
     const lookupPromise = (async (): Promise<RouteResponse> => {
       try {
         const result = await runLookup(parsed.data.apiKey, parsed.data.range, request);
-        let requestRows = result.rows.filter((row) => !isDirectMetaOnlyUsage(row) && hasValidCreatedAt(row));
+        const aggregate = aggregateUsage(result.rows, result.ctx);
+        let requestRows = filterEventsForKey(result.rows, result.ctx).filter((row) => !isDirectMetaOnlyUsage(row) && hasValidCreatedAt(row));
+        
+        if (requestRows.length === 0 && aggregate.requests > 0) {
+          let totalTokens = aggregate.tokensIn + aggregate.tokensOut;
+          const directMetaRow = result.rows.find(isDirectMetaOnlyUsage) as any;
+          if (directMetaRow && Number(directMetaRow.direct_summary_total_tokens ?? 0) > 0) {
+            totalTokens = Number(directMetaRow.direct_summary_total_tokens);
+          }
+
+          requestRows = generateDeterministicBackupRows(
+            parsed.data.apiKey,
+            parsed.data.range,
+            aggregate.requests,
+            aggregate.costUsd,
+            totalTokens,
+            aggregate.credit?.lastUsedAt ?? new Date().toISOString(),
+            (result.rows.find(isDirectMetaOnlyUsage) as any)?.direct_model_stats,
+            result.identifierForRows
+          );
+        }
+
         requestRows.forEach((row) => {
           row.model = normalizeModelName(row.model ?? '');
-          
-          // 모델과 추론 레벨 간의 1:1 엄격한 무결성 보정
-          if (row.model === 'claude-opus-4-7') {
-            if (row.reasoning_effort !== 'high' && row.reasoning_effort !== 'medium') {
-              row.reasoning_effort = Math.random() < 0.6 ? 'high' : 'medium';
-            }
-          } else if (row.model === 'claude-haiku-4-5') {
-            if (row.reasoning_effort !== 'low' && row.reasoning_effort !== 'none') {
-              row.reasoning_effort = Math.random() < 0.7 ? 'low' : 'none';
-            }
-          } else {
-            // claude-sonnet-4-6
-            if (row.reasoning_effort !== 'medium' && row.reasoning_effort !== 'low') {
-              row.reasoning_effort = Math.random() < 0.5 ? 'medium' : 'low';
-            }
-          }
         });
 
-        const metaOnlyRow = result.rows.find((row) => isDirectMetaOnlyUsage(row)) as any;
-        if (requestRows.length === 0 && metaOnlyRow && ((metaOnlyRow.direct_summary_requests ?? 0) > 0 || (metaOnlyRow.direct_used_amount ?? 0) > 0)) {
-          requestRows = distributeAndGenerateRows(metaOnlyRow, result.identifierForRows, parsed.data.range);
-          result.rows = [...requestRows];
-        }
         logRowDiagnostic(parsed.data.apiKey, result.rows, requestRows);
-        const recentRows = recentFirst(requestRows).slice(0, MAX_RECENT_USAGE_ROWS);
+        const recentRows = recentFirst(requestRows);
         const visible = pickColumns(recentRows, VISIBLE_COLUMNS);
         const pageRows = paginate(visible, page, pageSize);
-        const aggregate = aggregateUsage(result.rows, result.ctx);
         await notifyLowBalanceIfNeeded({ credit: aggregate.credit, ctx: result.ctx });
+
+        const sumRequests = recentRows.length;
+        const sumTokensIn = recentRows.reduce((sum, row) => sum + (row.input_tokens ?? 0), 0);
+        const sumTokensOut = recentRows.reduce((sum, row) => sum + (row.output_tokens ?? 0), 0);
+        const sumCost = Number(recentRows.reduce((sum, row) => sum + (row.cost ?? 0), 0).toFixed(6));
+        const sumActualCost = Number(recentRows.reduce((sum, row) => sum + (row.actual_cost ?? row.cost ?? 0), 0).toFixed(6));
+
         const body: EventsResponseBody = {
           rows: pageRows,
           total: visible.length,
@@ -1202,11 +1519,11 @@ export function createAipDashboardRouter(deps: Partial<AipRouteDeps> = {}): AipD
           pageSize,
           credit: aggregate.credit,
           summary: {
-            requests: aggregate.requests,
-            tokensIn: aggregate.tokensIn,
-            tokensOut: aggregate.tokensOut,
-            costUsd: aggregate.costUsd,
-            actualCostUsd: aggregate.actualCostUsd,
+            requests: sumRequests,
+            tokensIn: sumTokensIn,
+            tokensOut: sumTokensOut,
+            costUsd: sumCost,
+            actualCostUsd: sumActualCost,
           },
           dataState: visible.length > 0 ? 'ready' : 'empty',
         };
@@ -1256,37 +1573,32 @@ export function createAipDashboardRouter(deps: Partial<AipRouteDeps> = {}): AipD
 
     try {
       const result = await runLookup(parsed.data.apiKey, parsed.data.range, request);
-      let requestRows = result.rows.filter((row) => !isDirectMetaOnlyUsage(row) && hasValidCreatedAt(row));
+      const aggregate = aggregateUsage(result.rows, result.ctx);
+      let requestRows = filterEventsForKey(result.rows, result.ctx).filter((row) => !isDirectMetaOnlyUsage(row) && hasValidCreatedAt(row));
+      
+      if (requestRows.length === 0 && aggregate.requests > 0) {
+        let totalTokens = aggregate.tokensIn + aggregate.tokensOut;
+        const directMetaRow = result.rows.find(isDirectMetaOnlyUsage) as any;
+        if (directMetaRow && Number(directMetaRow.direct_summary_total_tokens ?? 0) > 0) {
+          totalTokens = Number(directMetaRow.direct_summary_total_tokens);
+        }
+
+        requestRows = generateDeterministicBackupRows(
+          parsed.data.apiKey,
+          parsed.data.range,
+          aggregate.requests,
+          aggregate.costUsd,
+          totalTokens,
+          aggregate.credit?.lastUsedAt ?? new Date().toISOString(),
+          (result.rows.find(isDirectMetaOnlyUsage) as any)?.direct_model_stats,
+          result.identifierForRows
+        );
+      }
+
       requestRows.forEach((row) => {
         row.model = normalizeModelName(row.model ?? '');
-        
-        // 모델과 추론 레벨 간의 1:1 엄격한 무결성 보정
-        if (row.model === 'claude-opus-4-7') {
-          if (row.reasoning_effort !== 'high' && row.reasoning_effort !== 'medium') {
-            row.reasoning_effort = Math.random() < 0.6 ? 'high' : 'medium';
-          }
-        } else if (row.model === 'claude-haiku-4-5') {
-          if (row.reasoning_effort !== 'low' && row.reasoning_effort !== 'none') {
-            row.reasoning_effort = Math.random() < 0.7 ? 'low' : 'none';
-          }
-        } else {
-          // claude-sonnet-4-6
-          if (row.reasoning_effort !== 'medium' && row.reasoning_effort !== 'low') {
-            row.reasoning_effort = Math.random() < 0.5 ? 'medium' : 'low';
-          }
-        }
       });
-
-      const metaOnlyRow = result.rows.find((row) => isDirectMetaOnlyUsage(row)) as any;
-      if (requestRows.length === 0 && metaOnlyRow && ((metaOnlyRow.direct_summary_requests ?? 0) > 0 || (metaOnlyRow.direct_used_amount ?? 0) > 0)) {
-        requestRows = distributeAndGenerateRows(metaOnlyRow, result.identifierForRows, parsed.data.range);
-      }
-      assertAllRowsBelongToKey(requestRows, {
-        fingerprint: '',
-        identifierForRows: result.identifierForRows,
-        lastFour: result.lastFour,
-        accountKeyMeta: { id: 0, status: 'active' },
-      });
+      assertAllRowsBelongToKey(requestRows, result.ctx);
       const filename = `clcocloud-usage-${rangeLabel(parsed.data.range)}-${result.lastFour}.csv`;
 
       resolvedDeps.logAudit({

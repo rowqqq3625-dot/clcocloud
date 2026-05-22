@@ -128,7 +128,7 @@ export function KeyDashboard({ apiKey }: { apiKey: string }) {
             <span className="text-xs font-semibold uppercase tracking-widest text-neutral-500 block mb-2">잔액 (Balance)</span>
             <span className="text-4xl font-extrabold tracking-tight text-neutral-900 flex items-baseline relative z-10">
               <span className="text-2xl text-neutral-400 mr-1">$</span>
-              {data.balanceUsd?.toFixed(4) || "0.0000"}
+              {data.balanceUsd?.toFixed(2) || "0.00"}
             </span>
           </div>
           

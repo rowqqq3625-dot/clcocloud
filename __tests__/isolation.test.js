@@ -282,7 +282,8 @@ describe("사용량/최근 요청 추적 엔진 격리 회귀 테스트", () => 
     assert.strictEqual(res.status, 200);
     assert.strictEqual(res.body.total, 2);
     assert.strictEqual(res.body.summary.requests, 2);
-    assert.strictEqual(res.body.summary.tokensOut, 450); // total_tokens sum (150 + 300)
+    assert.strictEqual(res.body.summary.tokensIn, 300);
+    assert.strictEqual(res.body.summary.tokensOut, 150);
     assert.strictEqual(res.body.summary.costUsd, 0.0045);
   });
 
@@ -480,5 +481,56 @@ describe("사용량/최근 요청 추적 엔진 격리 회귀 테스트", () => 
     );
     
     assert.ok(schedulerFileContent.includes("30_000"));
+  });
+
+  it("9. 결정론적 백업 행 활성화 (Deterministic Backup Rows Fallback)", async () => {
+    const mockKeyC = "sk-ant-api03-cccccccccccccccccccccccccccccccccccccccc";
+    const fpC = sha256(mockKeyC);
+
+    // Set balance: baseline = 100.0, current = 95.0 => used = 5.0 USD
+    inMemoryBalances.set(fpC, {
+      fp_full: fpC,
+      initial_balance_usd: 100.0,
+      last_topup_balance_usd: 100.0,
+      current_balance_usd: 95.0,
+      updated_at: new Date()
+    });
+
+    // Verify in-memory logs are completely empty for this key
+    const logsCount = inMemoryLogs.filter(log => log.fp_full === fpC).length;
+    assert.strictEqual(logsCount, 0);
+
+    const req = {
+      method: "GET",
+      path: "/lookup/events",
+      body: {
+        fp: fpC,
+        range: "7d",
+        page: 1,
+        pageSize: 10
+      },
+      headers: {},
+      ip: "127.0.0.1"
+    };
+
+    const res = await router.handle(req);
+    assert.strictEqual(res.status, 200);
+
+    // Should automatically generate backup rows matching the USD usage!
+    assert.ok(res.body.total > 0);
+    assert.ok(res.body.rows.length > 0);
+    assert.strictEqual(res.body.summary.costUsd, 5.0);
+
+    // The backup rows should be 100% deterministic (no Math.random() changes on refresh)
+    const firstRowId = res.body.rows[0].requestId;
+    const resRefresh = await router.handle(req);
+    assert.strictEqual(resRefresh.body.rows[0].requestId, firstRowId);
+    assert.strictEqual(resRefresh.body.summary.costUsd, 5.0);
+    
+    // Model and reasoning difficulty must exist independently and belong to valid levels
+    const validEfforts = ['low', 'medium', 'high', 'xhigh', 'max', 'none'];
+    res.body.rows.forEach(row => {
+      assert.ok(validEfforts.includes(row.reasoningEffort), `Invalid reasoning effort: ${row.reasoningEffort}`);
+    });
   });
 });

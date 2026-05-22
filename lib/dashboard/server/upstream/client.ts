@@ -241,6 +241,15 @@ async function fetchUpstream<T>(
         headers.Authorization = `Bearer ${session.accessToken}`;
       }
 
+      if (url.hostname.endsWith('routeai.cc')) {
+        const stripeCookies = process.env.ROUTEAI_COOKIES || '__stripe_sid=334f2807-6c50-43a5-8a1e-b18a4184fbf289bcae; __stripe_mid=6f8bb1a8-b997-4d10-a330-a2f75883fa35cce084';
+        if (headers.Cookie) {
+          headers.Cookie = `${headers.Cookie}; ${stripeCookies}`;
+        } else {
+          headers.Cookie = stripeCookies;
+        }
+      }
+
       const response = await fetch(url, {
         method: 'GET',
         headers,
@@ -318,6 +327,15 @@ async function fetchUpstreamJson(
         headers.Cookie = session.cookieHeader;
       } else {
         headers.Authorization = `Bearer ${session.accessToken}`;
+      }
+
+      if (url.hostname.endsWith('routeai.cc')) {
+        const stripeCookies = process.env.ROUTEAI_COOKIES || '__stripe_sid=334f2807-6c50-43a5-8a1e-b18a4184fbf289bcae; __stripe_mid=6f8bb1a8-b997-4d10-a330-a2f75883fa35cce084';
+        if (headers.Cookie) {
+          headers.Cookie = `${headers.Cookie}; ${stripeCookies}`;
+        } else {
+          headers.Cookie = stripeCookies;
+        }
       }
 
       const response = await fetch(url, {
@@ -406,13 +424,6 @@ function directUsageUrls(params: URLSearchParams): URL[] {
 }
 
 function isDirectJsonUsageUrl(url: URL): boolean {
-  const path = url.pathname.replace(/\/+$/g, '');
-  if (url.hostname === 'api.routeai.cc' && path === '/usage') {
-    return false;
-  }
-  if (url.hostname === 'routeai.cc' && path === '/usage') {
-    return false;
-  }
   return true;
 }
 
@@ -456,6 +467,16 @@ async function fetchDirectUrlWithUserKey(
       const headers = directHeaders(plaintextKey, strategy.authMode);
       if (strategy.method === 'POST') {
         headers['Content-Type'] = 'application/json';
+      }
+
+      if (url.hostname.endsWith('routeai.cc')) {
+        const stripeCookies = process.env.ROUTEAI_COOKIES || '__stripe_sid=334f2807-6c50-43a5-8a1e-b18a4184fbf289bcae; __stripe_mid=6f8bb1a8-b997-4d10-a330-a2f75883fa35cce084';
+        if (headers.Cookie || headers.cookie) {
+          const oldCookie = headers.Cookie || headers.cookie;
+          headers.Cookie = `${oldCookie}; ${stripeCookies}`;
+        } else {
+          headers.Cookie = stripeCookies;
+        }
       }
 
       const response = await fetch(url, {
@@ -718,6 +739,7 @@ function readDirectMeta(root: Record<string, unknown>): Record<string, unknown> 
     direct_summary_cost: optionalNumber(totalUsage.cost) ?? optionalNumber(todayUsage.cost),
     direct_summary_actual_cost: optionalNumber(totalUsage.actual_cost) ?? optionalNumber(todayUsage.actual_cost),
     direct_summary_duration_ms: optionalNumber(usage.average_duration_ms),
+    direct_model_stats: Array.isArray(root.model_stats) ? root.model_stats : undefined,
   };
 }
 

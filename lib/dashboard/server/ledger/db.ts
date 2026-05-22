@@ -45,6 +45,7 @@ async function initializeTables(client: PoolClient) {
       ingested_at         timestamptz     NOT NULL DEFAULT now(),
       upstream_source     text            NOT NULL,
       raw_payload_hash    char(64)        NOT NULL,
+      duration_ms         integer         NULL,
       CONSTRAINT unique_fp_request UNIQUE (fp_full, request_id)
     );
 

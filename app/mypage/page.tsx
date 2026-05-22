@@ -99,7 +99,7 @@ export default async function MyPage() {
                 주문과 API 키를 한 곳에서 관리하세요.
               </h1>
               <p className="mt-6 max-w-md break-keep text-[16px] leading-7 text-cream/62">
-                결제 진행 상태, 발급 안내, API 키 상태 조회로 이어지는 개인 관리 페이지입니다.
+                결제 진행 상태, 발급 안내, 클로드 API 키 사용량조회로 이어지는 개인 관리 페이지입니다.
               </p>
 
               <div className="mt-9 grid gap-3">
@@ -167,13 +167,15 @@ export default async function MyPage() {
                     {keyRecords.slice(0, 3).map((record) => (
                       <div key={record.id} className="rounded-2xl border border-[var(--border-subtle)] bg-white/60 px-4 py-3">
                         <p className="break-all font-mono text-xs font-semibold text-primary">{record.masked_api_key}</p>
-                        <p className="mt-1 text-xs text-secondary">최근 조회 · {formatDate(record.last_checked_at)}</p>
+                        <p className="mt-1 text-xs text-secondary">
+                          잔액 {typeof record.last_balance === "number" ? `$${record.last_balance.toFixed(2)}` : "-"} · 최근 조회 · {formatDate(record.last_checked_at)}
+                        </p>
                       </div>
                     ))}
                   </div>
                 ) : null}
                 <a href="/dashboard" className="mt-6 inline-flex min-h-12 items-center rounded-2xl bg-primary px-5 text-sm font-bold text-cream transition hover:-translate-y-0.5 hover:bg-coral">
-                  API 키 상태 조회
+                  클로드 API 키 사용량조회
                 </a>
               </section>
 

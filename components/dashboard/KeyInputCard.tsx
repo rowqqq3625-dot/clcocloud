@@ -1,7 +1,7 @@
 "use client";
 
 import type { FormEvent } from "react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { cardReveal } from "@/lib/motion";
 import { Eye, EyeOff } from "lucide-react";
@@ -20,13 +20,24 @@ export type SavedDashboardKey = {
 type KeyInputCardProps = {
   onKeySubmit: (key: string) => void;
   savedKeys?: SavedDashboardKey[];
+  onDeleteKey?: (keyId: string) => void;
 };
 
-export function KeyInputCard({ onKeySubmit, savedKeys = [] }: KeyInputCardProps) {
+export function KeyInputCard({ onKeySubmit, savedKeys = [], onDeleteKey }: KeyInputCardProps) {
   const [apiKey, setApiKey] = useState("");
   const [showKey, setShowKey] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // Prefill the input field with clcocloud_last_key on mount
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const lastKey = localStorage.getItem("clcocloud_last_key");
+      if (lastKey) {
+        setApiKey(lastKey);
+      }
+    }
+  }, []);
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -120,21 +131,55 @@ export function KeyInputCard({ onKeySubmit, savedKeys = [] }: KeyInputCardProps)
           </div>
           <div className="mt-3 grid gap-2">
             {savedKeys.slice(0, 3).map((record) => (
-              <button
+              <div
                 key={record.id}
-                type="button"
-                disabled={!record.apiKey}
-                onClick={() => record.apiKey ? onKeySubmit(record.apiKey) : undefined}
-                className="group flex min-w-0 items-center justify-between gap-3 rounded-xl border border-[var(--border-subtle)] bg-cream px-3 py-3 text-left transition hover:-translate-y-0.5 hover:border-coral/45 hover:shadow-sm disabled:cursor-not-allowed disabled:opacity-55"
+                className="group flex min-w-0 items-center justify-between gap-3 rounded-xl border border-[var(--border-subtle)] bg-cream px-3 py-3 transition hover:border-coral/45 hover:shadow-sm"
               >
-                <span className="min-w-0">
-                  <span className="block break-all font-mono text-[12px] font-semibold text-primary">{record.masked_api_key}</span>
+                <button
+                  type="button"
+                  disabled={!record.apiKey}
+                  onClick={() => record.apiKey ? onKeySubmit(record.apiKey) : undefined}
+                  className="flex-1 min-w-0 text-left disabled:cursor-not-allowed disabled:opacity-55 focus:outline-none"
+                >
+                  <span className="block break-all font-mono text-[12px] font-semibold text-primary group-hover:text-coral transition-colors">{record.masked_api_key}</span>
                   <span className="mt-1 block text-[12px] text-secondary">
-                    잔액 {typeof record.last_balance === "number" ? `$${record.last_balance.toFixed(4)}` : "-"} · {new Date(record.last_checked_at).toLocaleDateString("ko-KR")}
+                    잔액 {typeof record.last_balance === "number" ? `$${record.last_balance.toFixed(2)}` : "-"} · {new Date(record.last_checked_at).toLocaleDateString("ko-KR")}
                   </span>
-                </span>
-                <span className="shrink-0 rounded-full bg-coral/10 px-3 py-1 text-[11px] font-bold text-coral transition group-hover:bg-coral group-hover:text-cream">불러오기</span>
-              </button>
+                </button>
+                <div className="flex items-center gap-2 shrink-0">
+                  <button
+                    type="button"
+                    disabled={!record.apiKey}
+                    onClick={() => record.apiKey ? onKeySubmit(record.apiKey) : undefined}
+                    className="rounded-full bg-coral/10 px-3 py-1 text-[11px] font-bold text-coral transition hover:bg-coral hover:text-cream disabled:cursor-not-allowed"
+                  >
+                    불러오기
+                  </button>
+                  {onDeleteKey && (
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onDeleteKey(record.id);
+                      }}
+                      className="rounded-full p-1 text-secondary hover:text-coral transition-colors"
+                      title="기록 삭제"
+                    >
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        className="h-4.5 w-4.5"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                        strokeWidth={2}
+                        style={{ width: "16px", height: "16px" }}
+                      >
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                      </svg>
+                    </button>
+                  )}
+                </div>
+              </div>
             ))}
           </div>
         </div>

@@ -27,28 +27,28 @@ export function aggregateUsage(rows: UsageEventDto[], ctx?: KeyContext): Summary
     }
   }
 
-  if (requestCount === 0) {
-    const metaOnlyRow = rows.find(isDirectMetaOnly) as any;
-    if (metaOnlyRow) {
-      const directRequests = metaOnlyRow.direct_summary_requests ?? 0;
-      const directUsedAmount = metaOnlyRow.direct_used_amount ?? 0;
-      if (directRequests > 0) {
-        requestCount = directRequests;
-        tokensIn = metaOnlyRow.direct_summary_input_tokens ?? 0;
-        tokensOut = metaOnlyRow.direct_summary_output_tokens ?? metaOnlyRow.direct_summary_total_tokens ?? 0;
-        costUsd = metaOnlyRow.direct_summary_cost ?? 0;
-        actualCostUsd = metaOnlyRow.direct_summary_actual_cost ?? metaOnlyRow.direct_summary_cost ?? 0;
-        latencyTotal = metaOnlyRow.direct_summary_duration_ms ?? 0;
-        latencyCount = latencyTotal > 0 ? 1 : 0;
-      } else if (directUsedAmount > 0) {
-        costUsd = directUsedAmount;
-        actualCostUsd = directUsedAmount;
-        requestCount = Math.max(1, Math.round(directUsedAmount / 0.015));
-        tokensIn = Math.round(directUsedAmount * 60000);
-        tokensOut = Math.round(directUsedAmount * 40000);
-        latencyTotal = requestCount * 1200;
-        latencyCount = requestCount;
-      }
+  const directRow = rows.find(
+    (row) => (row as any).direct_summary_requests !== undefined || isDirectMetaOnly(row)
+  ) as any;
+  if (directRow) {
+    const directRequests = directRow.direct_summary_requests ?? 0;
+    const directUsedAmount = directRow.direct_used_amount ?? 0;
+    if (directRequests > 0) {
+      requestCount = directRequests;
+      tokensIn = directRow.direct_summary_input_tokens ?? 0;
+      tokensOut = directRow.direct_summary_output_tokens ?? directRow.direct_summary_total_tokens ?? 0;
+      costUsd = directRow.direct_summary_cost ?? 0;
+      actualCostUsd = directRow.direct_summary_actual_cost ?? directRow.direct_summary_cost ?? 0;
+      latencyTotal = directRow.direct_summary_duration_ms ?? 0;
+      latencyCount = latencyTotal > 0 ? 1 : 0;
+    } else if (directUsedAmount > 0) {
+      costUsd = directUsedAmount;
+      actualCostUsd = directUsedAmount;
+      requestCount = Math.max(1, Math.round(directUsedAmount / 0.015));
+      tokensIn = Math.round(directUsedAmount * 60000);
+      tokensOut = Math.round(directUsedAmount * 40000);
+      latencyTotal = requestCount * 1200;
+      latencyCount = requestCount;
     }
   }
 

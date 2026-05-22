@@ -9,4 +9,8 @@ export const ROUTEAI_DIRECT_USAGE_ENDPOINTS = [
   'https://api.routeai.cc/v1/usage',
   'https://api.routeai.cc/api/v1/usage',
   'https://hk.routeai.cc/api/v1/usage',
+  'https://routeai.cc/v1/usage',
+  'https://routeai.cc/api/v1/usage',
+  'https://routeai.cc/usage',
 ] as const;
+

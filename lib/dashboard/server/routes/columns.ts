@@ -13,6 +13,7 @@ const columnResolvers: Record<string, (row: UsageEventDto) => string | number | 
   totalTokens: (row) => row.total_tokens ?? tokenTotal(row),
   costUsd: (row) => row.actual_cost ?? row.cost ?? 0,
   createdAt: (row) => row.created_at ?? '',
+  latencyMs: (row) => row.duration_ms ?? 0,
   processing: (row) => requestStatus(row),
 };
 

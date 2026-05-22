@@ -17,11 +17,11 @@ export default function DashboardPage() {
   const [keyErrorModal, setKeyErrorModal] = useState(false);
   const [isValidating, setIsValidating] = useState(false);
 
-  // Load from sessionStorage strictly on mount
+  // Load from localStorage strictly on mount
   useEffect(() => {
     if (typeof window !== "undefined") {
-      const active = sessionStorage.getItem("clcocloud_active_key");
-      const saved = sessionStorage.getItem("clcocloud_saved_keys");
+      const active = localStorage.getItem("clcocloud_active_key");
+      const saved = localStorage.getItem("clcocloud_saved_keys");
       
       if (active === "admin") {
         setIsAdmin(true);
@@ -54,7 +54,7 @@ export default function DashboardPage() {
         });
         const data = await response.json();
         if (response.ok && data.ok) {
-          sessionStorage.setItem("clcocloud_active_key", "admin");
+          localStorage.setItem("clcocloud_active_key", "admin");
           setIsAdmin(true);
           setActiveKey("admin");
         } else {
@@ -93,7 +93,8 @@ export default function DashboardPage() {
         return;
       }
 
-      // Valid API key, update sessionStorage
+      // Valid API key, update localStorage
+      localStorage.setItem("clcocloud_last_key", trimmed);
       const masked = trimmed.slice(0, 8) + "••••••••" + trimmed.slice(-4);
       const newRecord: SavedDashboardKey = {
         id: trimmed,
@@ -109,11 +110,11 @@ export default function DashboardPage() {
       setSavedKeys((prev) => {
         const filtered = prev.filter((k) => k.apiKey !== trimmed);
         const updated = [newRecord, ...filtered].slice(0, 5);
-        sessionStorage.setItem("clcocloud_saved_keys", JSON.stringify(updated));
+        localStorage.setItem("clcocloud_saved_keys", JSON.stringify(updated));
         return updated;
       });
 
-      sessionStorage.setItem("clcocloud_active_key", trimmed);
+      localStorage.setItem("clcocloud_active_key", trimmed);
       setActiveKey(trimmed);
     } catch (err) {
       setKeyErrorModal(true);
@@ -123,9 +124,20 @@ export default function DashboardPage() {
   };
 
   const handleLogout = () => {
-    sessionStorage.removeItem("clcocloud_active_key");
+    localStorage.removeItem("clcocloud_active_key");
     setActiveKey(null);
     setIsAdmin(false);
+  };
+
+  const handleDeleteKey = (keyId: string) => {
+    setSavedKeys((prev) => {
+      const updated = prev.filter((k) => k.id !== keyId);
+      localStorage.setItem("clcocloud_saved_keys", JSON.stringify(updated));
+      return updated;
+    });
+    if (typeof window !== "undefined" && localStorage.getItem("clcocloud_last_key") === keyId) {
+      localStorage.removeItem("clcocloud_last_key");
+    }
   };
 
   return (
@@ -187,7 +199,7 @@ export default function DashboardPage() {
               <SplitHeading
                 as="h1"
                 className="mt-4 max-w-[720px] text-[clamp(38px,6vw,76px)] font-[680] leading-[1.15] tracking-[-0.025em] text-primary"
-                lines={isAdmin ? ["관리자 제어반"] : ["API 키 상태 조회"]}
+                lines={isAdmin ? ["관리자 제어반"] : ["클로드 API 키 사용량조회"]}
               />
               {isAdmin && (
                 <p className="mt-5 max-w-[620px] text-[clamp(16px,1.4vw,18px)] leading-[1.65] tracking-[-0.01em] text-secondary">
@@ -227,7 +239,7 @@ export default function DashboardPage() {
                   exit: { opacity: 0, y: -24, transition: { duration: 0.3 } }
                 }}
               >
-                <KeyInputCard onKeySubmit={handleKeySubmit} savedKeys={savedKeys} />
+                <KeyInputCard onKeySubmit={handleKeySubmit} savedKeys={savedKeys} onDeleteKey={handleDeleteKey} />
               </motion.section>
             ) : isAdmin ? (
               <motion.section

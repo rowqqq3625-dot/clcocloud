@@ -62,10 +62,12 @@ function AipDashboardInner({ basePath, style }: { basePath: string; style: CSSPr
   const events = useAipEvents(acceptedKey, range, page);
 
   useEffect(() => {
-    const remembered = sessionStorage.getItem(SESSION_KEY);
-    if (remembered !== null && remembered !== '') {
-      setApiKeyInput(remembered);
-      setAcceptedKey(remembered);
+    if (typeof window !== 'undefined') {
+      const remembered = localStorage.getItem(SESSION_KEY) || localStorage.getItem('clcocloud_last_key');
+      if (remembered !== null && remembered !== '') {
+        setApiKeyInput(remembered);
+        setAcceptedKey(remembered);
+      }
     }
   }, []);
 
@@ -96,7 +98,10 @@ function AipDashboardInner({ basePath, style }: { basePath: string; style: CSSPr
       return;
     }
 
-    sessionStorage.setItem(SESSION_KEY, nextKey);
+    if (typeof window !== 'undefined') {
+      localStorage.setItem(SESSION_KEY, nextKey);
+      localStorage.setItem('clcocloud_last_key', nextKey);
+    }
     setPage(1);
     setDismissedLowBalanceFor('');
     setAcceptedKey(nextKey);
@@ -111,7 +116,9 @@ function AipDashboardInner({ basePath, style }: { basePath: string; style: CSSPr
     setAdminSearch('');
     setPage(1);
     setDismissedLowBalanceFor('');
-    sessionStorage.removeItem(SESSION_KEY);
+    if (typeof window !== 'undefined') {
+      localStorage.removeItem(SESSION_KEY);
+    }
   }
 
   async function refresh(): Promise<void> {
@@ -165,7 +172,9 @@ function AipDashboardInner({ basePath, style }: { basePath: string; style: CSSPr
       if (body.ok !== true) {
         return false;
       }
-      sessionStorage.removeItem(SESSION_KEY);
+      if (typeof window !== 'undefined') {
+        localStorage.removeItem(SESSION_KEY);
+      }
       setApiKeyInput('');
       setAcceptedKey('');
       setPage(1);

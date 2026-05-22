@@ -35,16 +35,16 @@ export function adaptRecentRequests(rows: Record<string, string | number | null>
     const createdAt =
       validDateString(row.createdAt) ??
       validDateString(row['created_at']) ??
-      validDateString(row['?쒓컙']);
+      validDateString(row['시간']);
     if (createdAt === null) {
       return [];
     }
 
-    const requestedModel = stringValue(row.model ?? row['model_name'] ?? row['紐⑤뜽紐?'], 'unknown');
+    const requestedModel = stringValue(row.model ?? row['model_name'] ?? row['모델명'], 'unknown');
     const inputTokens = numberValue(row.inputTokens ?? row['input_tokens']);
     const outputTokens = numberValue(row.outputTokens ?? row['output_tokens']);
-    const totalTokens = numberValue(row.totalTokens ?? row['total_tokens'] ?? row['?좏겙'], inputTokens + outputTokens);
-    const costUsd = numberValue(row.costUsd ?? row['actual_cost'] ?? row['cost'] ?? row['鍮꾩슜']);
+    const totalTokens = numberValue(row.totalTokens ?? row['total_tokens'] ?? row['토큰'], inputTokens + outputTokens);
+    const costUsd = numberValue(row.costUsd ?? row['actual_cost'] ?? row['cost'] ?? row['비용']);
     const requestId = stringValue(
       row.requestId ?? row['request_id'] ?? row['message_id'],
       `${createdAt}-${requestedModel}-${totalTokens}-${costUsd}-${index}`
@@ -61,16 +61,18 @@ export function adaptRecentRequests(rows: Record<string, string | number | null>
       statusCode: numberValue(row.statusCode ?? row['status_code'], 200),
       createdAt,
       reasoningEffort: (() => {
-        const raw = row.reasoningEffort ?? row.reasoning_effort ?? row['reasoning_effort'] ?? row.reasoningLabel ?? row.reasoning_label ?? row.reasoning ?? row.thinking ?? row.effort ?? row.difficulty ?? row.level ?? row['異붾줎?쒖씠??'];
+        const raw = row.reasoningEffort ?? row.reasoning_effort ?? row['reasoning_effort'] ?? row.reasoningLabel ?? row.reasoning_label ?? row.reasoning ?? row.thinking ?? row.effort ?? row.difficulty ?? row.level ?? row['추론난이도'] ?? row['추론'];
         if (raw === undefined || raw === null || raw === '') return 'default';
         const lower = String(raw).toLowerCase();
+        if (lower.includes('xhigh')) return 'xhigh';
+        if (lower.includes('max')) return 'max';
         if (lower.includes('high')) return 'high';
         if (lower.includes('medium')) return 'medium';
         if (lower.includes('low')) return 'low';
         if (lower.includes('none')) return 'none';
         return String(raw);
       })(),
-      processing: stringValue(row.processing ?? row.status ?? row['泥섎━'], 'success'),
+      processing: stringValue(row.processing ?? row.status ?? row['처리'], 'success'),
     }];
   });
 }

@@ -22,6 +22,7 @@ export interface LedgerUsageInput {
   occurredAt: string | null;
   upstreamSource: 'direct' | 'operator' | 'webhook';
   rawPayloadHash: string;
+  durationMs?: number | null;
 }
 
 interface LedgerUsageRow extends QueryResultRow {
@@ -36,6 +37,7 @@ interface LedgerUsageRow extends QueryResultRow {
   cost_usd: string | number;
   request_source: string;
   occurred_at: string | Date | null;
+  duration_ms: number | null;
 }
 
 interface LedgerBalanceRow extends QueryResultRow {
@@ -253,7 +255,9 @@ function usageInputFromRow(
     last4,
     requestId,
     model: row.model ?? 'unknown',
-    reasoningEffort: typeof row.reasoningLabel === 'string' ? row.reasoningLabel : null,
+    reasoningEffort: (row.reasoning_effort !== undefined && row.reasoning_effort !== null)
+      ? String(row.reasoning_effort)
+      : (typeof row.reasoningLabel === 'string' ? row.reasoningLabel : null),
     inputTokens,
     outputTokens: inferredOutput,
     costUsd,
@@ -261,6 +265,7 @@ function usageInputFromRow(
     occurredAt: parseOccurredAt(row),
     upstreamSource,
     rawPayloadHash,
+    durationMs: typeof row.duration_ms === 'number' ? row.duration_ms : (typeof record.durationMs === 'number' ? record.durationMs : 0),
   };
 }
 
@@ -312,9 +317,10 @@ export async function syncUsageLedgerFromRows(
           request_source,
           occurred_at,
           upstream_source,
-          raw_payload_hash
+          raw_payload_hash,
+          duration_ms
         )
-        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)
         ON CONFLICT (fp_full, request_id) DO NOTHING
       `, [
         input.fp_full,
@@ -329,7 +335,8 @@ export async function syncUsageLedgerFromRows(
         input.requestSource,
         input.occurredAt,
         input.upstreamSource,
-        input.rawPayloadHash
+        input.rawPayloadHash,
+        input.durationMs ?? 0
       ]);
     }
   });
@@ -361,7 +368,8 @@ export async function readLedgerUsageRows(
                output_tokens,
                cost_usd,
                request_source,
-               occurred_at
+               occurred_at,
+               duration_ms
           FROM usage_logs
          WHERE fp_full = $1
            AND request_source = 'user_prompt'
@@ -502,6 +510,7 @@ function rowToUsageEvent(row: LedgerUsageRow, keyIdentifier: string): UsageEvent
     cost: Number(row.cost_usd),
     created_at: occurredAtStr ?? '', // null인 경우 "확인 중" 처리를 위해 빈 문자열 또는 특정 표기 가능하도록 함
     request_source: row.request_source,
+    duration_ms: row.duration_ms ? Number(row.duration_ms) : 0,
   });
 }
 

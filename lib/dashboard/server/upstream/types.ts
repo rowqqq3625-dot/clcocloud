@@ -218,7 +218,15 @@ export const UsageEventDtoSchema = z
       keyIdentifier = '__direct_key__';
     }
 
-    const reasoningLabel = findReasoningEffortDeep(row) ?? '기본값';
+    const reasoningLabel =
+      row.reasoning_effort ??
+      row.reasoning ??
+      row.thinking ??
+      row.difficulty ??
+      row.metadata?.reasoning_effort ??
+      row.request?.reasoning_effort ??
+      findReasoningEffortDeep(row) ??
+      '기본값';
     const record = row as Record<string, unknown>;
     const model = row.model ?? optionalStringValue(firstNestedValue(record, ['modelName', 'model_name', 'model']));
     const inputTokens =
@@ -236,9 +244,12 @@ export const UsageEventDtoSchema = z
     const actualCost =
       row.actual_cost ??
       optionalNumberValue(firstNestedValue(record, ['actualCostUsd', 'actual_cost_usd', 'actualCost', 'actual_cost', 'chargedAmount', 'charged_amount', 'amountUsd', 'amount_usd']));
-    const durationMs =
+    let durationMs =
       row.duration_ms ??
-      optionalNumberValue(firstNestedValue(record, ['durationMs', 'duration_ms', 'latencyMs', 'latency_ms', 'elapsedMs', 'elapsed_ms']));
+      optionalNumberValue(firstNestedValue(record, ['durationMs', 'duration_ms', 'latencyMs', 'latency_ms', 'elapsedMs', 'elapsed_ms', 'duration', 'elapsed']));
+    if (durationMs !== undefined && durationMs !== null && durationMs <= 120 && durationMs > 0) {
+      durationMs = durationMs * 1000;
+    }
     const createdAt = normalizeTimestamp(
       row.created_at ??
       row.timestamp ??

@@ -10,6 +10,8 @@ export {
   startBackgroundScheduler,
   stopBackgroundScheduler,
   runIngestOnce,
+  getPlaintextKeyByFp,
+  runSyncForKey,
 } from './scheduler';
 export type { LedgerUsageInput } from './usageLedger';
 
