@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { getSupabaseAdminClient } from "@/lib/supabase-admin";
+import { supabaseAdmin as supabase } from "@/lib/supabase/server";
 
 interface SuccessPageProps {
   searchParams: {
@@ -10,12 +10,12 @@ interface SuccessPageProps {
 export default async function OrderSuccessPage({ searchParams }: SuccessPageProps) {
   const orderNo = searchParams.orderNo || "";
   let orderData = null;
+  let issuedKeyData = null;
   let statusText = "결제 완료 처리 중입니다.";
   let descriptionText = "잠시만 기다려주시면 카카오 알림톡으로 API 키가 전송됩니다.";
   let isPendingKey = false;
 
   if (orderNo) {
-    const supabase = getSupabaseAdminClient();
     if (supabase) {
       const { data } = await supabase
         .from("orders")
@@ -29,6 +29,17 @@ export default async function OrderSuccessPage({ searchParams }: SuccessPageProp
           statusText = "결제가 완료되었습니다.";
           if (data.product_kind === "balance") {
             descriptionText = "API 키와 상세 정보가 카카오 알림톡으로 발송되었습니다.";
+            
+            // 발급된 키 조회
+            const { data: keyData } = await supabase
+              .from("issued_api_keys")
+              .select("fp16, last4")
+              .eq("order_id", data.id)
+              .maybeSingle();
+            
+            if (keyData) {
+              issuedKeyData = keyData;
+            }
           } else {
             descriptionText = "패키지 가입이 접수되었습니다. 운영자 확인 후 알림톡으로 연동 안내를 드리겠습니다.";
           }
@@ -91,6 +102,24 @@ export default async function OrderSuccessPage({ searchParams }: SuccessPageProp
             <div className="flex justify-between">
               <span className="text-[var(--cream-soft)]">구매자</span>
               <span className="text-[var(--cream)]">{orderData.buyer_name}</span>
+            </div>
+            {issuedKeyData && (
+              <div className="flex justify-between border-t border-[rgba(232,224,210,0.06)] pt-3 mt-1">
+                <span className="text-[var(--cream-soft)]">발급 API 키</span>
+                <span className="text-[var(--cream)] font-semibold">{issuedKeyData.fp16}...{issuedKeyData.last4}</span>
+              </div>
+            )}
+            <div className="border-t border-[rgba(232,224,210,0.06)] pt-3 mt-1 text-[11px] leading-relaxed text-[var(--cream-soft)]/70">
+              <div className="font-semibold text-[var(--cream)] mb-1">💡 다음 단계 안내</div>
+              {orderData.product_kind === "balance" ? (
+                isPendingKey ? (
+                  "재고가 확보되는 즉시 알림톡으로 전송되오니 조금만 기다려주시기 바랍니다."
+                ) : (
+                  "알림톡으로 즉시 전송된 공식 API 키를 환경변수에 등록하여 사용해 주세요."
+                )
+              ) : (
+                "번들 구독 처리는 최대 24시간 내에 관리자가 확인하여 가이드와 함께 개별 연락드립니다."
+              )}
             </div>
           </div>
         )}

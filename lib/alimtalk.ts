@@ -1,4 +1,4 @@
-import { getSupabaseAdminClient } from "./supabase-admin";
+import { supabaseAdmin as supabase } from "./supabase/server";
 
 export interface SendAlimtalkParams {
   templateCode: string;
@@ -135,7 +135,6 @@ async function logAlimtalkResult(data: {
   error?: string;
 }) {
   try {
-    const supabase = getSupabaseAdminClient();
     if (!supabase) {
       console.warn("[Alimtalk Log] Supabase admin client not initialized. Cannot save log.");
       return;

@@ -1,4 +1,4 @@
-import { getSupabaseAdminClient } from "./supabase-admin";
+import { supabaseAdmin as supabase } from "./supabase/server";
 
 function getFormattedDate(): string {
   const now = new Date();
@@ -10,7 +10,6 @@ function getFormattedDate(): string {
 
 export async function generateOrderNo(): Promise<string> {
   const dateStr = getFormattedDate();
-  const supabase = getSupabaseAdminClient();
   if (!supabase) {
     // Fallback if supabase not configured yet
     return `CLC-${dateStr}-${Math.floor(1000 + Math.random() * 9000)}`;
@@ -31,7 +30,6 @@ export async function generateOrderNo(): Promise<string> {
 
 export async function generateInquiryNo(): Promise<string> {
   const dateStr = getFormattedDate();
-  const supabase = getSupabaseAdminClient();
   if (!supabase) {
     return `INQ-${dateStr}-${Math.floor(1000 + Math.random() * 9000)}`;
   }

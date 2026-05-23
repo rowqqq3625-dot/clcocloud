@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import localFont from "next/font/local";
 import "./globals.css";
 import { LenisProvider } from "@/components/scroll/LenisProvider";
+import { BotLauncher } from "@/components/bot/BotLauncher";
 
 const pretendard = localFont({
   src: "../public/fonts/PretendardVariable.woff2",
@@ -79,6 +80,7 @@ export default function RootLayout({
       <body>
         <LenisProvider />
         {children}
+        <BotLauncher />
       </body>
     </html>
   );

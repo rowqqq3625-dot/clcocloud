@@ -16,7 +16,7 @@ export default function OrderFailPage({ searchParams }: FailPageProps) {
   if (errorMsg.includes("한도") || errorMsg.includes("limit")) {
     userFriendlyError = "결제 한도가 초과되었거나 잔액이 부족합니다.";
   } else if (errorMsg.includes("취소") || errorMsg.includes("cancel")) {
-    userFriendlyError = "사용자에 의해 결제 요청이 취소되었습니다.";
+    userFriendlyError = "사용자에 의해 결제가 취소되었습니다.";
   } else if (errorMsg.includes("재고") || errorMsg.includes("stock")) {
     userFriendlyError = "죄송합니다. 선택하신 상품의 재고가 일시적으로 부족하여 결제가 취소되었습니다.";
   } else {
@@ -60,7 +60,7 @@ export default function OrderFailPage({ searchParams }: FailPageProps) {
 
         {/* Action Button */}
         <Link 
-          href="/" 
+          href="/#pricing" 
           className="w-full py-4 rounded-[16px] bg-[rgba(232,224,210,0.08)] hover:bg-[rgba(232,224,210,0.12)] active:bg-[rgba(232,224,210,0.12)] text-[var(--cream)] border border-[rgba(232,224,210,0.15)] font-bold text-center transition-all duration-300 shadow-md"
         >
           다시 결제하기

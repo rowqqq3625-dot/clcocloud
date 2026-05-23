@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getSupabaseAdminClient } from "@/lib/supabase-admin";
+import { supabaseAdmin as supabase } from "@/lib/supabase/server";
 import { verifyPayAppWebhook } from "@/lib/payapp";
 import { sendAlimtalk } from "@/lib/alimtalk";
 import { decryptKey } from "@/lib/keyEncryption";
@@ -29,10 +29,8 @@ export async function POST(req: NextRequest) {
     const {
       pay_state, // 4: 결제완료, 64: 취소/실패, 등
       mul_no,    // 페이앱 고유 거래번호
-      pay_type,  // 결제 수단 (card, bank, 등)
+      pay_type,  // 결제 수단
       var1: orderNo,
-      var2: productKind,
-      var3: productCode,
       price: priceStr
     } = body;
 
@@ -41,7 +39,6 @@ export async function POST(req: NextRequest) {
       return new NextResponse("MISSING_ORDER_NO", { status: 400 });
     }
 
-    const supabase = getSupabaseAdminClient();
     if (!supabase) {
       console.error("[PayApp Webhook] Supabase admin client not initialized.");
       return new NextResponse("DB_ERROR", { status: 500 });
@@ -59,9 +56,14 @@ export async function POST(req: NextRequest) {
       return new NextResponse("ORDER_NOT_FOUND", { status: 400 });
     }
 
-    // 멱등성 처리: 이미 처리된 결제는 SUCCESS 응답
-    if (order.status === "paid") {
-      console.log(`[PayApp Webhook] Order ${orderNo} is already processed.`);
+    // 멱등성 처리: 이미 처리된 결제(성공/키대기/실패)이거나 동일 mul_no가 등록되어 있다면 SUCCESS 응답
+    if (
+      order.status === "paid" || 
+      order.status === "paid_pending_key" || 
+      order.status === "failed" ||
+      (order.payapp_mul_no && order.payapp_mul_no === mul_no)
+    ) {
+      console.log(`[PayApp Webhook] Order ${orderNo} is already processed with status: ${order.status}`);
       return new NextResponse("SUCCESS", {
         status: 200,
         headers: { "Content-Type": "text/plain" }
@@ -69,6 +71,27 @@ export async function POST(req: NextRequest) {
     }
 
     const price = Number(priceStr);
+
+    // 결제수단 코드 한글명 변환
+    let payMethodStr = "기타결제";
+    const payTypeNum = Number(pay_type);
+    switch (payTypeNum) {
+      case 1: payMethodStr = "신용카드"; break;
+      case 2: payMethodStr = "휴대전화"; break;
+      case 4: payMethodStr = "대면결제"; break;
+      case 6: payMethodStr = "계좌이체"; break;
+      case 7: payMethodStr = "가상계좌"; break;
+      case 15: payMethodStr = "카카오페이"; break;
+      case 16: payMethodStr = "네이버페이"; break;
+      case 17: payMethodStr = "등록결제"; break;
+      case 21: payMethodStr = "스마일페이"; break;
+      case 22: payMethodStr = "위챗페이"; break;
+      case 23: payMethodStr = "애플페이"; break;
+      case 24: payMethodStr = "내통장결제"; break;
+      case 25: payMethodStr = "토스페이"; break;
+      case 26: payMethodStr = "나나결제"; break;
+      default: payMethodStr = pay_type || "기타결제";
+    }
 
     // 5. 상태 분기 처리
     if (pay_state === "4") {
@@ -79,14 +102,14 @@ export async function POST(req: NextRequest) {
         return new NextResponse("PRICE_MISMATCH", { status: 400 });
       }
 
-      // 5-1. 주문 결제 처리 업데이트
+      // 5-1. 주문 결제 처리 업데이트 (성공 시 일단 paid로 표시하되 키 없으면 아래서 paid_pending_key로 재업데이트)
       const nowStr = new Date().toISOString();
       const { error: updateError } = await supabase
         .from("orders")
         .update({
           status: "paid",
           payapp_mul_no: mul_no,
-          pay_method: pay_type,
+          pay_method: payMethodStr,
           paid_at: nowStr
         })
         .eq("id", order.id);
@@ -97,7 +120,7 @@ export async function POST(req: NextRequest) {
       }
 
       // 5-2. 상품별 추가 비즈니스 로직
-      if (productKind === "balance") {
+      if (order.product_kind === "balance") {
         // 잔액형 API 키인 경우 예약했던 키 발급 확정
         const { data: issuedResult, error: issueError } = await supabase.rpc("issue_api_key", {
           p_order_id: order.id
@@ -110,7 +133,7 @@ export async function POST(req: NextRequest) {
         const issuedKey = (issuedResult && issuedResult.length > 0) ? issuedResult[0] : null;
 
         if (!issuedKey) {
-          // 키 예약을 해두었으나 모종의 이유로 발급되지 못한 상태 (비정상 상황)
+          // 키 예약을 해두었으나 모종의 이유로 발급되지 못한 상태이거나 최초 재고 부족 결제 상황
           console.error(`[PayApp Webhook] Key reservation lost or not issued for order ${orderNo}`);
           
           // 주문 상태를 paid_pending_key 로 전환하여 수동 대기 처리
@@ -119,11 +142,11 @@ export async function POST(req: NextRequest) {
             .update({ status: "paid_pending_key" })
             .eq("id", order.id);
 
-          // 운영자에게 재고 이상 알림톡 발송
+          // 운영자에게 즉시 재고 부족 알림톡 발송
           const sysNow = new Date().toLocaleString("ko-KR", { timeZone: "Asia/Seoul" });
           await sendAlimtalk({
             templateCode: process.env.BARTI_TEMPLATE_ADMIN_STOCK_LOW || "ADMIN_STOCK_LOW",
-            phone: process.env.OPERATOR_PHONE || "",
+            phone: "01058503625", // 운영자 연락처 지정
             variables: {
               상품명: order.product_code,
               현재재고: "0",
@@ -135,7 +158,7 @@ export async function POST(req: NextRequest) {
             recipient: "operator"
           });
 
-          // 구매자에게 일단 결제 완료 안내 알림톡 전송
+          // 구매자에게 일단 결제 완료 안내 알림톡 전송 (키는 지연 발급됨을 고지)
           await sendAlimtalk({
             templateCode: process.env.BARTI_TEMPLATE_PAY_DONE || "PAY_DONE",
             phone: order.buyer_phone,
@@ -220,14 +243,14 @@ export async function POST(req: NextRequest) {
           const sysNow = new Date().toLocaleString("ko-KR", { timeZone: "Asia/Seoul" });
           await sendAlimtalk({
             templateCode: process.env.BARTI_TEMPLATE_ADMIN_NEW_ORDER || "ADMIN_NEW_ORDER",
-            phone: process.env.OPERATOR_PHONE || "",
+            phone: "01058503625", // 운영자 연락처 지정
             variables: {
               주문번호: orderNo,
               상품명: order.product_code,
               결제금액: String(order.amount),
               구매자명: order.buyer_name,
               구매자연락처: order.buyer_phone,
-              결제수단: pay_type,
+              결제수단: payMethodStr,
               접수시각: sysNow
             },
             orderId: order.id,
@@ -235,7 +258,7 @@ export async function POST(req: NextRequest) {
           });
         }
 
-      } else if (productKind === "bundle") {
+      } else if (order.product_kind === "bundle") {
         // 번들 패키지 상품 처리
         // 1) 구매자 알림톡: 결제 완료
         await sendAlimtalk({
@@ -253,7 +276,7 @@ export async function POST(req: NextRequest) {
         // 2) 운영자 알림톡: AI플랜 패키지 주문 접수 (수동 작업용)
         await sendAlimtalk({
           templateCode: process.env.BARTI_TEMPLATE_ADMIN_BUNDLE_ORDER || "ADMIN_BUNDLE_ORDER",
-          phone: process.env.OPERATOR_PHONE || "",
+          phone: "01058503625", // 운영자 연락처 지정
           variables: {
             주문번호: orderNo,
             패키지명: order.product_code,
@@ -270,11 +293,11 @@ export async function POST(req: NextRequest) {
       // 결제 취소 또는 실패
       await supabase
         .from("orders")
-        .update({ status: "cancelled" })
+        .update({ status: "failed" }) // cancelled 대신 failed로 통일
         .eq("id", order.id);
 
       // 예약되어 있던 키 풀기
-      if (productKind === "balance") {
+      if (order.product_kind === "balance") {
         await supabase.rpc("release_api_key", { p_order_id: order.id });
       }
 

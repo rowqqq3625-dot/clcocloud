@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { cookies } from "next/headers";
-import { getSupabaseAdminClient } from "@/lib/supabase-admin";
+import { supabaseAdmin as supabase } from "@/lib/supabase/server";
 import { createPayAppPayment } from "@/lib/payapp";
 import { sendAlimtalk } from "@/lib/alimtalk";
 import { generateOrderNo } from "@/lib/orderNumber";
@@ -16,7 +16,8 @@ export async function POST(req: NextRequest) {
       buyerPhone,
       agreedTerms,
       osTargets,
-      contactEmail
+      contactEmail,
+      paymentMethod
     } = body;
 
     // 1. 입력 검증
@@ -43,7 +44,6 @@ export async function POST(req: NextRequest) {
     const sessionToken = cookieStore.get(AUTH_SESSION_COOKIE)?.value;
     const session = parseSessionToken(sessionToken);
 
-    const supabase = getSupabaseAdminClient();
     if (!supabase) {
       return NextResponse.json({ error: "데이터베이스 연결에 실패했습니다. (Admin Client 누락)" }, { status: 500 });
     }
@@ -128,18 +128,11 @@ export async function POST(req: NextRequest) {
       }
 
       if (!keyId) {
-        // 재고 부족 상태
-        // 주문 상태를 failed로 변경
-        await supabase
-          .from("orders")
-          .update({ status: "failed" })
-          .eq("id", order.id);
-
-        // 운영자에게 즉시 재고 부족 알림톡 발송
+        // 재고 부족 상태 (결제를 차단하지 않고 그대로 pending으로 계속 진행하되 운영자 알림톡 전송)
         const nowStr = new Date().toLocaleString("ko-KR", { timeZone: "Asia/Seoul" });
         await sendAlimtalk({
           templateCode: process.env.BARTI_TEMPLATE_ADMIN_STOCK_LOW || "ADMIN_STOCK_LOW",
-          phone: process.env.OPERATOR_PHONE || "",
+          phone: "01058503625", // 운영자 연락처 직접 명시
           variables: {
             상품명: productCode,
             현재재고: "0",
@@ -150,13 +143,9 @@ export async function POST(req: NextRequest) {
           orderId: order.id,
           recipient: "operator"
         });
-
-        return NextResponse.json({
-          error: "죄송합니다. 선택하신 상품의 재고가 일시적으로 부족합니다. 운영자에게 알림이 전송되었으며, 신속히 추가 조치하겠습니다."
-        }, { status: 400 });
+      } else {
+        reservedKeyId = keyId;
       }
-
-      reservedKeyId = keyId;
     }
 
     // 6. PayApp 결제창 링크 생성 요청
@@ -167,7 +156,8 @@ export async function POST(req: NextRequest) {
       goodName,
       price: priceKrw,
       buyerPhone: phoneClean,
-      buyerName: buyerName.trim()
+      buyerName: buyerName.trim(),
+      openPayType: paymentMethod
     });
 
     if (!payAppRes.success) {

@@ -8,6 +8,7 @@ export interface PayAppRequestParams {
   price: number;
   buyerPhone: string;
   buyerName: string;
+  openPayType?: string;
 }
 
 export interface PayAppResponse {
@@ -24,8 +25,8 @@ export async function createPayAppPayment(params: PayAppRequestParams): Promise<
   const userid = process.env.PAYAPP_USERID;
   const linkkey = process.env.PAYAPP_LINKKEY;
   const linkval = process.env.PAYAPP_LINKVAL;
-  const feedbackurl = process.env.PAYAPP_FEEDBACK_URL || `${process.env.PAYAPP_RETURN_URL_BASE}/api/payapp/webhook`;
-  const returnurl = `${process.env.PAYAPP_RETURN_URL_BASE}/order/success?orderNo=${params.orderNo}`;
+  const feedbackurl = process.env.PAYAPP_FEEDBACK_URL;
+  const returnurl = process.env.PAYAPP_RETURN_URL ? `${process.env.PAYAPP_RETURN_URL}?orderNo=${params.orderNo}` : undefined;
 
   if (!userid || !linkkey || !linkval) {
     return {
@@ -44,16 +45,23 @@ export async function createPayAppPayment(params: PayAppRequestParams): Promise<
   bodyData.append("recvphone", params.buyerPhone);
   bodyData.append("memo", params.buyerName); // 구매자명 메모 전송
   bodyData.append("pay_memo", `order_no=${params.orderNo}`); // 검증 메모
-  bodyData.append("feedbackurl", feedbackurl);
-  bodyData.append("returnurl", returnurl);
+  if (feedbackurl) bodyData.append("feedbackurl", feedbackurl);
+  if (returnurl) bodyData.append("returnurl", returnurl);
+  bodyData.append("smsuse", "n"); // 결제요청 문자 발송안함 (필수)
   
   // 페이앱 사용자 정의 변수
   bodyData.append("var1", params.orderNo);
-  bodyData.append("var2", params.productKind);
-  bodyData.append("var3", params.productCode);
+  bodyData.append("var2", params.productCode); // var2에 productCode 전송
   
-  // 테스트 가맹점 모드를 위해 100원 결제 등으로 연동할 경우 openpaytype 제한 가능
-  bodyData.append("openpaytype", "card"); 
+  // 결제 수단 동적 설정 (card, phone, vbank, naverpay, kakaopay, tosspay, payco, applepay 등)
+  let payMethod = params.openPayType || "card";
+  if (payMethod === "bank") {
+    payMethod = "rbank";
+  }
+  
+  bodyData.append("shopname", "클코클라우드");
+  bodyData.append("redirectpay", "1");
+  bodyData.append("openpaytype", payMethod); 
 
   try {
     const response = await fetch("https://api.payapp.kr/oapi/apiLoad.html", {
@@ -67,7 +75,7 @@ export async function createPayAppPayment(params: PayAppRequestParams): Promise<
     if (!response.ok) {
       return {
         success: false,
-        errorMsg: `PayApp API 서버 응답 오류 (Status: ${response.status})`,
+        errorMsg: "결제 처리 중 API 서버 응답 오류가 발생했습니다.",
       };
     }
 
@@ -75,7 +83,6 @@ export async function createPayAppPayment(params: PayAppRequestParams): Promise<
     const result = new URLSearchParams(text);
 
     const state = result.get("state");
-    const errorMessage = result.get("errorMessage");
     const payurl = result.get("payurl");
 
     if (state === "1" && payurl) {
@@ -85,16 +92,17 @@ export async function createPayAppPayment(params: PayAppRequestParams): Promise<
         raw: Object.fromEntries(result.entries()),
       };
     } else {
+      // 에러 메시지 마스킹
       return {
         success: false,
-        errorMsg: errorMessage || "결제창 생성 실패 (알 수 없는 오류)",
+        errorMsg: "결제창 생성 중 일시적인 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.",
         raw: Object.fromEntries(result.entries()),
       };
     }
   } catch (error: any) {
     return {
       success: false,
-      errorMsg: `PayApp 연동 실패: ${error.message}`,
+      errorMsg: "결제 대행 서비스 통신에 실패했습니다. 관리자에게 문의해 주세요.",
     };
   }
 }
@@ -103,9 +111,9 @@ export async function createPayAppPayment(params: PayAppRequestParams): Promise<
  * Webhook 서명 및 IP 화이트리스트 검증
  */
 export function verifyPayAppWebhook(body: Record<string, string>, clientIp: string): { isValid: boolean; reason?: string } {
-  // 1. IP 화이트리스트 검증
+  // 1. IP 화이트리스트 검증 (설정되었을 때만 검사)
   const ipWhitelistStr = process.env.PAYAPP_IP_WHITELIST;
-  if (ipWhitelistStr) {
+  if (ipWhitelistStr && ipWhitelistStr.trim().length > 0) {
     const whitelist = ipWhitelistStr.split(",").map((ip) => ip.trim());
     // IPv6 매핑된 IPv4 주소 처리 (e.g. ::ffff:1.2.3.4)
     const ipv4 = clientIp.includes("::ffff:") ? clientIp.replace("::ffff:", "") : clientIp;
@@ -135,3 +143,4 @@ export function verifyPayAppWebhook(body: Record<string, string>, clientIp: stri
 
   return { isValid: true };
 }
+
