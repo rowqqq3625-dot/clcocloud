@@ -13,7 +13,7 @@ const STORAGE_KEY = "clco_bot_messages";
 export function loadSessionMessages(): MessageWithTime[] {
   if (typeof window === "undefined") return [];
   try {
-    const raw = sessionStorage.getItem(STORAGE_KEY);
+    const raw = localStorage.getItem(STORAGE_KEY);
     return raw ? JSON.parse(raw) : [];
   } catch {
     return [];
@@ -25,7 +25,7 @@ export function saveSessionMessages(messages: MessageWithTime[]): void {
   try {
     // Limit to latest 30 messages for memory safety
     const sliced = messages.slice(-30);
-    sessionStorage.setItem(STORAGE_KEY, JSON.stringify(sliced));
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(sliced));
   } catch {
     // Ignore
   }
@@ -33,5 +33,5 @@ export function saveSessionMessages(messages: MessageWithTime[]): void {
 
 export function clearSessionMessages(): void {
   if (typeof window === "undefined") return;
-  sessionStorage.removeItem(STORAGE_KEY);
+  localStorage.removeItem(STORAGE_KEY);
 }

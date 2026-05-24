@@ -142,7 +142,7 @@ export default async function MyPage() {
                       <div className="mt-5 grid gap-3 text-sm sm:grid-cols-3">
                         <OrderMeta label="가격" value={`₩${formatKrw(order.price_krw)}`} />
                         <OrderMeta label="이메일" value={order.contact_email} />
-                        <OrderMeta label="OS" value={order.os_targets.join(", ")} />
+                        <OrderMeta label="OS" value={order.os_targets ? order.os_targets.join(", ") : "선택 안 함"} />
                       </div>
                       <ReviewOrderAction order={order} review={reviewsByOrderId.get(order.id)} />
                     </article>

@@ -17,7 +17,8 @@ export async function POST(req: NextRequest) {
       agreedTerms,
       osTargets,
       contactEmail,
-      paymentMethod
+      paymentMethod,
+      couponId
     } = body;
 
     // 1. 입력 검증
@@ -86,6 +87,24 @@ export async function POST(req: NextRequest) {
       goodName = bundleProduct.display_name;
     }
 
+    // Apply Coupon Discount
+    let finalPriceKrw = priceKrw;
+    if (couponId && couponId !== "none") {
+      const coupons = [
+        { id: "flat2", value: 20000, type: "flat", minPrice: 50000 },
+        { id: "pct15", value: 15, type: "percent", minPrice: 0 },
+        { id: "flat5", value: 50000, type: "flat", minPrice: 150000 }
+      ];
+      const appliedCoupon = coupons.find(c => c.id === couponId);
+      if (appliedCoupon && priceKrw >= appliedCoupon.minPrice) {
+        if (appliedCoupon.type === "flat") {
+          finalPriceKrw = Math.max(0, priceKrw - appliedCoupon.value);
+        } else if (appliedCoupon.type === "percent") {
+          finalPriceKrw = Math.max(0, Math.round(priceKrw * (1 - appliedCoupon.value / 100) / 100) * 100);
+        }
+      }
+    }
+
     // 3. 주문번호 생성
     const orderNo = await generateOrderNo();
 
@@ -96,7 +115,7 @@ export async function POST(req: NextRequest) {
         order_no: orderNo,
         product_kind: productKind,
         product_code: productCode,
-        amount: priceKrw,
+        amount: finalPriceKrw,
         buyer_name: buyerName.trim(),
         buyer_phone: phoneClean,
         status: "pending",
@@ -154,7 +173,7 @@ export async function POST(req: NextRequest) {
       productCode,
       orderNo,
       goodName,
-      price: priceKrw,
+      price: finalPriceKrw,
       buyerPhone: phoneClean,
       buyerName: buyerName.trim(),
       openPayType: paymentMethod

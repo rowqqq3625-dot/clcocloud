@@ -32,7 +32,7 @@ export type OrderRecord = {
   plan_name: string;
   balance_usd: number;
   price_krw: number;
-  os_targets: string[];
+  os_targets: string[] | null;
   status: OrderStatus;
   created_at: string;
 };

@@ -4,6 +4,7 @@ import { MessageWithTime } from "@/lib/bot/sessionStore";
 interface MessageBubbleProps {
   message: MessageWithTime;
   showTimestampHeader?: boolean;
+  onResolve?: () => void;
 }
 
 // Helper to format Date string to time (e.g. "오후 1:15")
@@ -113,13 +114,18 @@ function renderContent(text: string) {
   return parsedElements;
 }
 
-export function MessageBubble({ message, showTimestampHeader }: MessageBubbleProps) {
+export function MessageBubble({ message, showTimestampHeader, onResolve }: MessageBubbleProps) {
   const isBot = message.role === "assistant" || message.role === "system";
   const formattedTime = formatTime(message.timestamp);
   const formattedDate = formatDateHeader(message.timestamp);
 
   const hasTicketForm = isBot && message.content.includes("[TICKET_FORM]");
-  const cleanContent = hasTicketForm ? message.content.replace("[TICKET_FORM]", "").trim() : message.content;
+  const hasResolved = isBot && message.content.includes("[RESOLVED]");
+  
+  let cleanContent = message.content;
+  if (hasTicketForm) cleanContent = cleanContent.replace("[TICKET_FORM]", "");
+  if (hasResolved) cleanContent = cleanContent.replace("[RESOLVED]", "");
+  cleanContent = cleanContent.trim();
 
   // Form states for inquiries requiring admin verification
   const [email, setEmail] = useState("");
@@ -214,6 +220,26 @@ export function MessageBubble({ message, showTimestampHeader }: MessageBubblePro
             </div>
           )}
           {renderContent(cleanContent)}
+
+          {/* Inline resolution block */}
+          {hasResolved && (
+            <div className="mt-3 p-3 bg-[var(--cream)] border border-[var(--line)] rounded-xl flex flex-col gap-2 animate-fade-in text-[var(--ink)] text-center">
+              <span className="font-bold text-[13px] text-[var(--ink)] flex items-center justify-center gap-1.5">
+                <span className="w-1.5 h-1.5 rounded-full bg-[var(--success)] animate-pulse" />
+                상담이 종료되었습니다! 😊
+              </span>
+              <p className="text-[11.5px] leading-relaxed text-[var(--ink-soft)] mt-0.5">
+                문제가 해결되었기를 바랍니다. 아래 버튼을 눌러 상담을 안전하게 종료하고 새로 시작할 수 있습니다.
+              </p>
+              <button
+                type="button"
+                onClick={onResolve}
+                className="w-full py-2 bg-gradient-to-r from-[#DF6D53] to-[#D97757] hover:from-[#E37960] hover:to-[#DC8267] text-white font-bold text-xs rounded-lg shadow-sm transition-all active:scale-[0.98]"
+              >
+                상담 종료하기
+              </button>
+            </div>
+          )}
 
           {/* Inline ticket submission form */}
           {hasTicketForm && (

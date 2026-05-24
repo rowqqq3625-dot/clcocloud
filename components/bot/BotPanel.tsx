@@ -4,6 +4,7 @@ import { getClientHash } from "@/lib/bot/fingerprint";
 import {
   loadSessionMessages,
   saveSessionMessages,
+  clearSessionMessages,
   MessageWithTime
 } from "@/lib/bot/sessionStore";
 import { MessageBubble } from "./MessageBubble";
@@ -52,7 +53,7 @@ export function BotPanel({ onClose }: BotPanelProps) {
 
   const handleResetConversation = () => {
     if (window.confirm("대화 내용을 초기화하시겠습니까?")) {
-      sessionStorage.removeItem("clco_bot_messages");
+      clearSessionMessages();
       const welcome: MessageWithTime = {
         role: "assistant",
         content: `안녕하세요! 클코클라우드 AI입니다. 😊
@@ -152,12 +153,20 @@ export function BotPanel({ onClose }: BotPanelProps) {
   }, [messages]);
 
   // 3. Scroll to bottom
-  const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  };
+  const scrollToBottom = useCallback((behavior: ScrollBehavior = "smooth") => {
+    messagesEndRef.current?.scrollIntoView({ behavior });
+  }, []);
+
   useEffect(() => {
-    scrollToBottom();
-  }, [messages, isLoading, showChips]);
+    scrollToBottom("smooth");
+    const t = setTimeout(() => scrollToBottom("smooth"), 100);
+    return () => clearTimeout(t);
+  }, [messages, isLoading, showChips, scrollToBottom]);
+
+  useEffect(() => {
+    const t = setTimeout(() => scrollToBottom("auto"), 200);
+    return () => clearTimeout(t);
+  }, [scrollToBottom]);
 
   // Trigger closing transition
   const handleClose = React.useCallback(() => {
@@ -166,6 +175,21 @@ export function BotPanel({ onClose }: BotPanelProps) {
       onClose();
     }, 180); // match exit transition dur-fast
   }, [onClose]);
+
+  const handleResolve = useCallback(() => {
+    clearSessionMessages();
+    const welcome: MessageWithTime = {
+      role: "assistant",
+      content: `안녕하세요! 클코클라우드 AI입니다. 😊
+
+클코클라우드 상품 요금제, 결제 방법, 발급 절차, 대시보드 사용법에 대해 친절히 안내해 드릴게요. 💡
+궁금한 점이 있으시면 편하게 질문해 주세요! 🍀`,
+      timestamp: new Date().toISOString()
+    };
+    setMessages([welcome]);
+    setShowChips(true);
+    handleClose();
+  }, [handleClose]);
 
   // 4. Global Escape key closure listener
   useEffect(() => {
@@ -527,6 +551,7 @@ export function BotPanel({ onClose }: BotPanelProps) {
               key={index}
               message={msg}
               showTimestampHeader={shouldShowTimestamp(index)}
+              onResolve={handleResolve}
             />
           ))}
 

@@ -97,6 +97,7 @@ export function SiteHeader({ variant = "floating" }: SiteHeaderProps) {
         {/* Right Menu Group */}
         <div className="flex items-center gap-4 md:gap-6">
           <DashboardGateLink className={linkClass}>대시보드</DashboardGateLink>
+          <Link className={linkClass} href="/assistant">어시스턴트</Link>
           <Link className={linkClass} href="/mypage">마이페이지</Link>
         </div>
       </div>
@@ -145,6 +146,9 @@ export function SiteHeader({ variant = "floating" }: SiteHeaderProps) {
                   </div>
                 </div>
                 <div className="mt-2 grid gap-1 text-sm font-semibold">
+                  <Link href="/assistant" className="rounded-2xl px-3 py-2 text-secondary transition hover:bg-coral/10 hover:text-coral">
+                    어시스턴트
+                  </Link>
                   <Link href="/mypage" className="rounded-2xl px-3 py-2 text-secondary transition hover:bg-coral/10 hover:text-coral">
                     마이페이지
                   </Link>
