@@ -127,15 +127,10 @@ export function SplitHeadline({
   return (
     <motion.div
       style={{ y, opacity, filter: blur, letterSpacing, x: parallaxX, translateY: parallaxY }}
-      className="hero3d-split-headline max-w-[790px] text-left"
+      className="hero3d-split-headline max-w-[920px] text-left"
     >
-      {/* Micro Meta Slot: mono 11px, letter-spacing 0.12em */}
-      <span className="font-mono text-[11px] font-semibold uppercase tracking-[0.12em] text-ink-65 mb-4 block">
-        · 4개 도구 호환 · 잔액 만료 없음
-      </span>
-
       <motion.h1
-        className="text-[clamp(28px,6vw,56px)] font-bold leading-[1.18] tracking-[-0.047em] text-primary break-keep"
+        className="text-[32px] sm:text-[43px] md:text-[50px] lg:text-[64px] xl:text-[73px] 2xl:text-[80px] font-bold leading-[1.12] tracking-[-0.047em] text-primary break-keep"
         aria-label="언제 끊길지 모르는 불안한 구독 계정, 이제는 클코클라우드."
       >
         <span className="block">

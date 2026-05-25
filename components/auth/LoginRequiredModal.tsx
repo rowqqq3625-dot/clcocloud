@@ -33,23 +33,32 @@ export function LoginRequiredModal({ open, onClose, returnTo = "/dashboard" }: L
     }
   }, [open]);
 
-  // Handle body scroll-locking smoothly
+  // Handle body scroll-locking smoothly (with Lenis freeze support)
   useEffect(() => {
-    if (!active) return undefined;
+    if (open) {
+      document.body.style.overflow = "hidden";
+      document.documentElement.style.overflow = "hidden";
 
-    const previousOverflow = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
+      // Freeze Lenis smooth scroll globally
+      if (typeof window !== "undefined" && (window as any).__clcoLenis) {
+        (window as any).__clcoLenis.stop();
+      }
 
-    const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.key === "Escape") onClose();
-    };
+      const handleKeyDown = (event: KeyboardEvent) => {
+        if (event.key === "Escape") onClose();
+      };
 
-    document.addEventListener("keydown", handleKeyDown);
-    return () => {
-      document.body.style.overflow = previousOverflow;
-      document.removeEventListener("keydown", handleKeyDown);
-    };
-  }, [active, onClose]);
+      document.addEventListener("keydown", handleKeyDown);
+      return () => {
+        document.body.style.overflow = "";
+        document.documentElement.style.overflow = "";
+        if (typeof window !== "undefined" && (window as any).__clcoLenis) {
+          (window as any).__clcoLenis.start();
+        }
+        document.removeEventListener("keydown", handleKeyDown);
+      };
+    }
+  }, [open, onClose]);
 
   if (!shouldRender) return null;
 
