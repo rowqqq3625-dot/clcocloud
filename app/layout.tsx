@@ -58,7 +58,13 @@ export const metadata: Metadata = {
   openGraph: {
     title: "클코클라우드",
     description: siteDescription,
-    images: ["/clcocloud-logo.png"]
+    images: ["/og-image.png"]
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "클코클라우드 | 클로드코드 API 잔액 충전",
+    description: siteDescription,
+    images: ["/og-image.png"]
   },
   icons: {
     icon: "/clcocloud-logo.png",
