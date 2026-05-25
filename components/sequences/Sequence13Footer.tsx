@@ -99,9 +99,12 @@ export function Sequence13Footer() {
                 개인정보 처리방침
               </a>
             </li>
-            <li className="text-[11px] text-cream/40 mt-3 max-w-none leading-relaxed font-normal lg:text-right" style={{ whiteSpace: "nowrap", textAlign: "right" }}>
-              클코클라우드 NOTIFY : 본 서비스는 Anthropic 서비스가 아니며<br />
-              공식 클로드코드와 호환되는 클로드 API 키 발급/잔액 관리 서비스입니다.
+            <li className="text-[11px] text-cream/40 mt-3 max-w-none leading-relaxed font-normal flex flex-row items-start lg:justify-end gap-x-1.5" style={{ whiteSpace: "nowrap" }}>
+              <span className="text-coral font-bold shrink-0">클코클라우드 NOTIFY :</span>
+              <div className="flex flex-col text-left">
+                <span>본 서비스는 Anthropic 서비스가 아니며</span>
+                <span>공식 클로드코드와 호환되는 클로드 API 키 발급/잔액 관리 서비스입니다.</span>
+              </div>
             </li>
           </ul>
         </div>

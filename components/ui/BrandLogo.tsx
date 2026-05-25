@@ -51,9 +51,10 @@ export function BrandLogo({ size = 32, type = "full", className = "" }: BrandLog
         style={{
           fontSize: `${Math.round(size * 0.88)}px`,
           lineHeight: 1.1,
-          fontFamily: "'Song Myung', serif",
-          color: "#D97757",
-          letterSpacing: "-0.01em"
+          fontFamily: "'Nanum Myeongjo', serif",
+          fontWeight: 800,
+          color: "#000000",
+          letterSpacing: "-0.02em"
         }}
       >
         클코클라우드
