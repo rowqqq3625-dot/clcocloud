@@ -96,6 +96,10 @@ export default function RootLayout({
         <link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@1,6..72,400..700&family=Song+Myung&family=Nanum+Myeongjo:wght@700;800&display=swap" rel="stylesheet" />
       </head>
       <body>
+        <div aria-hidden="true" className="sr-only" itemScope itemType="https://schema.org/WebPage">
+          <h1 itemProp="name">클코클라우드 - 생각은 가볍게, 빌드는 완벽하게</h1>
+          <p itemProp="description">가격 부담으로 망설여졌던 바이브코딩, 이제 멈추지않는 혁신을 만나보세요.</p>
+        </div>
         <LenisProvider />
         {children}
         <BotLauncher />
