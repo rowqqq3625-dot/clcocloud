@@ -37,8 +37,8 @@ export function PricingCard({ id, name, balance, price, discount, note, popular 
       style={{ rotateX, rotateY, transformPerspective: 1000 }}
       className={`group relative overflow-visible rounded-[28px] border p-7 transition duration-300 hover:-translate-y-2 ${
         popular
-          ? "border-coral bg-[radial-gradient(circle_at_80%_0%,rgba(245,239,230,.26),transparent_36%),linear-gradient(145deg,var(--coral-hi),var(--coral),var(--coral-lo))] text-cream shadow-[0_24px_80px_rgba(217,119,87,.32)] lg:-translate-y-4"
-          : "border-[var(--border-dark)] bg-dark-2 text-cream"
+          ? "border-coral bg-[radial-gradient(circle_at_80%_0%,rgba(245,239,230,.26),transparent_36%),linear-gradient(145deg,var(--coral-hi),var(--coral),var(--coral-lo))] text-[var(--cream)] shadow-[0_24px_80px_rgba(217,119,87,.32)] lg:-translate-y-4"
+          : "border-[var(--border-dark)] bg-dark-2 text-[var(--cream)]"
       }`}
     >
       {popular ? (
@@ -51,28 +51,33 @@ export function PricingCard({ id, name, balance, price, discount, note, popular 
       <div className="relative">
         <div className="flex items-start justify-between gap-4">
           <div>
-            <h3 className="text-2xl font-semibold">{name}</h3>
-            <p className={popular ? "text-cream/74" : "text-cream/48"}>{note}</p>
+            <h3 className="text-2xl font-semibold text-[var(--cream)]">{name}</h3>
+            <p 
+              className="mt-2 text-[var(--cream)]"
+              style={{ opacity: popular ? 0.74 : 0.48 }}
+            >
+              {note}
+            </p>
           </div>
-          <span className="rounded-full bg-cream/10 px-3 py-1 font-mono text-xs">
+          <span className="rounded-full bg-cream/10 px-3 py-1 font-mono text-xs text-[var(--cream)]">
             약 <CountUp end={discount} suffix="%" mode="slot" /> 절감
           </span>
         </div>
-        <strong className="mt-12 block text-[clamp(60px,8vw,104px)] font-semibold leading-none tracking-[-.06em]">
+        <strong className="mt-12 block text-[clamp(60px,8vw,104px)] font-semibold leading-none tracking-[-.06em] text-[var(--cream)]">
           $<CountUp end={balance} mode="slot" />
         </strong>
-        <p className={`mt-3 text-3xl font-semibold ${popular ? "text-cream" : "text-coral-hi"}`}>{price}</p>
-        <ul className="mt-8 grid gap-3 text-sm text-cream/72">
+        <p className={`mt-3 text-3xl font-semibold ${popular ? "text-[var(--cream)]" : "text-coral-hi"}`}>{price}</p>
+        <ul className="mt-8 grid gap-3 text-sm text-[var(--cream)]">
           {["공식 클로드코드 호환", "잔액 기간 만료 없음", "개인 전용 API 키"].map((item) => (
-            <li key={item} className="flex items-center gap-3">
+            <li key={item} className="flex items-center gap-3 text-[var(--cream)]" style={{ opacity: 0.72 }}>
               <span className="h-px w-4 origin-left bg-coral transition-transform duration-300 group-hover:scale-x-125" />
               {item}
             </li>
           ))}
         </ul>
         <div className="mt-9">
-          <PrimaryButton href={`/checkout?plan=${id}`} variant={popular ? "light" : "dark"} arrow="→" pulse={popular}>
-            이 잔액으로 시작
+          <PrimaryButton href={`/checkout?plan=${id}`} variant="secondary" arrow="→" pulse={popular}>
+            구매하기
           </PrimaryButton>
         </div>
       </div>

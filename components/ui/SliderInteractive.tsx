@@ -73,15 +73,15 @@ export function SliderInteractive({ plans }: SliderInteractiveProps) {
 
           {/* Permanent Active Value Tooltip above the active Thumb */}
           <div
-            className="absolute bottom-full mb-3 px-3 py-1.5 rounded-lg bg-surface-dark-2 border border-border-dark text-cream text-[11px] font-medium shadow-md flex flex-col items-center gap-0.5 pointer-events-none z-10 transition-all duration-200 -translate-x-1/2"
+            className="absolute bottom-full mb-3 px-3 py-1.5 rounded-lg bg-[var(--ink)] border border-[rgba(251,246,236,0.15)] text-[var(--cream)] text-[11px] font-medium shadow-md flex flex-col items-center gap-0.5 pointer-events-none z-10 transition-all duration-200 -translate-x-1/2"
             style={{ left: `${active * 50}%` }}
           >
-            <span className="font-bold text-coral-soft font-mono text-[12px]">{plans[active]?.label}</span>
-            <span className="text-[10px] text-cream-soft font-mono opacity-80 whitespace-nowrap">
+            <span className="font-bold text-[var(--coral)] font-mono text-[12px]">{plans[active]?.label}</span>
+            <span className="text-[10px] text-[var(--cream-soft,#f5ebe0)] font-mono opacity-90 whitespace-nowrap">
               약 {plans[active]?.tokens}M 토큰 / {plans[active]?.hours}시간
             </span>
             {/* Tooltip arrow */}
-            <div className="absolute top-full left-1/2 -translate-x-1/2 w-0 h-0 border-l-[4px] border-l-transparent border-r-[4px] border-r-transparent border-t-[4px] border-t-surface-dark-2" />
+            <div className="absolute top-full left-1/2 -translate-x-1/2 w-0 h-0 border-l-[4px] border-l-transparent border-r-[4px] border-r-transparent border-t-[4px] border-t-[var(--ink)]" />
           </div>
 
           {/* Knobs / Thumbs */}

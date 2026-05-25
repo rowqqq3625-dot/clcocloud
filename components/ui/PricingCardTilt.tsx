@@ -52,8 +52,8 @@ export function PricingCardTilt({
       style={{ rotateX, rotateY, transformPerspective: 1000 }}
       className={`group relative grid min-h-[540px] min-w-0 grid-rows-[auto_auto_auto_1fr_auto] overflow-visible rounded-[28px] border p-7 transition duration-300 will-change-transform hover:-translate-y-[3px] ${
         popular
-          ? "border-coral bg-[radial-gradient(circle_at_80%_0%,var(--bg-cream)_0%,transparent_36%),linear-gradient(145deg,var(--coral-hi),var(--coral),var(--coral-lo))] text-cream shadow-[0_24px_80px_var(--coral-glow)] hover:shadow-coral"
-          : "border-[var(--border-dark)] bg-dark-2 text-cream hover:border-white/20 hover:shadow-lg"
+          ? "border-coral bg-[radial-gradient(circle_at_80%_0%,var(--bg-cream)_0%,transparent_36%),linear-gradient(145deg,var(--coral-hi),var(--coral),var(--coral-lo))] text-[var(--cream)] shadow-[0_24px_80px_var(--coral-glow)] hover:shadow-coral"
+          : "border-[var(--border-dark)] bg-dark-2 text-[var(--cream)] hover:border-white/20 hover:shadow-lg"
       }`}
     >
       {popular ? (
@@ -72,8 +72,13 @@ export function PricingCardTilt({
         <div className="flex min-w-0 items-start justify-between gap-4">
           <div className="min-w-0 pr-24"> {/* Extra padding-right to avoid overlapping with absolute DiscountBadge */}
             {/* Header font style upgraded: weight 640, tracking -0.01em */}
-            <h3 className="text-2xl font-[640] tracking-[-0.01em]">{name}</h3>
-            <p className={`${popular ? "text-cream/74" : "text-cream/48"} mt-2 min-h-[3rem] text-balance leading-6`}>{note}</p>
+            <h3 className="text-2xl font-[640] tracking-[-0.01em] text-[var(--cream)]">{name}</h3>
+            <p 
+              className="mt-2 min-h-[3rem] text-balance leading-6 text-[var(--cream)]"
+              style={{ opacity: popular ? 0.85 : 0.60 }}
+            >
+              {note}
+            </p>
           </div>
         </div>
       </div>
@@ -85,20 +90,21 @@ export function PricingCardTilt({
           whileInView={{ opacity: 1, y: 0, filter: "blur(0px)" }}
           viewport={{ once: true, amount: 0.5 }}
           transition={{ duration: 0.55, delay: 0.08, ease: [0.22, 1, 0.36, 1] }}
-          className="block text-[clamp(60px,8vw,104px)] font-semibold leading-none tracking-[-.06em]"
+          className="block text-[clamp(60px,8vw,104px)] font-semibold leading-none tracking-[-.06em] text-[var(--cream)]"
         >
           <CountUp end={balance} prefix="$" duration={950} delay={120} />
         </motion.strong>
-        <div className={`mt-3 text-3xl font-semibold tracking-[-0.03em] ${popular ? "text-cream" : "text-coral-hi"}`}>
+        <div className={`mt-3 text-3xl font-semibold tracking-[-0.03em] ${popular ? "text-[var(--cream)]" : "text-coral-hi"}`}>
           <Price krw={price} usd={balance} />
         </div>
       </div>
 
-      <ul className="relative mt-8 grid content-start gap-3 self-start text-sm text-cream/72">
+      <ul className="relative mt-8 grid content-start gap-3 self-start text-sm text-[var(--cream)]">
         {["공식 클로드코드 호환", "잔액 기간 만료 없음", "개인 전용 API 키"].map((item, index) => (
           <motion.li
             key={item}
-            className="flex items-center gap-3"
+            className="flex items-center gap-3 text-[var(--cream)]"
+            style={{ opacity: 0.85 }}
             initial={{ opacity: 0, x: -6 }}
             whileInView={{ opacity: 1, x: 0 }}
             viewport={{ once: true, amount: 0.6 }}
@@ -115,12 +121,12 @@ export function PricingCardTilt({
         <PrimaryButton
           onClick={onSelectPlan ? () => onSelectPlan(id.toUpperCase(), price, `${name} 플랜 ($${balance})`) : undefined}
           href={onSelectPlan ? undefined : `/checkout?plan=${id}`}
-          variant={popular ? "coral-solid" : "secondary"}
+          variant="secondary"
           arrow="→"
           pulse={popular}
           className="w-full text-center justify-between"
         >
-          이 잔액으로 시작
+          구매하기
         </PrimaryButton>
       </motion.div>
     </motion.article>
