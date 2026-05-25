@@ -16,7 +16,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: "클코클라우드 문서",
     description: "클코클라우드 설치, API 키, 환경 변수, 외부 에이전트 연동 가이드",
-    images: ["/clcocloud-logo.png"]
+    images: ["/main-logo.png"]
   },
   robots: {
     index: true,

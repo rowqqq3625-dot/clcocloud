@@ -1,24 +1,26 @@
 import { BrandLogo } from "@/components/ui/BrandLogo";
 import { DashboardGateLink } from "@/components/navigation/DashboardGateLink";
+import Image from "next/image";
 
 export function Sequence13Footer() {
   return (
     <footer className="dark-panel noise px-5 py-16">
-      {/* 1px line & mono meta line */}
+      {/* 1px line separator */}
       <div className="container-cinematic mb-12">
-        <div className="flex items-center justify-between border-b border-white/10 pb-4">
-          <span className="font-mono text-[11px] tracking-[0.12em] uppercase text-cream/50">
-            · clcocloud.kr · v1.0
-          </span>
-        </div>
+        <div className="border-b border-white/10 pb-4" />
       </div>
 
       <div className="container-cinematic grid gap-12 sm:grid-cols-2 lg:grid-cols-4">
         {/* 1. 브랜드 */}
         <div className="flex flex-col gap-4">
-          <a href="/" className="flex items-center gap-3 text-lg font-semibold text-cream">
-            <BrandLogo size={32} className="drop-shadow-[0_10px_24px_rgba(217,119,87,.18)]" />
-            클코클라우드
+          <a href="/" className="flex items-center hover:opacity-90 transition-opacity text-cream">
+            <Image
+              src="/footer-logo.png"
+              alt="CLCOCLOUD Logo"
+              width={160}
+              height={36}
+              className="object-contain"
+            />
           </a>
           <div className="text-xs leading-relaxed text-cream/60 font-normal">
             상호: 클코클라우드 <br />
@@ -97,8 +99,9 @@ export function Sequence13Footer() {
                 개인정보 처리방침
               </a>
             </li>
-            <li className="text-[11px] text-cream/40 mt-3 max-w-[240px] lg:max-w-none leading-relaxed font-normal">
-              Anthropic 비공식 고지: 본 서비스는 Anthropic 자사서비스가 아니며 공식 클로드코드와 호환되는 별도 API 키 발급/잔액 관리 서비스입니다.
+            <li className="text-[11px] text-cream/40 mt-3 max-w-none leading-relaxed font-normal" style={{ whiteSpace: "nowrap" }}>
+              클코클라우드 NOTIFY : 본 서비스는 Anthropic 서비스가 아니며<br />
+              공식 클로드코드와 호환되는 클로드 API 키 발급/잔액 관리 서비스입니다.
             </li>
           </ul>
         </div>

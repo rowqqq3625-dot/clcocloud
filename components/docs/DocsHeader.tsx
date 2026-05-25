@@ -19,9 +19,8 @@ export function DocsHeader() {
             <Menu size={18} />
           </button>
           <div className="docs-brand flex items-center gap-[9px]">
-            <Link href="/" className="flex items-center gap-[9px] hover:opacity-80 transition-opacity" style={{ color: "inherit", textDecoration: "none" }}>
-              <BrandLogo size={24} />
-              <span>클코클라우드</span>
+            <Link href="/" className="flex items-center hover:opacity-80 transition-opacity" style={{ color: "inherit", textDecoration: "none" }}>
+              <BrandLogo size={24} type="full" />
             </Link>
             <Link href="/docs" className="hover:opacity-80 transition-opacity" style={{ textDecoration: "none" }}>
               <em>docs</em>

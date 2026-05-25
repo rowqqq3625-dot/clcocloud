@@ -91,7 +91,7 @@ export function Sequence10TextureBreak() {
           >
             {/* Mascot with 5s bob motion */}
             <div className="animate-subtle-bob grid h-20 w-20 shrink-0 place-items-center rounded-full bg-[rgba(217,119,87,0.10)] p-3 select-none">
-              <BrandLogo size={48} />
+              <BrandLogo size={48} type="icon" />
             </div>
           </EmptyState>
         </CCAnimatedContent>
@@ -116,7 +116,7 @@ function ReviewCard({ review, index }: { review: PublicReview; index: number }) 
       
       <div className="relative flex items-center justify-between">
         <span className="grid h-12 w-12 place-items-center rounded-2xl border border-[rgba(217,119,87,0.18)] bg-[rgba(217,119,87,0.08)]">
-          <BrandLogo size={30} />
+          <BrandLogo size={30} type="icon" />
         </span>
         
         {/* Rating & Plan Badge */}

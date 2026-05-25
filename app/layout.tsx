@@ -58,18 +58,13 @@ export const metadata: Metadata = {
   openGraph: {
     title: "생각은 가볍게, 빌드는 완벽하게 - 클코클라우드",
     description: siteDescription,
-    images: ["/clcocloud-logo.png"]
+    images: ["/main-logo.png"]
   },
   twitter: {
     card: "summary_large_image",
     title: "생각은 가볍게, 빌드는 완벽하게 - 클코클라우드",
     description: siteDescription,
-    images: ["/clcocloud-logo.png"]
-  },
-  icons: {
-    icon: "/search-logo.png",
-    shortcut: "/search-logo.png",
-    apple: "/search-logo.png"
+    images: ["/main-logo.png"]
   }
 };
 

@@ -386,7 +386,16 @@ export function ChatView({ os, usecase, onBack, onNewChat, activeSessionIdExtern
         })}
 
         {/* Loading Indicator */}
-        {loading && <TypingPulse />}
+        {loading && (
+          <TypingPulse
+            hasImages={
+              messages.length > 0 &&
+              messages[messages.length - 1].role === "user" &&
+              messages[messages.length - 1].images !== undefined &&
+              messages[messages.length - 1].images!.length > 0
+            }
+          />
+        )}
         
         <div ref={bottomRef} className="h-4" />
       </div>

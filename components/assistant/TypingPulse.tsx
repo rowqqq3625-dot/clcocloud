@@ -2,12 +2,12 @@
 
 import React, { useEffect, useState } from "react";
 
-export function TypingPulse() {
+export function TypingPulse({ hasImages = false }: { hasImages?: boolean }) {
   const [stepIndex, setStepIndex] = useState(0);
   const [reducedMotion, setReducedMotion] = useState(false);
 
   const steps = [
-    "문의 내용 및 이미지 분석 중... 🔍",
+    hasImages ? "문의 내용 및 이미지 분석 중... 🔍" : "문의 내용 및 환경 매핑 중... 🔍",
     "OS 환경 및 사용처 식별 중... 🖥️",
     "클로드 API 환경변수 충돌 진단 중... 🛠️",
     "최적의 셸 명령어 조합 구성 중... ⚙️",
@@ -28,10 +28,25 @@ export function TypingPulse() {
   }, []);
 
   useEffect(() => {
-    const timer = setInterval(() => {
-      setStepIndex((prev) => (prev < steps.length - 1 ? prev + 1 : prev));
-    }, 1500);
-    return () => clearInterval(timer);
+    let isMounted = true;
+    // Organic delays for each reasoning step (in ms) to feel realistic and slow down transitions
+    const stepDelays = [2200, 2600, 3200, 2800, 2500, 2500];
+
+    const runNextStep = (currentIndex: number) => {
+      if (currentIndex >= steps.length - 1 || !isMounted) return;
+      setTimeout(() => {
+        if (isMounted) {
+          setStepIndex(currentIndex + 1);
+          runNextStep(currentIndex + 1);
+        }
+      }, stepDelays[currentIndex]);
+    };
+
+    runNextStep(0);
+
+    return () => {
+      isMounted = false;
+    };
   }, [steps.length]);
 
   if (reducedMotion) {

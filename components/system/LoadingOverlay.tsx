@@ -37,10 +37,7 @@ export function LoadingOverlay() {
       transition={{ duration: 0.7, ease: easeOut }}
     >
       <div className="w-[min(80vw,360px)]">
-        <div className="flex items-center gap-3 text-2xl font-semibold text-primary">
-          <BrandLogo size={32} />
-          클코클라우드
-        </div>
+          <BrandLogo size={32} type="full" />
         <motion.div
           className="mt-3 h-px origin-left bg-coral"
           initial={{ scaleX: 0 }}

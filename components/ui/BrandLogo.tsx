@@ -1,54 +1,64 @@
 "use client";
 
+import Image from "next/image";
+
 type BrandLogoProps = {
   size?: number;
+  type?: "full" | "icon" | "vertical";
   className?: string;
 };
 
-export function BrandLogo({ size = 32, className = "" }: BrandLogoProps) {
+export function BrandLogo({ size = 32, type = "full", className = "" }: BrandLogoProps) {
+  // 1. Icon-only version (3번 이미지 스타일)
+  if (type === "icon") {
+    return (
+      <Image
+        src="/logo-icon.png"
+        alt="ClcoCloud Icon"
+        width={size}
+        height={size}
+        className={`shrink-0 object-contain ${className}`}
+      />
+    );
+  }
+
+  // 2. Vertical full version (5번 이미지 스타일)
+  if (type === "vertical") {
+    const height = Math.round(size * 1.25);
+    return (
+      <Image
+        src="/extra-logo.png"
+        alt="ClcoCloud Vertical Logo"
+        width={size}
+        height={height}
+        className={`shrink-0 object-contain ${className}`}
+      />
+    );
+  }
+  // 3. Horizontal full version (2번 이미지 스타일 - 기본값)
   return (
-    <svg
-      xmlns="http://www.w3.org/2000/svg"
-      viewBox="0 0 64 64"
-      fill="none"
-      width={size}
-      height={size}
-      className={`shrink-0 ${className}`}
-    >
-      {/* Orange circle with right-side gap */}
-      <path
-        d="M 36.85 24 A 16 16 0 1 0 36.85 40"
-        stroke="#D97757"
-        strokeWidth="4.5"
-        strokeLinecap="round"
-        fill="none"
+    <div className={`flex items-center gap-2 ${className}`}>
+      <Image
+        src="/header-logo-icon.png"
+        alt="클코클라우드 로고 아이콘"
+        width={size}
+        height={size}
+        className="shrink-0 object-contain"
+        priority
       />
-      {/* Orange inner connector and dot */}
-      <line
-        x1="21"
-        y1="32"
-        x2="35"
-        y2="32"
-        stroke="#D97757"
-        strokeWidth="4.5"
-        strokeLinecap="round"
-      />
-      <circle
-        cx="35"
-        cy="32"
-        r="4.5"
-        fill="#D97757"
-      />
-      {/* Cloud shape outline */}
-      <path
-        d="M 34 40 L 49 40 A 8 8 0 0 0 49 24 A 9.5 9.5 0 0 0 34 24 A 8 8 0 0 0 34 40 Z"
-        stroke="currentColor"
-        strokeWidth="4.5"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        fill="none"
-      />
-    </svg>
+      <span
+        className="font-sans font-black tracking-[0.05em] text-primary select-none shrink-0"
+        style={{
+          fontSize: `${Math.round(size * 0.76)}px`,
+          lineHeight: 1,
+          fontFamily: "var(--font-pretendard), var(--font-inter), system-ui, sans-serif",
+          fontWeight: 900,
+        }}
+      >
+        클코<span className="text-coral" style={{ fontWeight: 800 }}>클라우드</span>
+      </span>
+    </div>
   );
 }
+
 

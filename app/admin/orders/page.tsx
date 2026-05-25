@@ -33,9 +33,9 @@ export default async function AdminOrdersPage() {
     <main className="dashboard-page-shell noise relative min-h-screen bg-cream py-10 text-primary">
       <section className="container-cinematic relative z-[1]">
         <header className="flex items-center justify-between gap-4 py-4">
-          <a href="/" className="flex items-center gap-3 text-lg font-bold tracking-[-0.01em]">
-            <BrandLogo size={34} />
-            클코클라우드 관리자
+          <a href="/" className="flex items-center gap-3 hover:opacity-90 transition-opacity">
+            <BrandLogo size={20} type="full" />
+            <span className="font-mono text-xs font-semibold uppercase tracking-[0.16em] text-coral bg-coral/10 px-2 py-0.5 rounded">Admin</span>
           </a>
           <a href="/dashboard" className="rounded-full border border-[var(--border-subtle)] bg-cream px-4 py-2 text-sm font-bold text-secondary transition hover:border-coral/50 hover:text-coral">Dashboard</a>
         </header>

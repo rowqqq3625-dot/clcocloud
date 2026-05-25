@@ -64,7 +64,7 @@ export default function FloatingApiCard() {
     <div ref={rootRef} className="group relative h-[420px] w-full max-w-[460px] translate-y-[12%]" aria-hidden="true">
       <div className="absolute left-1/2 top-1/2 h-56 w-56 -translate-x-1/2 -translate-y-1/2 rounded-full bg-coral/30 blur-3xl transition duration-500 group-hover:blur-[48px]" />
       <div className="pointer-events-none absolute left-9 top-9 z-10">
-        <Image src="/clcocloud-logo.png" alt="" width={54} height={54} className="object-contain" priority />
+        <Image src="/main-logo.png" alt="" width={54} height={54} className="object-contain" priority />
       </div>
       <Canvas frameloop={active ? "always" : "demand"} camera={{ position: [0, 0, 6.2], fov: 40 }} dpr={[1, 1.5]} gl={{ antialias: true }}>
         <ambientLight intensity={1.2} />

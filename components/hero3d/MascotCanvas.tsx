@@ -36,7 +36,7 @@ function MascotFallback() {
   return (
     <div className="absolute inset-0 grid place-items-center" aria-hidden="true">
       <div className="grid h-24 w-24 place-items-center rounded-[32px] border border-coral/20 bg-coral/10 shadow-coral backdrop-blur-md">
-        <BrandLogo size={60} />
+        <BrandLogo size={60} type="icon" />
       </div>
       <span className="absolute h-3 w-3 animate-ping rounded-full bg-coral/60" />
     </div>

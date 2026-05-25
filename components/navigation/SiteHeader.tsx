@@ -77,9 +77,8 @@ export function SiteHeader({ variant = "floating" }: SiteHeaderProps) {
 
   return (
     <nav className={wrapperClass} aria-label="상단 메뉴">
-      <Link href="/" className="flex shrink-0 items-center gap-3 text-[17px] font-bold tracking-[-0.01em] text-primary">
-        <BrandLogo size={28} />
-        <span>클코클라우드</span>
+      <Link href="/" className="flex shrink-0 items-center gap-2 hover:opacity-90 transition-opacity" aria-label="클코클라우드 홈">
+        <BrandLogo size={28} type="full" />
       </Link>
 
       <div className="order-3 flex w-full items-center gap-3 overflow-x-auto whitespace-nowrap text-[12px] font-semibold text-secondary [scrollbar-width:none] md:order-none md:w-auto md:overflow-visible md:text-sm">

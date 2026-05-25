@@ -39,9 +39,8 @@ export function AuthPanel({ mode, error, returnTo }: AuthPanelProps) {
           <aside className="relative hidden min-h-[680px] overflow-hidden bg-dark p-10 text-cream lg:block">
             <div className="absolute -right-24 -top-24 h-72 w-72 rounded-full bg-coral/35 blur-[90px]" />
             <div className="absolute bottom-0 left-0 h-52 w-full bg-[linear-gradient(0deg,rgba(217,119,87,.32),transparent)]" />
-            <div className="relative z-[1] flex items-center gap-3 text-lg font-bold">
-              <BrandLogo size={42} className="drop-shadow-[0_18px_40px_rgba(245,239,230,.20)]" />
-              클코클라우드
+            <div className="relative z-[1] flex items-center">
+              <BrandLogo size={32} type="full" className="drop-shadow-[0_18px_40px_rgba(245,239,230,.20)]" />
             </div>
 
             <div className="relative z-[1] mt-20">
@@ -60,7 +59,7 @@ export function AuthPanel({ mode, error, returnTo }: AuthPanelProps) {
                     <p className="mt-2 text-[14px] font-semibold text-cream/62">API 키 잔액</p>
                   </div>
                   <div className="grid h-11 w-11 place-items-center rounded-2xl border border-cream/10 bg-cream/10 shadow-[inset_0_1px_rgba(255,255,255,.12)]">
-                    <BrandLogo size={28} />
+                    <BrandLogo size={26} type="icon" />
                   </div>
                 </div>
                 <div className="relative z-[2] mt-4">
@@ -86,9 +85,8 @@ export function AuthPanel({ mode, error, returnTo }: AuthPanelProps) {
 
           <div className="relative bg-[radial-gradient(circle_at_80%_8%,rgba(217,119,87,.13),transparent_32%),linear-gradient(180deg,var(--bg-cream),var(--bg-cream-2))] p-6 sm:p-10 lg:p-12">
             <div className="flex items-center justify-between gap-4">
-              <a href="/" className="flex items-center gap-3 text-lg font-bold tracking-[-0.01em] lg:hidden">
-                <BrandLogo size={34} />
-                클코클라우드
+              <a href="/" className="flex items-center hover:opacity-90 transition-opacity lg:hidden">
+                <BrandLogo size={24} type="full" />
               </a>
               <div className="hidden text-sm font-semibold text-secondary/70 lg:block">비밀번호 없이 빠르게 시작</div>
               <a href="/" className="grid h-11 w-11 place-items-center rounded-full border border-[var(--border-subtle)] bg-cream text-2xl font-light leading-none text-secondary shadow-sm transition hover:border-coral/50 hover:text-coral" aria-label="닫기">

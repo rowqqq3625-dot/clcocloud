@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef, useCallback } from "react";
 import { Send, Minus, Mail, RotateCcw, Copy, Check, Paperclip, X } from "lucide-react";
+import Image from "next/image";
 import { getClientHash } from "@/lib/bot/fingerprint";
 import {
   loadSessionMessages,
@@ -513,9 +514,15 @@ export function BotPanel({ onClose }: BotPanelProps) {
         {/* Header Section (48px) */}
         <div className="h-12 flex items-center justify-between px-4 border-b border-[var(--border-subtle)] shrink-0 bg-[var(--cream-2)]">
           <div className="flex flex-col shrink-0">
-            <div className="flex items-center gap-1.5 shrink-0">
-              <span className="w-2 h-2 rounded-full bg-[var(--coral)] animate-pulse shrink-0" />
-              <span className="text-[14.5px] font-semibold text-[var(--ink)] tracking-tight whitespace-nowrap shrink-0" style={{ whiteSpace: "nowrap" }}>클코클라우드AI</span>
+            <div className="flex items-center gap-2 shrink-0">
+              <Image
+                src="/ai-icon.png"
+                alt="클코클라우드AI 아바타"
+                width={24}
+                height={24}
+                className="rounded-full overflow-hidden shrink-0 object-contain"
+              />
+              <span className="text-[14.5px] font-semibold text-[var(--ink)] tracking-tight whitespace-nowrap shrink-0">클코클라우드AI</span>
             </div>
           </div>
 

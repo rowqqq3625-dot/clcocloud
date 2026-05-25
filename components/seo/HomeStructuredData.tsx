@@ -6,7 +6,7 @@ const structuredData = [
     "@type": "Organization",
     name: "클코클라우드",
     url: siteUrl,
-    logo: `${siteUrl}/clcocloud-logo.png`,
+    logo: `${siteUrl}/main-logo.png`,
     description: "국내 최대 API 잔액 충전 플랫폼 클코클라우드"
   },
   {

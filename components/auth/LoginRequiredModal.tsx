@@ -105,7 +105,7 @@ export function LoginRequiredModal({ open, onClose, returnTo = "/dashboard" }: L
           {/* Header: Logo and Label */}
           <div className="flex items-center gap-2.5">
             <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl border border-coral/15 bg-coral/8 shadow-[inset_0_1px_rgba(255,255,255,.5)]">
-              <BrandLogo size={24} />
+              <BrandLogo size={24} type="icon" />
             </span>
             <div>
               <p className="text-[13px] font-bold tracking-tight text-secondary">로그인 필요</p>
