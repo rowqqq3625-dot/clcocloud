@@ -142,11 +142,7 @@ export default function CheckoutModal({
     return 0;
   };
 
-  const availableCoupons = [
-    { id: "flat2", name: "2만원 할인", desc: "신규 고객 환영 특별 혜택", value: 20000, type: "flat", text: "2만원", condition: "5만원 이상 결제 시" },
-    { id: "pct15", name: "15% 할인", desc: "API 정식 연동 기념 쿠폰", value: 15, type: "percent", text: "15%", condition: undefined },
-    { id: "flat5", name: "5만원 할인", desc: "장기 우수 회원 특별 혜택", value: 50000, type: "flat", text: "5만원", condition: "15만원 이상 결제 시" },
-  ];
+  const availableCoupons: { id: string; name: string; desc: string; value: number; type: string; text: string; condition?: string }[] = [];
 
   const sortedActive = [...availableCoupons].sort((a, b) => getDiscountAmount(b) - getDiscountAmount(a));
 
@@ -530,7 +526,7 @@ export default function CheckoutModal({
                                 <div className="text-[10px] text-[#9E958A] font-bold uppercase tracking-wider px-1 py-1 border-b border-[#2A2320]/60 pb-1.5 mb-1 flex justify-between items-center shrink-0">
                                   <span style={{ fontFamily: "'Spectral', 'Georgia', serif" }} className="text-[11px] font-serif font-semibold text-[#E8E4DB] tracking-wide">사용 가능한 쿠폰</span>
                                   <span className="bg-[#D97757]/15 text-[#E59478] text-[8px] px-1.5 py-0.5 rounded-full font-black border border-[#D97757]/20">
-                                    3개 보유
+                                    {availableCoupons.length}개 보유
                                   </span>
                                 </div>
                                 

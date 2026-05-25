@@ -289,15 +289,14 @@ export default function BundleCard({
       {/* CTA Button */}
       <button
         onClick={handleMainAction}
+        disabled={!isAvailable}
         className={`w-full py-3.5 rounded-xl font-bold text-center text-xs tracking-wider transition-all duration-300 relative z-[2] ${
           isAvailable
-            ? "bg-[var(--coral)] text-[var(--surface-dark)] hover:bg-[var(--coral-soft)] active:bg-[var(--coral-deep)] hover:shadow-[0_4px_16px_rgba(229,148,120,0.25)]"
-            : formOpen
-            ? "bg-[rgba(232,224,210,0.12)] text-[var(--cream)] border border-[rgba(232,224,210,0.15)]"
-            : "bg-[rgba(232,224,210,0.06)] text-[var(--cream-soft)]/60 border border-[rgba(232,224,210,0.02)] hover:bg-[rgba(232,224,210,0.08)]"
+            ? "bg-[var(--coral)] text-[var(--surface-dark)] hover:bg-[var(--coral-soft)] active:bg-[var(--coral-deep)] hover:shadow-[0_4px_16px_rgba(229,148,120,0.25)] cursor-pointer"
+            : "bg-[rgba(232,224,210,0.04)] text-[var(--cream-soft)]/30 border border-[rgba(232,224,210,0.01)] cursor-not-allowed"
         }`}
       >
-        {isAvailable ? "이 패키지로 시작 →" : formOpen ? "닫기" : "출시 알림 받기"}
+        {isAvailable ? "이 패키지로 시작 →" : "준비 중"}
       </button>
 
       <style jsx global>{`

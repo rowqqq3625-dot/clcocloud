@@ -76,6 +76,9 @@ export default function RootLayout({
     <html lang="ko" className={`${pretendard.variable} ${inter.variable} ${mono.variable}`}>
       <head>
         <script dangerouslySetInnerHTML={{ __html: chunkReloadGuard }} />
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+        <link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@1,6..72,400..700&display=swap" rel="stylesheet" />
       </head>
       <body>
         <LenisProvider />

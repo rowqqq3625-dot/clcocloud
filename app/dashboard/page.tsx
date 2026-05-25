@@ -199,7 +199,17 @@ export default function DashboardPage() {
               <SplitHeading
                 as="h1"
                 className="mt-4 max-w-[720px] text-[clamp(38px,6vw,76px)] font-[680] leading-[1.15] tracking-[-0.025em] text-primary"
-                lines={isAdmin ? ["관리자 제어반"] : ["클로드 API 키 사용량조회"]}
+                lines={isAdmin ? ["관리자 제어반"] : [
+                  <>
+                    <span 
+                      className="font-serif italic font-medium text-[var(--coral,#ff7f50)] tracking-tight pr-1.5" 
+                      style={{ fontFamily: "'Newsreader', serif", fontStyle: "italic" }}
+                    >
+                      클로드 API 키
+                    </span>{" "}
+                    사용량조회
+                  </>
+                ]}
               />
               {isAdmin && (
                 <p className="mt-5 max-w-[620px] text-[clamp(16px,1.4vw,18px)] leading-[1.65] tracking-[-0.01em] text-secondary">

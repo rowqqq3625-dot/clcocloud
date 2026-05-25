@@ -48,9 +48,14 @@ export function Sequence13Footer() {
               </DashboardGateLink>
             </li>
             <li>
-              <a href="#flow" className="hover:text-coral transition-colors duration-200">
+              <a href="/docs" className="hover:text-coral transition-colors duration-200">
                 문서
               </a>
+            </li>
+            <li>
+              <DashboardGateLink href="/assistant" className="hover:text-coral transition-colors duration-200">
+                어시스턴트
+              </DashboardGateLink>
             </li>
           </ul>
         </div>

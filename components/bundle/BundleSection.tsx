@@ -40,7 +40,7 @@ const DEFAULT_BUNDLES = [
     included_balance: null,
     price_krw: null,
     original_price_krw: null,
-    is_featured: true, // 기본 Featured (PRO 느낌)
+    is_featured: false,
   },
   {
     product_code: "BUNDLE_PERPLEXITY",
