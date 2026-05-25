@@ -4,6 +4,7 @@
 
 import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { LoginRequiredModal } from "@/components/auth/LoginRequiredModal";
 
 interface CheckoutModalProps {
   isOpen: boolean;

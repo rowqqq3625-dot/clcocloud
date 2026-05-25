@@ -28,7 +28,7 @@ export function getKstDate(): string {
  * Checks the current quota of the user.
  */
 export async function checkQuota(clientHash: string): Promise<QuotaStatus> {
-  const limit = Number(process.env.ASSISTANT_DAILY_LIMIT) || 50;
+  const limit = Number(process.env.ASSISTANT_DAILY_LIMIT) || 10;
   const kstDate = getKstDate();
   let used = 0;
 
@@ -67,7 +67,7 @@ export async function checkQuota(clientHash: string): Promise<QuotaStatus> {
  * Increments the quota count in Supabase or fallback.
  */
 export async function incrementQuota(clientHash: string): Promise<{ used: number; limit: number }> {
-  const limit = Number(process.env.ASSISTANT_DAILY_LIMIT) || 50;
+  const limit = Number(process.env.ASSISTANT_DAILY_LIMIT) || 10;
   const kstDate = getKstDate();
   
   const current = await checkQuota(clientHash);

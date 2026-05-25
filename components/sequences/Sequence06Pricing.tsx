@@ -6,16 +6,30 @@ import TopupInquiryPanel from "@/components/topup/TopupInquiryPanel";
 import { PricingCardTilt } from "@/components/ui/PricingCardTilt";
 import { pricingPlansWithDiscount } from "@/lib/pricing";
 import CheckoutModal from "@/components/checkout/CheckoutModal";
+import { LoginRequiredModal } from "@/components/auth/LoginRequiredModal";
 
 export function Sequence06Pricing() {
   const [isCheckoutOpen, setIsCheckoutOpen] = useState(false);
+  const [showLoginModal, setShowLoginModal] = useState(false);
   const [selectedPlan, setSelectedPlan] = useState<{
     code: string;
     price: number;
     name: string;
   } | null>(null);
 
-  const handleSelectPlan = (code: string, price: number, name: string) => {
+  const handleSelectPlan = async (code: string, price: number, name: string) => {
+    try {
+      const res = await fetch("/api/session", { cache: "no-store" });
+      const data = await res.json();
+      if (!data.authenticated) {
+        setShowLoginModal(true);
+        return;
+      }
+    } catch {
+      setShowLoginModal(true);
+      return;
+    }
+
     setSelectedPlan({ code, price, name });
     setIsCheckoutOpen(true);
   };
@@ -70,6 +84,13 @@ export function Sequence06Pricing() {
           productName={selectedPlan.name}
         />
       )}
+
+      {/* 로그인 유도 모달 */}
+      <LoginRequiredModal
+        open={showLoginModal}
+        onClose={() => setShowLoginModal(false)}
+        returnTo="/#pricing"
+      />
     </section>
   );
 }

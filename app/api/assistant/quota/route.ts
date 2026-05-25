@@ -1,16 +1,19 @@
 import { NextRequest, NextResponse } from "next/server";
+import { createHash } from "crypto";
 import { checkQuota } from "@/lib/assistant/quota";
+import { getSessionFromRequest } from "@/lib/auth-session";
 
 export const dynamic = "force-dynamic";
 
 export async function GET(request: NextRequest) {
   try {
-    const { searchParams } = new URL(request.url);
-    const clientHash = searchParams.get("clientHash");
-
-    if (!clientHash || typeof clientHash !== "string" || clientHash.length < 10) {
-      return NextResponse.json({ error: "Invalid clientHash" }, { status: 400 });
+    const session = getSessionFromRequest(request);
+    if (!session) {
+      return NextResponse.json({ error: "로그인이 필요합니다. 회원가입 후 조회가 가능합니다." }, { status: 401 });
     }
+
+    const rawId = `${session.provider}:${session.providerAccountId}`;
+    const clientHash = createHash("sha256").update(rawId).digest("hex");
 
     const quota = await checkQuota(clientHash);
 

@@ -46,7 +46,10 @@ export async function callAssistantModel(
   nonce: string = ""
 ): Promise<ModelCallResult> {
   const model = process.env.DASHSCOPE_MODEL || "qwen3.6-plus";
-  const apiKey = process.env.DASHSCOPE_API_KEY || "sk-73b5b3041acb4b62ab763181629c946b";
+  const apiKey = process.env.DASHSCOPE_API_KEY;
+  if (!apiKey) {
+    throw new Error("DASHSCOPE_API_KEY environment variable is not set");
+  }
   const baseUrl = "https://dashscope-intl.aliyuncs.com/compatible-mode/v1/chat/completions";
   
   const timeoutMs = Number(process.env.ASSISTANT_TIMEOUT_MS) || 45000;

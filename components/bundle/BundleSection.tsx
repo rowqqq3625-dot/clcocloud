@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from "react";
 import BundleCard from "./BundleCard";
 import CheckoutModal from "../checkout/CheckoutModal";
+import { LoginRequiredModal } from "@/components/auth/LoginRequiredModal";
 
 interface BundleProduct {
   id: string;
@@ -59,6 +60,7 @@ export default function BundleSection() {
   
   // 결제 모달 상태
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [showLoginModal, setShowLoginModal] = useState(false);
   const [modalData, setModalData] = useState<{
     code: string;
     price: number;
@@ -117,7 +119,19 @@ export default function BundleSection() {
     fetchBundles();
   }, []);
 
-  const handleCheckoutOpen = (code: string, price: number, name: string) => {
+  const handleCheckoutOpen = async (code: string, price: number, name: string) => {
+    try {
+      const res = await fetch("/api/session", { cache: "no-store" });
+      const data = await res.json();
+      if (!data.authenticated) {
+        setShowLoginModal(true);
+        return;
+      }
+    } catch {
+      setShowLoginModal(true);
+      return;
+    }
+
     setModalData({ code, price, name });
     setIsModalOpen(true);
   };
@@ -186,6 +200,13 @@ export default function BundleSection() {
           productName={modalData.name}
         />
       )}
+
+      {/* 로그인 유도 모달 */}
+      <LoginRequiredModal
+        open={showLoginModal}
+        onClose={() => setShowLoginModal(false)}
+        returnTo="/#pricing"
+      />
     </section>
   );
 }

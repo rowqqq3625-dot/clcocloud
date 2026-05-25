@@ -140,8 +140,8 @@ input {
 }
 
 :focus-visible {
-  outline: 2px solid var(--coral) !important;
-  outline-offset: 2px !important;
+  outline: 2px solid var(--coral);
+  outline-offset: 2px;
   animation: focus-pulse 240ms cubic-bezier(0.22, 1, 0.36, 1);
 }
 
@@ -1021,4 +1021,306 @@ input::-webkit-caps-lock-indicator {
   color: var(--coral) !important;
 }
 
+/* ─────────────────────────────────────────────────
+   Assistant Page — Advanced Re-creation Styles
+   ───────────────────────────────────────────────── */
+
+/* 5-Tier Typography Hierarchy */
+.t-display {
+  font-family: var(--font-pretendard), var(--font-inter), system-ui, sans-serif;
+  font-size: clamp(38px, 6.4vw, 84px);
+  font-weight: 720;
+  letter-spacing: -0.035em;
+  line-height: 1.05;
+}
+.t-italic {
+  font-family: "Newsreader", Georgia, "Times New Roman", serif;
+  font-style: italic;
+  font-weight: 500;
+  letter-spacing: -0.02em;
+}
+.t-title {
+  font-family: var(--font-pretendard), var(--font-inter), system-ui, sans-serif;
+  font-size: 28px;
+  font-weight: 640;
+  letter-spacing: -0.02em;
+}
+.t-section {
+  font-family: var(--font-pretendard), var(--font-inter), system-ui, sans-serif;
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+.t-body {
+  font-family: var(--font-pretendard), var(--font-inter), system-ui, sans-serif;
+  font-size: 17px;
+  font-weight: 440;
+  letter-spacing: -0.005em;
+  line-height: 1.65;
+}
+.t-meta {
+  font-family: var(--font-pretendard), var(--font-inter), system-ui, sans-serif;
+  font-size: 12px;
+  font-weight: 460;
+  letter-spacing: 0;
+}
+.t-mono {
+  font-family: 'JetBrains Mono', ui-monospace, monospace;
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+}
+
+/* 1. Assistant Page Layout Shell */
+.assistant-page {
+  background-color: var(--bg-cream);
+  height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+/* Force html/body height chain on assistant pages so 100dvh flex layout works.
+   Overrides Lenis's `html.lenis, html.lenis body { height: auto }` rule. */
+body:has(.assistant-page) {
+  height: 100dvh !important;
+  overflow: hidden !important;
+}
+html:has(.assistant-page) {
+  height: 100dvh !important;
+  overflow: hidden !important;
+}
+
+/* Onboarding OS Chips */
+.os-chip {
+  height: 42px;
+  padding-left: 18px;
+  padding-right: 18px;
+  border-radius: 999px;
+  background-color: var(--bg-cream);
+  border: 1px solid var(--line);
+  color: var(--text-primary);
+  font-size: 14px;
+  font-weight: 500;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  cursor: pointer;
+  transition: all 180ms var(--ease-out);
+}
+.os-chip:hover {
+  background-color: var(--bg-peach);
+  border-color: var(--text-primary);
+}
+.os-chip.active {
+  background-color: var(--coral);
+  border-color: var(--coral);
+  color: var(--bg-cream);
+}
+.os-chip .indicator {
+  font-size: 11px;
+  font-family: 'JetBrains Mono', monospace;
+  opacity: 0.35;
+  transition: color 180ms var(--ease-out);
+}
+.os-chip.active .indicator {
+  opacity: 1;
+  color: var(--bg-cream);
+}
+
+/* Usecase Underline Input */
+.usecase-input {
+  background: transparent;
+  border: none;
+  border-bottom: 1.5px solid var(--line);
+  font-family: var(--font-pretendard), sans-serif;
+  font-size: 22px;
+  font-weight: 480;
+  color: var(--text-primary);
+  width: 100%;
+  padding: 8px 0;
+  outline: none;
+  transition: border-color 180ms var(--ease-out);
+}
+.usecase-input:focus {
+  border-bottom-color: var(--coral);
+}
+.usecase-input::placeholder {
+  color: var(--text-primary);
+  opacity: 0.28;
+}
+
+/* Start Ghost CTA Button */
+.start-cta-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--bg-cream);
+  background-color: var(--ink);
+  border: none;
+  border-radius: 999px;
+  height: 44px;
+  padding: 0 24px;
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(31, 30, 29, 0.15);
+  transition: all 180ms var(--ease-out);
+}
+.start-cta-btn:hover {
+  background-color: var(--surface-dark-2);
+  transform: translateY(-1.5px);
+  box-shadow: 0 6px 16px rgba(31, 30, 29, 0.25);
+}
+.start-cta-btn:active {
+  transform: translateY(0px);
+}
+.start-cta-btn .arrow {
+  transition: transform 240ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+.start-cta-btn:hover .arrow {
+  transform: translateX(4px);
+}
+.start-cta-btn:disabled {
+  background-color: var(--line) !important;
+  color: var(--text-primary) !important;
+  opacity: 0.35 !important;
+  cursor: not-allowed;
+  pointer-events: none;
+  box-shadow: none !important;
+}
+
+/* Recommended Chip dot links */
+.recommend-link {
+  color: var(--text-secondary);
+  font-size: 14px;
+  font-weight: 480;
+  cursor: pointer;
+  position: relative;
+  transition: color 180ms var(--ease-out);
+}
+.recommend-link:hover {
+  color: var(--text-primary);
+}
+.recommend-link::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  bottom: -2px;
+  width: 100%;
+  height: 1px;
+  background-color: var(--coral);
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 200ms var(--ease-out);
+}
+.recommend-link:hover::after {
+  transform: scaleX(1);
+}
+
+/* Floating Composer OpenAI Style */
+.floating-composer {
+  background-color: var(--bg-cream);
+  border: 1px solid var(--line);
+  border-radius: 22px;
+  box-shadow: 0 8px 32px rgba(31, 30, 29, 0.06);
+  transition: border-color 220ms var(--ease-out), box-shadow 220ms var(--ease-out);
+}
+.floating-composer:focus-within {
+  border-color: var(--text-primary);
+  box-shadow: 0 8px 32px rgba(31, 30, 29, 0.1);
+}
+
+/* Answer Section left bar */
+.section-coral-bar {
+  width: 3px;
+  height: 16px;
+  background-color: var(--coral);
+  display: inline-block;
+}
+
+/* Bouncing Typing Indicator: 6px coral square bouncing 16px travel */
+@keyframes square-bounce {
+  0%, 100% {
+    transform: translateX(0);
+    opacity: 1;
+  }
+  50% {
+    transform: translateX(16px);
+    opacity: 0.4;
+  }
+}
+.typing-pulse-square {
+  width: 6px;
+  height: 6px;
+  background-color: var(--coral);
+  animation: square-bounce 1.2s cubic-bezier(0.25, 1, 0.5, 1) infinite;
+}
+
+/* Motion systems */
+.animate-fade-up {
+  animation: fade-up 360ms cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+@keyframes fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-stagger-item {
+  opacity: 0;
+  animation: fade-up 360ms cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+/* Reduced motion fallbacks */
+@media (prefers-reduced-motion: reduce) {
+  .typing-pulse-square {
+    animation: none !important;
+    opacity: 0.7;
+  }
+  .start-cta-btn::after {
+    transition: none !important;
+  }
+  .animate-fade-up {
+    animation: none !important;
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* Custom Apple-style input focus and transition overrides */
+.apple-input-focus:focus, 
+.apple-input-focus:focus-visible {
+  outline: none !important;
+  border-color: rgba(31, 30, 29, 0.22) !important;
+  box-shadow: 0 0 0 3px rgba(31, 30, 29, 0.03) !important;
+}
+
+.focus-none:focus, 
+.focus-none:focus-visible {
+  outline: none !important;
+  box-shadow: none !important;
+}
+
+/* Collapsible accordion height classes for smooth expansion */
+.accordion-content {
+  display: grid;
+  grid-template-rows: 0fr;
+  transition: grid-template-rows 280ms cubic-bezier(0.22, 1, 0.36, 1);
+  overflow: hidden;
+}
+
+.accordion-content.expanded {
+  grid-template-rows: 1fr;
+}
+
+.accordion-inner {
+  min-height: 0;
+}
 

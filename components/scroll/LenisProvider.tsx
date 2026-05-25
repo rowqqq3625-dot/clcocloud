@@ -14,7 +14,7 @@ export function LenisProvider() {
   const pathname = usePathname();
 
   useEffect(() => {
-    if (pathname?.startsWith("/docs")) {
+    if (pathname?.startsWith("/docs") || pathname?.startsWith("/assistant")) {
       window.__clcoLenis?.destroy();
       window.__clcoLenis = undefined;
       document.documentElement.classList.remove("lenis", "lenis-smooth", "lenis-stopped");

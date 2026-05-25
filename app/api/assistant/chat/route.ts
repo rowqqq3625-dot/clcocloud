@@ -3,6 +3,7 @@ import { createHash } from "crypto";
 import { getSupabaseAdminClient } from "@/lib/supabase-admin";
 import { getSessionFromRequest } from "@/lib/auth-session";
 import { sanitizeInput, sanitizeAndProcessOutput } from "@/lib/assistant/sanitizer";
+import { checkPromptInjection, appendInjectionGuard } from "@/lib/assistant/injectionFilter";
 import { buildSystemPrompt } from "@/lib/assistant/systemPrompt";
 import { checkQuota, incrementQuota } from "@/lib/assistant/quota";
 import { callAssistantModel, ChatMessage } from "@/lib/assistant/dashscope";
@@ -16,14 +17,14 @@ export async function POST(request: NextRequest) {
     const { os, usecase, messages, images, nonce } = body;
     let requestClientHash = body.clientHash;
 
-    // 1. Resolve and authenticate user's clientHash (prioritize login session over client-passed hash)
+    // 1. Resolve and authenticate user's clientHash - STRICT AUTHENTICATION GUARD
     const session = getSessionFromRequest(request);
-    clientHash = requestClientHash;
-
-    if (session) {
-      const rawId = `${session.provider}:${session.providerAccountId}`;
-      clientHash = createHash("sha256").update(rawId).digest("hex");
+    if (!session) {
+      return NextResponse.json({ error: "로그인이 필요합니다. 회원가입 후 어시스턴트를 이용해주세요. 😊" }, { status: 401 });
     }
+
+    const rawId = `${session.provider}:${session.providerAccountId}`;
+    clientHash = createHash("sha256").update(rawId).digest("hex");
 
     // 2. Validate clientHash format
     if (!clientHash || typeof clientHash !== "string" || clientHash.length !== 64) {
@@ -85,10 +86,19 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // 6. Build model prompt payload: system instructions + history (max 16 messages)
-    const systemPrompt = buildSystemPrompt(os, sanitizedUsecase);
+    // 6. Injection Filter & System Prompt Build
+    const injectionCheck = process.env.ASSISTANT_INJECTION_FILTER === "on" 
+      ? checkPromptInjection(lastUserMessage.content) 
+      : { hasInjection: false };
+
+    let systemPrompt = buildSystemPrompt(os, sanitizedUsecase);
+    if (injectionCheck.hasInjection) {
+      systemPrompt = appendInjectionGuard(systemPrompt);
+      console.warn(`[AssistantChatRoute] Injection attempt detected: ${injectionCheck.matchedPattern}`);
+    }
+
     const history = messages.slice(-16) as ChatMessage[];
-    const chatPayload: ChatMessage[] = [
+    let chatPayload: ChatMessage[] = [
       { role: "system", content: systemPrompt },
       ...history
     ];
@@ -116,8 +126,26 @@ export async function POST(request: NextRequest) {
       console.log(`[AssistantChatRoute] Reasoning (Thinking Logs): \n${modelResult.reasoningContent}`);
     }
 
-    // 8. Mask and Post-process the assistant response
-    const safeReply = sanitizeAndProcessOutput(modelResult.content, os);
+    // 8. Mask and Post-process the assistant response (with Retry logic)
+    // Pass false to maskKeys to expose original API keys for client copy-paste convenience
+    let sanitizeResult = sanitizeAndProcessOutput(modelResult.content, os, false);
+    
+    // Retry once if there are severe violations (identity, proxy, prompt leak)
+    if (sanitizeResult.needsRetry) {
+      console.warn("[AssistantChatRoute] Retrying model due to severe identity/guideline violation.");
+      // Provide a hint to the model to strictly follow identity guidelines
+      chatPayload[0].content += "\n\n(이전 응답이 가이드라인을 위반하여 정체성 방어 답변으로 재작성합니다.)";
+      
+      try {
+        const retryResult = await callAssistantModel(chatPayload, (nonce || "") + "-retry");
+        modelResult = retryResult; // update result for tokens
+        sanitizeResult = sanitizeAndProcessOutput(retryResult.content, os, false);
+      } catch (retryError) {
+        console.error("[AssistantChatRoute] Retry failed:", retryError);
+      }
+    }
+    
+    const safeReply = sanitizeResult.safeReply;
 
     // 9. Increment Daily usage quota
     const nextQuota = await incrementQuota(clientHash);
@@ -163,6 +191,9 @@ export async function POST(request: NextRequest) {
         }
 
         if (sessionId) {
+          // Generate masked reply for database logs to ensure key security (no plaintext keys in DB)
+          const dbSafeReply = sanitizeAndProcessOutput(modelResult.content, os, true).safeReply;
+
           // Insert anonymous messages (fp16 level equivalent - keeping only safe strings, no direct keys)
           await supabase.from("assistant_messages").insert([
             {
@@ -177,13 +208,24 @@ export async function POST(request: NextRequest) {
             {
               session_id: sessionId,
               role: "assistant",
-              content: safeReply,
+              content: dbSafeReply,
               has_image: false,
               tokens_in: modelResult.tokensIn,
               tokens_out: modelResult.tokensOut,
               latency_ms: modelResult.latencyMs
             }
           ]);
+
+          // Log sanitize events if any
+          if (sanitizeResult.loggedEvents && sanitizeResult.loggedEvents.length > 0) {
+            const logEntries = sanitizeResult.loggedEvents.map(event => ({
+              session_id: sessionId,
+              client_hash: clientHash,
+              event_type: event.type,
+              triggered_pattern: event.pattern
+            }));
+            await supabase.from("assistant_sanitize_logs").insert(logEntries);
+          }
         }
       } catch (dbError) {
         console.error("[AssistantChatRoute] Database logging failed:", dbError);
