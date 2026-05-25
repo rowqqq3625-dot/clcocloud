@@ -3,6 +3,7 @@
 import { motion, useMotionTemplate, useMotionValue, useSpring, useTransform } from "framer-motion";
 import { CountUp } from "@/components/ui/CountUp";
 import { PrimaryButton } from "@/components/ui/PrimaryButton";
+import { DiscountBadge } from "@/components/ui/DiscountBadge";
 
 type PricingCardProps = {
   id: string;
@@ -37,20 +38,24 @@ export function PricingCard({ id, name, balance, price, discount, note, popular 
       style={{ rotateX, rotateY, transformPerspective: 1000 }}
       className={`group relative overflow-visible rounded-[28px] border p-7 transition duration-300 hover:-translate-y-2 ${
         popular
-          ? "border-coral bg-[radial-gradient(circle_at_80%_0%,rgba(245,239,230,.26),transparent_36%),linear-gradient(145deg,var(--coral-hi),var(--coral),var(--coral-lo))] text-[var(--cream)] shadow-[0_24px_80px_rgba(217,119,87,.32)] lg:-translate-y-4"
+          ? "border-[var(--coral)] bg-gradient-to-b from-[#252220] to-[#151312] text-[var(--cream)] shadow-[0_24px_64px_rgba(217,119,87,0.22)] lg:-translate-y-4"
           : "border-[var(--border-dark)] bg-dark-2 text-[var(--cream)]"
       }`}
     >
       {popular ? (
-        <span className="absolute left-1/2 top-0 -translate-x-1/2 -translate-y-1/2 animate-soft-float rounded-full border border-coral bg-cream px-4 py-1 text-xs font-semibold text-coral shadow-md">
-          가장 많이 선택
+        <span className="absolute left-1/2 top-0 -translate-x-1/2 -translate-y-1/2 rounded-full bg-[var(--coral)] border border-[rgba(255,255,255,0.15)] px-4.5 py-1 text-[11px] font-bold text-white uppercase tracking-wider shadow-md">
+          인기 플랜
         </span>
       ) : null}
+      
+      {/* Slanted Discount Badge on Top Right corner */}
+      <DiscountBadge percent={discount} />
+
       <motion.span className="pointer-events-none absolute inset-0 rounded-[28px] opacity-0 mix-blend-screen transition-opacity duration-200 group-hover:opacity-100" style={{ background: spotlight }} />
       <span className="pointer-events-none absolute inset-0 rounded-[28px] opacity-[.05] noise" />
       <div className="relative">
         <div className="flex items-start justify-between gap-4">
-          <div>
+          <div className="pr-10">
             <h3 className="text-2xl font-semibold text-[var(--cream)]">{name}</h3>
             <p 
               className="mt-2 text-[var(--cream)]"
@@ -59,9 +64,6 @@ export function PricingCard({ id, name, balance, price, discount, note, popular 
               {note}
             </p>
           </div>
-          <span className="rounded-full bg-cream/10 px-3 py-1 font-mono text-xs text-[var(--cream)]">
-            약 <CountUp end={discount} suffix="%" mode="slot" /> 절감
-          </span>
         </div>
         <strong className="mt-12 block text-[clamp(60px,8vw,104px)] font-semibold leading-none tracking-[-.06em] text-[var(--cream)]">
           $<CountUp end={balance} mode="slot" />

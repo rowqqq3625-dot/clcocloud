@@ -6,10 +6,10 @@ import { CCSplitText } from "@/components/reactbits-wrapped/CCSplitText";
 import { StepCard } from "@/components/ui/StepCard";
 
 const steps = [
-  { number: "01", title: "잔액 플랜 선택", code: "# ₩98,000 / ₩196,000 / ₩264,000" },
-  { number: "02", title: "API 키 발급", code: "key issued: sk-clco-xxxx-xxxx-xxxx" },
-  { number: "03", title: "공식 클로드코드에 연결", code: "export ANTHROPIC_API_KEY=\"sk-clco-...\"\nclaude --version" },
-  { number: "04", title: "사용량 확인", code: "curl https://api.clcocloud.kr/v1/usage" }
+  { number: "01", title: "잔액 플랜 선택", boxText: "원하는 플랜 선택" },
+  { number: "02", title: "API 키 발급", boxText: "클로드 API 키 구매" },
+  { number: "03", title: "클로드코드 연동", boxText: "공식 클로드코드에 연결" },
+  { number: "04", title: "사용량 확인", boxText: "투명한 사용량 추적" }
 ];
 
 export function Sequence08Flow() {
@@ -36,14 +36,14 @@ export function Sequence08Flow() {
                 <div 
                   className="absolute top-[38px] left-[calc(100%-4px)] right-[-20px] hidden lg:block z-0 h-px border-t border-dashed border-[var(--coral)] opacity-30"
                   style={{
-                    animation: "cc-dash-reveal 1.2s var(--ease-out) forwards"
+                     animation: "cc-dash-reveal 1.2s var(--ease-out) forwards"
                   }}
                 />
               )}
               <StepCard
                 stepNumber={step.number}
                 title={step.title}
-                codeContent={step.code}
+                boxText={step.boxText}
                 className="h-full z-10"
               />
             </div>

@@ -52,25 +52,25 @@ export function PricingCardTilt({
       style={{ rotateX, rotateY, transformPerspective: 1000 }}
       className={`group relative grid min-h-[540px] min-w-0 grid-rows-[auto_auto_auto_1fr_auto] overflow-visible rounded-[28px] border p-7 transition duration-300 will-change-transform hover:-translate-y-[3px] ${
         popular
-          ? "border-coral bg-[radial-gradient(circle_at_80%_0%,var(--bg-cream)_0%,transparent_36%),linear-gradient(145deg,var(--coral-hi),var(--coral),var(--coral-lo))] text-[var(--cream)] shadow-[0_24px_80px_var(--coral-glow)] hover:shadow-coral"
+          ? "border-[var(--coral)] bg-gradient-to-b from-[#252220] to-[#151312] text-[var(--cream)] shadow-[0_24px_64px_rgba(217,119,87,0.22)] hover:shadow-[0_24px_64px_rgba(217,119,87,0.30)]"
           : "border-[var(--border-dark)] bg-dark-2 text-[var(--cream)] hover:border-white/20 hover:shadow-lg"
       }`}
     >
       {popular ? (
-        <span className="absolute left-1/2 top-0 -translate-x-1/2 -translate-y-1/2 rounded-full border border-coral bg-cream px-4 py-1 text-xs font-semibold text-coral shadow-md z-10">
-          가장 많이 선택
+        <span className="absolute left-1/2 top-0 -translate-x-1/2 -translate-y-1/2 rounded-full bg-[var(--coral)] border border-[rgba(255,255,255,0.15)] px-4.5 py-1 text-[11px] font-bold text-white uppercase tracking-wider shadow-md z-10">
+          인기 플랜
         </span>
       ) : null}
 
-      {/* Unified Placement Discount Badge on Top Right */}
-      <DiscountBadge percent={discount} className="absolute top-7 right-7 z-10" />
+      {/* Slanted Discount Badge on Top Right corner */}
+      <DiscountBadge percent={discount} />
 
       <motion.span className="pointer-events-none absolute inset-0 rounded-[28px] opacity-0 mix-blend-screen transition-opacity duration-200 group-hover:opacity-[.18]" style={{ background: spotlight }} />
       <span className="pointer-events-none absolute inset-0 rounded-[28px] opacity-[.05] noise" />
       
       <div className="relative min-w-0">
         <div className="flex min-w-0 items-start justify-between gap-4">
-          <div className="min-w-0 pr-24"> {/* Extra padding-right to avoid overlapping with absolute DiscountBadge */}
+          <div className="min-w-0 pr-10"> {/* Extra padding-right to avoid overlapping with absolute DiscountBadge */}
             {/* Header font style upgraded: weight 640, tracking -0.01em */}
             <h3 className="text-2xl font-[640] tracking-[-0.01em] text-[var(--cream)]">{name}</h3>
             <p 

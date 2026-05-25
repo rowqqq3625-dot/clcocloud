@@ -8,9 +8,9 @@ type DiscountBadgeProps = {
 export function DiscountBadge({ percent, className = "" }: DiscountBadgeProps) {
   return (
     <span
-      className={`inline-block px-2.5 py-0.5 rounded-full border border-[rgba(251,246,236,0.22)] bg-[rgba(251,246,236,0.06)] text-[var(--cream)] font-mono text-[11px] font-semibold uppercase tracking-wider ${className}`}
+      className={`absolute top-2 right-4 rotate-[14deg] z-20 text-[var(--coral)] font-mono text-[36px] font-extrabold tracking-tighter opacity-85 select-none pointer-events-none ${className}`}
     >
-      약 {percent}% 절감
+      {percent}%
     </span>
   );
 }
