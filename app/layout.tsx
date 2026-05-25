@@ -26,7 +26,7 @@ const mono = localFont({
 });
 
 const siteDescription =
-  "가격 부담으로 망설였던 바이브코딩, 멈추지않는 혁신을 지금 만나보세요.";
+  "가격 부담으로 망설여졌던 바이브코딩, 이제 멈추지않는 혁신을 만나보세요.";
 
 const chunkReloadGuard = `
 (() => {
@@ -61,15 +61,24 @@ export const metadata: Metadata = {
     apple: "/icon.png"
   },
   openGraph: {
+    type: "website",
+    siteName: "클코클라우드",
     title: "클코클라우드 - 생각은 가볍게, 빌드는 완벽하게",
     description: siteDescription,
-    images: ["/main-logo.png"]
+    images: [
+      {
+        url: "/og-logo.jpg",
+        width: 1024,
+        height: 1024,
+        alt: "클코클라우드 로고"
+      }
+    ]
   },
   twitter: {
-    card: "summary_large_image",
+    card: "summary",
     title: "클코클라우드 - 생각은 가볍게, 빌드는 완벽하게",
     description: siteDescription,
-    images: ["/main-logo.png"]
+    images: ["/og-logo.jpg"]
   }
 };
 

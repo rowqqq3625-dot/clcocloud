@@ -6,8 +6,8 @@ const structuredData = [
     "@type": "Organization",
     name: "클코클라우드",
     url: siteUrl,
-    logo: `${siteUrl}/main-logo.png`,
-    description: "국내 최대 API 잔액 충전 플랫폼 클코클라우드"
+    logo: `${siteUrl}/og-logo.jpg`,
+    description: "가격 부담으로 망설여졌던 바이브코딩, 이제 멈추지않는 혁신을 만나보세요."
   },
   {
     "@context": "https://schema.org",
@@ -15,7 +15,7 @@ const structuredData = [
     name: "클코클라우드",
     alternateName: ["클로드코드 API 잔액 충전", "Claude Code API 충전"],
     url: siteUrl,
-    description: "클로드코드 공식 CLI 완벽 지원. 정가 6분의1 가격으로 API 잔액을 더 오래 사용하세요."
+    description: "가격 부담으로 망설여졌던 바이브코딩, 이제 멈추지않는 혁신을 만나보세요."
   },
   {
     "@context": "https://schema.org",
