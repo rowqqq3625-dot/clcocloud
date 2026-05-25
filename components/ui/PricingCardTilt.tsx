@@ -94,8 +94,8 @@ export function PricingCardTilt({
         >
           <CountUp end={balance} prefix="$" duration={950} delay={120} />
         </motion.strong>
-        <div className={`mt-3 text-3xl font-semibold tracking-[-0.03em] ${popular ? "text-[var(--cream)]" : "text-coral-hi"}`}>
-          <Price krw={price} usd={balance} />
+        <div className="mt-3 text-3xl font-semibold tracking-[-0.03em] text-[var(--cream)]">
+          <Price krw={price} usd={balance} className="text-[var(--cream)]" />
         </div>
       </div>
 

@@ -66,7 +66,7 @@ export function PricingCard({ id, name, balance, price, discount, note, popular 
         <strong className="mt-12 block text-[clamp(60px,8vw,104px)] font-semibold leading-none tracking-[-.06em] text-[var(--cream)]">
           $<CountUp end={balance} mode="slot" />
         </strong>
-        <p className={`mt-3 text-3xl font-semibold ${popular ? "text-[var(--cream)]" : "text-coral-hi"}`}>{price}</p>
+        <p className="mt-3 text-3xl font-semibold text-[var(--cream)]">{price}</p>
         <ul className="mt-8 grid gap-3 text-sm text-[var(--cream)]">
           {["공식 클로드코드 호환", "잔액 기간 만료 없음", "개인 전용 API 키"].map((item) => (
             <li key={item} className="flex items-center gap-3 text-[var(--cream)]" style={{ opacity: 0.72 }}>

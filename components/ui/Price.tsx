@@ -25,11 +25,11 @@ export function Price({
 
     return (
       <span className={`flex items-baseline gap-2 tabular-nums whitespace-nowrap ${className}`}>
-        <span className="font-bold text-ink-100">
+        <span className="font-bold text-current">
           ₩{formattedKrw}
         </span>
         {formattedUsd !== null && (
-          <span className="font-mono text-[13px] text-ink-65">
+          <span className="font-mono text-[13px] text-current opacity-70">
             ≈ ${formattedUsd}
           </span>
         )}
