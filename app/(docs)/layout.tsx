@@ -203,11 +203,13 @@ export default function DocsLayout({ children }: { children: ReactNode }) {
           .docs-action-card strong { display: block; color: var(--docs-text); font-size: var(--fs-body); }
           .docs-action-card small { display: block; margin-top: 3px; color: var(--docs-text-soft); font-size: var(--fs-caption); line-height: 1.5; }
           .docs-action-card-primary { background: linear-gradient(135deg, rgba(217,119,87,.12), rgba(255,252,246,.94)); border-color: rgba(217,119,87,.24); }
-          .docs-os-tabs { margin: 24px 0; }
-          .docs-os-tablist { min-height: 40px; display: flex; gap: 4px; padding: 4px; overflow-x: auto; border: 1px solid var(--docs-line); border-radius: var(--r-md); background: var(--docs-surface); }
-          .docs-os-tablist button { flex: 0 0 auto; display: flex; align-items: center; gap: 8px; height: 32px; padding: 0 16px; border: 0; border-radius: var(--r-sm); background: transparent; color: var(--docs-text-soft); font-size: 14px; font-weight: 500; cursor: pointer; transition: color 180ms var(--ease-out), background 180ms var(--ease-out), box-shadow 180ms var(--ease-out); }
-          .docs-os-tablist button:hover { color: var(--ink); background: rgba(217,119,87,0.06); }
-          .docs-os-tablist button.is-active { color: var(--coral); background: rgba(217,119,87,0.12); box-shadow: inset 0 -2px 0 var(--coral); font-weight: 600; }
+          .docs-os-tabs { margin: 28px 0; }
+          .docs-os-tablist { display: flex; gap: 8px; padding: 4px 0; overflow-x: auto; border: 0; background: transparent; min-height: auto; }
+          .docs-os-tablist button { flex: 0 0 auto; display: flex; align-items: center; gap: 8px; height: 38px; padding: 0 20px; border: 1px solid var(--docs-line); border-radius: 9999px; background: transparent; color: var(--docs-text-soft); font-size: 14px; font-weight: 500; cursor: pointer; transition: all 180ms var(--ease-out); }
+          .docs-os-tablist button:hover { color: var(--docs-text); background: rgba(31,30,29,0.03); border-color: var(--docs-text-faint); }
+          [data-theme="dark"] .docs-os-tablist button:hover { background: rgba(255,255,255,0.03); }
+          .docs-os-tablist button.is-active { color: var(--docs-text); background: rgba(31,30,29,0.05); border-color: var(--docs-text-soft); font-weight: 600; box-shadow: none; }
+          [data-theme="dark"] .docs-os-tablist button.is-active { background: rgba(255,255,255,0.06); }
           .docs-callout { display: grid; grid-template-columns: 24px 1fr; gap: 12px; align-items: start; margin: 24px 0; padding: 16px 20px; border-radius: var(--r-md); color: var(--docs-text-soft); font-size: var(--fs-body); line-height: 1.7; }
           .docs-callout strong { display: block; margin-bottom: 4px; color: var(--ink); font-weight: 600; }
           .docs-callout-info { background: rgba(31,30,29,0.04); border: 1px solid var(--docs-line); border-left: 3px solid var(--ink-soft); }
