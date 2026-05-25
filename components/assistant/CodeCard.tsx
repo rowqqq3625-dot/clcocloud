@@ -94,9 +94,17 @@ export function CodeCard({ code, language = "bash", filename }: CodeCardProps) {
     >
       {/* Code Header Bar */}
       <div className="flex items-center justify-between px-4 py-2 bg-white/[0.02] border-b border-white/[0.04] select-none">
-        <span className="text-white/50 text-[11px] font-medium tracking-wide">
-          {defaultFilename}
-        </span>
+        <div className="flex items-center gap-2">
+          {/* Traffic light dots */}
+          <div className="flex items-center gap-1.5 mr-1.5">
+            <span className="w-2.5 h-2.5 rounded-full bg-[#FF5F56] inline-block" />
+            <span className="w-2.5 h-2.5 rounded-full bg-[#FFBD2E] inline-block" />
+            <span className="w-2.5 h-2.5 rounded-full bg-[#27C93F] inline-block" />
+          </div>
+          <span className="text-white/50 text-[11px] font-medium tracking-wide">
+            {defaultFilename}
+          </span>
+        </div>
         <div className="flex items-center gap-3">
           <span className="text-white/30 text-[10px] uppercase tracking-wider">
             {language}

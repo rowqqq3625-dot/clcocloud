@@ -2,7 +2,7 @@
 
 import { AnimatePresence, motion } from "framer-motion";
 import { Menu, X } from "lucide-react";
-import Image from "next/image";
+import { BrandLogo } from "@/components/ui/BrandLogo";
 import Link from "next/link";
 import { useState } from "react";
 import { DocsSearch } from "./DocsSearch";
@@ -18,11 +18,15 @@ export function DocsHeader() {
           <button type="button" className="docs-menu-button" onClick={() => setOpen(true)} aria-label="문서 메뉴 열기">
             <Menu size={18} />
           </button>
-          <Link href="/docs" className="docs-brand">
-            <Image src="/clcocloud-logo.png" alt="클코클라우드" width={24} height={24} />
-            <span>클코클라우드</span>
-            <em>docs</em>
-          </Link>
+          <div className="docs-brand flex items-center gap-[9px]">
+            <Link href="/" className="flex items-center gap-[9px] hover:opacity-80 transition-opacity" style={{ color: "inherit", textDecoration: "none" }}>
+              <BrandLogo size={24} />
+              <span>클코클라우드</span>
+            </Link>
+            <Link href="/docs" className="hover:opacity-80 transition-opacity" style={{ textDecoration: "none" }}>
+              <em>docs</em>
+            </Link>
+          </div>
           <DocsSearch />
           <div className="docs-mobile-search">
             <DocsSearch compact />

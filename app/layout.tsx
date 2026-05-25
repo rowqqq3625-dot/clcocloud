@@ -26,7 +26,7 @@ const mono = localFont({
 });
 
 const siteDescription =
-  "클로드코드, 아직도 정가 내고 쓰시나요? 공식 CLI 완벽 지원 + 정가 6분의1 가격으로 압도적인 가성비, 지금 바로 경험하세요. 국내 최대 API 잔액 충전 플랫폼 클코클라우드";
+  "가격 부담으로 망설였던 바이브코딩, 멈추지않는 혁신을 지금 만나보세요.";
 
 const chunkReloadGuard = `
 (() => {
@@ -52,24 +52,24 @@ const chunkReloadGuard = `
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://clcocloud.kr"),
-  title: "클코클라우드 | 클로드코드 API 잔액 충전",
+  title: "생각은 가볍게, 빌드는 완벽하게 - 클코클라우드",
   description: siteDescription,
   keywords: ["클코클라우드", "클로드코드", "Claude Code", "API 잔액 충전", "클로드코드 CLI", "클로드코드 API"],
   openGraph: {
-    title: "클코클라우드",
+    title: "생각은 가볍게, 빌드는 완벽하게 - 클코클라우드",
     description: siteDescription,
-    images: ["/og-image.png"]
+    images: ["/clcocloud-logo.png"]
   },
   twitter: {
     card: "summary_large_image",
-    title: "클코클라우드 | 클로드코드 API 잔액 충전",
+    title: "생각은 가볍게, 빌드는 완벽하게 - 클코클라우드",
     description: siteDescription,
-    images: ["/og-image.png"]
+    images: ["/clcocloud-logo.png"]
   },
   icons: {
-    icon: "/clcocloud-logo.png",
-    shortcut: "/clcocloud-logo.png",
-    apple: "/clcocloud-logo.png"
+    icon: "/search-logo.png",
+    shortcut: "/search-logo.png",
+    apple: "/search-logo.png"
   }
 };
 

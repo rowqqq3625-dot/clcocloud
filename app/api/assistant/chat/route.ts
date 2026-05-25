@@ -74,12 +74,12 @@ export async function POST(request: NextRequest) {
       delete lastUserMessage.image; // standardize to images array
     }
 
-    // 5. Daily quota limit check
+    // 5. Weekly quota limit check
     const quotaStatus = await checkQuota(clientHash);
     if (!quotaStatus.allowed) {
       return NextResponse.json(
         {
-          reply: `오늘의 어시스턴트 상담 한도(${quotaStatus.limit}회)에 도달했습니다. 한국 시간 기준 자정(00:00) 이후에 사용량이 초기화되니 잠시 후 다시 이용해 주세요. 급하신 경우 support.clcocloud@gmail.com으로 문의 부탁드립니다.`,
+          reply: `이번 주 어시스턴트 상담 한도(${quotaStatus.limit}회)에 도달했습니다. 최근 7일간의 사용량이 반영되니 잠시 후 또는 다음 주에 다시 이용해 주세요. 급하신 경우 support.clcocloud@gmail.com으로 문의 부탁드립니다.`,
           quotaExceeded: true
         },
         { status: 429 }

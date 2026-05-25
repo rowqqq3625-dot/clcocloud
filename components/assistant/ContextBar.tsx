@@ -56,7 +56,7 @@ export function ContextBar({ os, usecase, quota, onBackToField, onNewChat }: Con
         
         {/* Usage Quota Display */}
         <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-[var(--border-subtle)] bg-cream-2 t-mono text-xs shadow-sm">
-          <span className="opacity-50">오늘</span>
+          <span className="opacity-50">이번 주</span>
           <span className={`${isQuotaCritical ? "text-[#E27D60] font-bold" : "text-ink-65"}`}>
             {quota.used}
           </span>

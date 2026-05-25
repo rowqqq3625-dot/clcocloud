@@ -36,7 +36,7 @@ const osFriendly: Record<string, string> = {
 export function ChatView({ os, usecase, onBack, onNewChat, activeSessionIdExternal }: ChatViewProps) {
   const [messages, setMessages] = useState<MessageType[]>([]);
   const [loading, setLoading] = useState(false);
-  const [quota, setQuota] = useState({ used: 0, limit: 10 });
+  const [quota, setQuota] = useState({ used: 0, limit: 15 });
   const [clientHash, setClientHash] = useState("");
   const [paletteOpen, setPaletteOpen] = useState(false);
   const [codeOnlyMode, setCodeOnlyMode] = useState(false);
