@@ -30,8 +30,8 @@ export function TypingPulse({ hasImages = false }: { hasImages?: boolean }) {
 
   useEffect(() => {
     let isMounted = true;
-    // 묵직한 지연 시간을 두어 실제 인공지능이 정밀하게 심사숙고하는 듯한 추론을 연출합니다.
-    const stepDelays = [4000, 4800, 5800, 5200, 4500, 4500];
+    // 훨씬 더 느린 지연 시간(6초~8.5초대)을 두어 실제 인공지능이 아주 정밀하게 심사숙고하는 듯한 묵직한 추론을 연출합니다.
+    const stepDelays = [6000, 7500, 8500, 8000, 7000, 7000];
 
     const runNextStep = (currentIndex: number) => {
       if (currentIndex >= steps.length - 1 || !isMounted) return;

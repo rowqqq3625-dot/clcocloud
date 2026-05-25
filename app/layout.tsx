@@ -52,17 +52,22 @@ const chunkReloadGuard = `
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://clcocloud.kr"),
-  title: "생각은 가볍게, 빌드는 완벽하게 - 클코클라우드",
+  title: "클코클라우드 - 생각은 가볍게, 빌드는 완벽하게.",
   description: siteDescription,
   keywords: ["클코클라우드", "클로드코드", "Claude Code", "API 잔액 충전", "클로드코드 CLI", "클로드코드 API"],
+  icons: {
+    icon: "/icon.png",
+    shortcut: "/icon.png",
+    apple: "/icon.png"
+  },
   openGraph: {
-    title: "생각은 가볍게, 빌드는 완벽하게 - 클코클라우드",
+    title: "클코클라우드 - 생각은 가볍게, 빌드는 완벽하게.",
     description: siteDescription,
     images: ["/main-logo.png"]
   },
   twitter: {
     card: "summary_large_image",
-    title: "생각은 가볍게, 빌드는 완벽하게 - 클코클라우드",
+    title: "클코클라우드 - 생각은 가볍게, 빌드는 완벽하게.",
     description: siteDescription,
     images: ["/main-logo.png"]
   }
