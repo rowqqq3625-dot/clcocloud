@@ -5,6 +5,7 @@ import React, { useEffect, useState } from "react";
 export function TypingPulse({ hasImages = false }: { hasImages?: boolean }) {
   const [stepIndex, setStepIndex] = useState(0);
   const [reducedMotion, setReducedMotion] = useState(false);
+  const [fade, setFade] = useState(true);
 
   const steps = [
     hasImages ? "문의 내용 및 이미지 분석 중... 🔍" : "문의 내용 및 환경 매핑 중... 🔍",
@@ -29,17 +30,23 @@ export function TypingPulse({ hasImages = false }: { hasImages?: boolean }) {
 
   useEffect(() => {
     let isMounted = true;
-    // Organic delays for each reasoning step (in ms) to feel realistic and slow down transitions
-    const stepDelays = [2200, 2600, 3200, 2800, 2500, 2500];
+    // 묵직한 지연 시간을 두어 실제 인공지능이 정밀하게 심사숙고하는 듯한 추론을 연출합니다.
+    const stepDelays = [4000, 4800, 5800, 5200, 4500, 4500];
 
     const runNextStep = (currentIndex: number) => {
       if (currentIndex >= steps.length - 1 || !isMounted) return;
       setTimeout(() => {
         if (isMounted) {
-          setStepIndex(currentIndex + 1);
-          runNextStep(currentIndex + 1);
+          setFade(false); // 서서히 사라짐
+          setTimeout(() => {
+            if (isMounted) {
+              setStepIndex(currentIndex + 1);
+              setFade(true); // 서서히 나타남
+              runNextStep(currentIndex + 1);
+            }
+          }, 300); // fade out 애니메이션 딜레이
         }
-      }, stepDelays[currentIndex]);
+      }, stepDelays[currentIndex] - 300);
     };
 
     runNextStep(0);
@@ -65,7 +72,7 @@ export function TypingPulse({ hasImages = false }: { hasImages?: boolean }) {
         <div className="absolute w-full h-full border-2 border-coral border-t-transparent rounded-full animate-spin" />
       </div>
       {/* Thinking step text */}
-      <span className="text-[12px] text-ink-65 font-medium animate-pulse transition-all duration-300">
+      <span className={`text-[12px] text-ink-65 font-medium transition-all duration-500 ease-out select-none ${fade ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-1'}`}>
         {steps[stepIndex]}
       </span>
     </div>

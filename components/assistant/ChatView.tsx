@@ -389,10 +389,10 @@ export function ChatView({ os, usecase, onBack, onNewChat, activeSessionIdExtern
         {loading && (
           <TypingPulse
             hasImages={
-              messages.length > 0 &&
-              messages[messages.length - 1].role === "user" &&
-              messages[messages.length - 1].images !== undefined &&
-              messages[messages.length - 1].images!.length > 0
+              (() => {
+                const lastUserMessage = [...messages].reverse().find((m) => m.role === "user");
+                return !!(lastUserMessage && lastUserMessage.images && lastUserMessage.images.length > 0);
+              })()
             }
           />
         )}
