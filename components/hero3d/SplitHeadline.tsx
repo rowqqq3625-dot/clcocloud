@@ -129,9 +129,9 @@ export function SplitHeadline({
       style={{ y, opacity, filter: blur, letterSpacing, x: parallaxX, translateY: parallaxY }}
       className="hero3d-split-headline max-w-[920px] text-left"
     >
-      <motion.h1
+      <motion.h2
         className="text-[32px] sm:text-[43px] md:text-[50px] lg:text-[64px] xl:text-[73px] 2xl:text-[80px] font-bold leading-[1.12] tracking-[-0.047em] text-primary break-keep"
-        aria-label="언제 끊길지 모르는 불안한 구독 계정, 이제는 클코클라우드."
+        aria-label="클코클라우드 - 생각은 가볍게, 빌드는 완벽하게"
       >
         <span className="block">
           {/* Line 1: 언제 끊길지 모르는 불안한 구독 계정, */}
@@ -162,7 +162,10 @@ export function SplitHeadline({
             </motion.span>
           </span>
         </span>
-      </motion.h1>
+      </motion.h2>
+      <p className="mt-4 text-[15px] sm:text-[17px] leading-relaxed text-primary/60 max-w-[600px]">
+        가격 부담으로 망설여졌던 바이브코딩, 이제 멈추지않는 혁신을 만나보세요.
+      </p>
     </motion.div>
   );
 }

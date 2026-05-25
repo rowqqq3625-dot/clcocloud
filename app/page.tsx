@@ -17,6 +17,8 @@ import { Sequence13Footer } from "@/components/sequences/Sequence13Footer";
 export default function Page() {
   return (
     <main>
+      <h1 className="sr-only">클코클라우드 - 생각은 가볍게, 빌드는 완벽하게</h1>
+      <p className="sr-only">가격 부담으로 망설여졌던 바이브코딩, 이제 멈추지않는 혁신을 만나보세요.</p>
       <HomeStructuredData />
       <Sequence01Hero />
       <Sequence02TrustStrip />

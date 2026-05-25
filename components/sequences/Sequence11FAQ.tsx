@@ -16,9 +16,31 @@ const faqs: ReadonlyArray<readonly [string, string]> = [
   ["결제 방식은 무엇인가요?", "월 구독이 아니라 1회성 충전 방식입니다.\n\n원하는 잔액 플랜을 결제하고 잔액이 남아있는 동안 계속 사용합니다."]
 ];
 
+function FAQStructuredData() {
+  const faqSchema = {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    mainEntity: faqs.map(([q, a]) => ({
+      "@type": "Question",
+      name: q,
+      acceptedAnswer: {
+        "@type": "Answer",
+        text: a.replace(/\n\n/g, " ")
+      }
+    }))
+  };
+  return (
+    <script
+      type="application/ld+json"
+      dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }}
+    />
+  );
+}
+
 export function Sequence11FAQ() {
   return (
     <section id="faq" className="bg-cream py-32">
+      <FAQStructuredData />
       <div className="container-cinematic max-w-5xl">
         <SplitHeading
           as="h2"
@@ -30,3 +52,4 @@ export function Sequence11FAQ() {
     </section>
   );
 }
+
