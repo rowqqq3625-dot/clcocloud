@@ -47,15 +47,16 @@ export function BrandLogo({ size = 32, type = "full", className = "" }: BrandLog
         priority
       />
       <span
-        className="font-sans font-black tracking-[0.05em] text-primary select-none shrink-0"
+        className="select-none shrink-0"
         style={{
-          fontSize: `${Math.round(size * 0.76)}px`,
-          lineHeight: 1,
-          fontFamily: "var(--font-pretendard), var(--font-inter), system-ui, sans-serif",
-          fontWeight: 900,
+          fontSize: `${Math.round(size * 0.88)}px`,
+          lineHeight: 1.1,
+          fontFamily: "'Song Myung', serif",
+          color: "#D97757",
+          letterSpacing: "-0.01em"
         }}
       >
-        클코<span className="text-coral" style={{ fontWeight: 800 }}>클라우드</span>
+        클코클라우드
       </span>
     </div>
   );

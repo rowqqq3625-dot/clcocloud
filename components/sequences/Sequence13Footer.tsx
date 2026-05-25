@@ -99,7 +99,7 @@ export function Sequence13Footer() {
                 개인정보 처리방침
               </a>
             </li>
-            <li className="text-[11px] text-cream/40 mt-3 max-w-none leading-relaxed font-normal" style={{ whiteSpace: "nowrap" }}>
+            <li className="text-[11px] text-cream/40 mt-3 max-w-none leading-relaxed font-normal lg:text-right" style={{ whiteSpace: "nowrap", textAlign: "right" }}>
               클코클라우드 NOTIFY : 본 서비스는 Anthropic 서비스가 아니며<br />
               공식 클로드코드와 호환되는 클로드 API 키 발급/잔액 관리 서비스입니다.
             </li>
