@@ -36,29 +36,18 @@ export function BrandLogo({ size = 32, type = "full", className = "" }: BrandLog
     );
   }
   // 3. Horizontal full version (2번 이미지 스타일 - 기본값)
+  // 사용자의 요청으로 텍스트는 이제 사용하지 않고 이미지 로고만 단독으로 꽉차고 크게 사용합니다.
+  const logoSize = Math.round(size * 1.5);
   return (
-    <div className={`flex items-center gap-2 ${className}`}>
+    <div className={`flex items-center ${className}`}>
       <Image
         src="/header-logo-icon.png"
-        alt="클코클라우드 로고 아이콘"
-        width={size}
-        height={size}
-        className="shrink-0 object-contain"
+        alt="클코클라우드 로고"
+        width={logoSize}
+        height={logoSize}
+        className="shrink-0 object-contain max-h-[38px] w-auto"
         priority
       />
-      <span
-        className="select-none shrink-0"
-        style={{
-          fontSize: `${Math.round(size * 0.88)}px`,
-          lineHeight: 1.1,
-          fontFamily: "'Nanum Myeongjo', serif",
-          fontWeight: 800,
-          color: "#000000",
-          letterSpacing: "-0.02em"
-        }}
-      >
-        클코클라우드
-      </span>
     </div>
   );
 }
