@@ -16,16 +16,16 @@ export function StepCard({ stepNumber, title, className = "" }: StepCardProps) {
         {stepNumber}
       </span>
 
-      <div className="relative z-10 flex flex-col justify-between h-full flex-grow">
+      <div className="relative z-10 flex flex-col h-full flex-grow">
         {/* Step Badge */}
-        <div className="flex items-center mb-6">
+        <div className="flex items-center mb-3">
           <span className="flex items-center justify-center w-[30px] h-[30px] rounded-full bg-[var(--coral)] text-white font-mono text-[13px] font-bold shadow-[0_4px_12px_rgba(217,119,87,0.3)]">
             {parseInt(stepNumber, 10)}
           </span>
         </div>
 
-        {/* Large, high-contrast, premium title */}
-        <h4 className="text-[20px] font-bold text-[var(--cream)] leading-snug tracking-tight mb-2 select-text">
+        {/* Large, high-contrast, premium title - directly below badge */}
+        <h4 className="text-[20px] font-bold text-[var(--cream)] leading-snug tracking-tight mb-2 select-text mt-1">
           {title}
         </h4>
       </div>

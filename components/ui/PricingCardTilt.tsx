@@ -52,12 +52,12 @@ export function PricingCardTilt({
       style={{ rotateX, rotateY, transformPerspective: 1000 }}
       className={`group relative grid min-h-[540px] min-w-0 grid-rows-[auto_auto_auto_1fr_auto] overflow-visible rounded-[28px] border p-7 transition duration-300 will-change-transform hover:-translate-y-[3px] ${
         popular
-          ? "border-[3px] border-[var(--coral)] bg-[#FFFCF6] text-[#1A1817] shadow-[0_32px_100px_rgba(217,119,87,0.18)] lg:-translate-y-4"
-          : "border-[var(--border-dark)] bg-dark-2 text-[var(--cream)] hover:border-white/20 hover:shadow-lg"
+          ? "border-[3px] border-[#1A1817] bg-[var(--cream)] text-[#1A1817] shadow-[0_32px_100px_rgba(31,30,29,0.18)] lg:-translate-y-4"
+          : "border-[rgba(247,241,232,0.08)] bg-dark-2 text-[var(--cream)] hover:border-white/20 hover:shadow-lg"
       }`}
     >
       {popular ? (
-        <span className="absolute left-1/2 top-0 -translate-x-1/2 -translate-y-1/2 rounded-full bg-[var(--coral)] px-4 py-1.5 text-xs font-bold text-white shadow-md z-10 tracking-wide">
+        <span className="absolute left-1/2 top-0 -translate-x-1/2 -translate-y-1/2 rounded-full bg-[#1A1817] px-4 py-1.5 text-xs font-bold text-[var(--cream)] shadow-md z-10 tracking-wide">
           인기 플랜
         </span>
       ) : null}

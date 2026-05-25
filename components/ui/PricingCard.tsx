@@ -38,12 +38,12 @@ export function PricingCard({ id, name, balance, price, discount, note, popular 
       style={{ rotateX, rotateY, transformPerspective: 1000 }}
       className={`group relative overflow-visible rounded-[28px] border p-7 transition duration-300 hover:-translate-y-2 ${
         popular
-          ? "border-[3px] border-[var(--coral)] bg-[#FFFCF6] text-[#1A1817] shadow-[0_32px_100px_rgba(217,119,87,0.18)] lg:-translate-y-4"
+          ? "border-[3px] border-[#1A1817] bg-[var(--cream)] text-[#1A1817] shadow-[0_32px_100px_rgba(31,30,29,0.18)] lg:-translate-y-4"
           : "border-[var(--border-dark)] bg-dark-2 text-[var(--cream)]"
       }`}
     >
       {popular ? (
-        <span className="absolute left-1/2 top-0 -translate-x-1/2 -translate-y-1/2 rounded-full bg-[var(--coral)] px-4 py-1.5 text-xs font-bold text-white shadow-md z-10 tracking-wide">
+        <span className="absolute left-1/2 top-0 -translate-x-1/2 -translate-y-1/2 rounded-full bg-[#1A1817] px-4 py-1.5 text-xs font-bold text-[var(--cream)] shadow-md z-10 tracking-wide">
           인기 플랜
         </span>
       ) : null}

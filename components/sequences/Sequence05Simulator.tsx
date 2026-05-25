@@ -17,7 +17,7 @@ export function Sequence05Simulator() {
         <span className="pointer-events-none absolute right-6 top-6 h-6 w-6 rounded-full border border-[var(--coral)] opacity-40" />
         <div className="relative z-[1] lg:-translate-x-5 lg:pr-6">
           <p className="cc-eyebrow before:hidden">Calculate</p>
-          <h2 className="cc-display mt-5 max-w-xl text-[clamp(11px,1.65vw,21px)] leading-[1.2] tracking-tight text-[var(--ink)]">
+          <h2 className="cc-display mt-5 max-w-xl text-[clamp(10px,1.3vw,17px)] leading-[1.2] tracking-tight text-[var(--ink)]">
             <span 
               className="block whitespace-nowrap font-serif italic font-medium tracking-tight text-[var(--coral,#ff7f50)] pr-2 py-0.5" 
               style={{ fontFamily: "'Newsreader', serif", fontStyle: "italic" }}
