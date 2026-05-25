@@ -52,12 +52,12 @@ export function PricingCardTilt({
       style={{ rotateX, rotateY, transformPerspective: 1000 }}
       className={`group relative grid min-h-[540px] min-w-0 grid-rows-[auto_auto_auto_1fr_auto] overflow-visible rounded-[28px] border p-7 transition duration-300 will-change-transform hover:-translate-y-[3px] ${
         popular
-          ? "border-[var(--coral)] bg-gradient-to-b from-[#252220] to-[#151312] text-[var(--cream)] shadow-[0_24px_64px_rgba(217,119,87,0.22)] hover:shadow-[0_24px_64px_rgba(217,119,87,0.30)]"
+          ? "border-[3px] border-[var(--coral)] bg-[#FFFCF6] text-[#1A1817] shadow-[0_32px_100px_rgba(217,119,87,0.18)] lg:-translate-y-4"
           : "border-[var(--border-dark)] bg-dark-2 text-[var(--cream)] hover:border-white/20 hover:shadow-lg"
       }`}
     >
       {popular ? (
-        <span className="absolute left-1/2 top-0 -translate-x-1/2 -translate-y-1/2 rounded-full bg-[var(--coral)] border border-[rgba(255,255,255,0.15)] px-4.5 py-1 text-[11px] font-bold text-white uppercase tracking-wider shadow-md z-10">
+        <span className="absolute left-1/2 top-0 -translate-x-1/2 -translate-y-1/2 rounded-full bg-[var(--coral)] px-4 py-1.5 text-xs font-bold text-white shadow-md z-10 tracking-wide">
           인기 플랜
         </span>
       ) : null}
@@ -72,10 +72,10 @@ export function PricingCardTilt({
         <div className="flex min-w-0 items-start justify-between gap-4">
           <div className="min-w-0 pr-10"> {/* Extra padding-right to avoid overlapping with absolute DiscountBadge */}
             {/* Header font style upgraded: weight 640, tracking -0.01em */}
-            <h3 className="text-2xl font-[640] tracking-[-0.01em] text-[var(--cream)]">{name}</h3>
+            <h3 className={`text-2xl font-[640] tracking-[-0.01em] ${popular ? "text-[#1A1817]" : "text-[var(--cream)]"}`}>{name}</h3>
             <p 
-              className="mt-2 min-h-[3rem] text-balance leading-6 text-[var(--cream)]"
-              style={{ opacity: popular ? 0.85 : 0.60 }}
+              className={`mt-2 min-h-[3rem] text-balance leading-6 ${popular ? "text-[#1A1817]" : "text-[var(--cream)]"}`}
+              style={{ opacity: popular ? 0.80 : 0.60 }}
             >
               {note}
             </p>
@@ -90,21 +90,21 @@ export function PricingCardTilt({
           whileInView={{ opacity: 1, y: 0, filter: "blur(0px)" }}
           viewport={{ once: true, amount: 0.5 }}
           transition={{ duration: 0.55, delay: 0.08, ease: [0.22, 1, 0.36, 1] }}
-          className="block text-[clamp(60px,8vw,104px)] font-semibold leading-none tracking-[-.06em] text-[var(--cream)]"
+          className={`block text-[clamp(60px,8vw,104px)] font-semibold leading-none tracking-[-.06em] ${popular ? "text-[#1A1817]" : "text-[var(--cream)]"}`}
         >
           <CountUp end={balance} prefix="$" duration={950} delay={120} />
         </motion.strong>
-        <div className="mt-3 text-3xl font-semibold tracking-[-0.03em] text-[var(--cream)]">
-          <Price krw={price} usd={balance} className="text-[var(--cream)]" />
+        <div className={`mt-3 text-3xl font-semibold tracking-[-0.03em] ${popular ? "text-[#1A1817]" : "text-[var(--cream)]"}`}>
+          <Price krw={price} usd={balance} className={popular ? "text-[#1A1817]" : "text-[var(--cream)]"} />
         </div>
       </div>
 
-      <ul className="relative mt-8 grid content-start gap-3 self-start text-sm text-[var(--cream)]">
+      <ul className={`relative mt-8 grid content-start gap-3 self-start text-sm ${popular ? "text-[#1A1817]" : "text-[var(--cream)]"}`}>
         {["공식 클로드코드 호환", "잔액 기간 만료 없음", "개인 전용 API 키"].map((item, index) => (
           <motion.li
             key={item}
-            className="flex items-center gap-3 text-[var(--cream)]"
-            style={{ opacity: 0.85 }}
+            className={`flex items-center gap-3 ${popular ? "text-[#1A1817]" : "text-[var(--cream)]"}`}
+            style={{ opacity: popular ? 0.90 : 0.85 }}
             initial={{ opacity: 0, x: -6 }}
             whileInView={{ opacity: 1, x: 0 }}
             viewport={{ once: true, amount: 0.6 }}
@@ -121,7 +121,7 @@ export function PricingCardTilt({
         <PrimaryButton
           onClick={onSelectPlan ? () => onSelectPlan(id.toUpperCase(), price, `${name} 플랜 ($${balance})`) : undefined}
           href={onSelectPlan ? undefined : `/checkout?plan=${id}`}
-          variant="secondary"
+          variant={popular ? "dark" : "secondary"}
           arrow="→"
           pulse={popular}
           className="w-full max-w-[220px] justify-between min-h-[54px] rounded-[16px] shadow-md hover:shadow-lg"

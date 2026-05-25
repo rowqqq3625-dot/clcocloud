@@ -6,10 +6,10 @@ import { CCSplitText } from "@/components/reactbits-wrapped/CCSplitText";
 import { StepCard } from "@/components/ui/StepCard";
 
 const steps = [
-  { number: "01", title: "잔액 플랜 선택", boxText: "원하는 플랜 선택" },
-  { number: "02", title: "API 키 발급", boxText: "클로드 API 키 구매" },
-  { number: "03", title: "클로드코드 연동", boxText: "공식 클로드코드에 연결" },
-  { number: "04", title: "사용량 확인", boxText: "투명한 사용량 추적" }
+  { number: "01", title: "원하는 플랜 선택" },
+  { number: "02", title: "클로드 API 키 구매" },
+  { number: "03", title: "공식 클로드코드에 연결" },
+  { number: "04", title: "투명한 사용량 추적" }
 ];
 
 export function Sequence08Flow() {
@@ -43,7 +43,6 @@ export function Sequence08Flow() {
               <StepCard
                 stepNumber={step.number}
                 title={step.title}
-                boxText={step.boxText}
                 className="h-full z-10"
               />
             </div>
