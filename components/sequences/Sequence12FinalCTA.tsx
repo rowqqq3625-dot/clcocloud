@@ -24,7 +24,7 @@ export function Sequence12FinalCTA() {
         </RevealText>
         <div className="mt-10 flex flex-wrap items-center justify-center gap-5">
           <CCClickSpark>
-            <PrimaryButton href="#pricing" pulse variant="coral-solid">6분의 1 가격</PrimaryButton>
+            <PrimaryButton href="#pricing" pulse variant="coral-solid">시작하기</PrimaryButton>
           </CCClickSpark>
           <a href="#pricing" className="text-cream/80 hover:text-cream transition-colors duration-200 text-sm font-semibold underline decoration-cream/30 decoration-[0.5px] underline-offset-4">
             요금표 다시 보기

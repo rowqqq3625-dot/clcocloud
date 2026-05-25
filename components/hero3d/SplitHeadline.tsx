@@ -163,9 +163,6 @@ export function SplitHeadline({
           </span>
         </span>
       </motion.h2>
-      <p className="mt-4 text-[15px] sm:text-[17px] leading-relaxed text-primary/60 max-w-[600px]">
-        가격 부담으로 망설여졌던 바이브코딩, 이제 멈추지않는 혁신을 만나보세요.
-      </p>
     </motion.div>
   );
 }
