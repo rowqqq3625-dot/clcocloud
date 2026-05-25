@@ -13,11 +13,11 @@ const plans = pricingPlansWithDiscount.map((plan) => ({
 export function Sequence05Simulator() {
   return (
     <section id="calculator" className="cc-section bg-[var(--cream)] py-[var(--section-y-tight)]">
-      <CCAnimatedContent className="cc-max relative grid gap-10 rounded-[var(--r-2xl)] border border-[var(--line)] bg-[linear-gradient(180deg,rgba(251,246,236,1)_0%,var(--cream)_100%)] p-8 shadow-[var(--shadow-lg)] lg:grid-cols-[0.44fr_0.56fr] lg:p-14" distance={24} duration={0.7}>
+      <CCAnimatedContent className="cc-max relative grid gap-10 rounded-[var(--r-2xl)] border border-[var(--line)] bg-[linear-gradient(180deg,rgba(251,246,236,1)_0%,var(--cream)_100%)] p-8 shadow-[var(--shadow-lg)] lg:grid-cols-[0.48fr_0.52fr] lg:p-14" distance={24} duration={0.7}>
         <span className="pointer-events-none absolute right-6 top-6 h-6 w-6 rounded-full border border-[var(--coral)] opacity-40" />
         <div className="relative z-[1]">
           <p className="cc-eyebrow before:hidden">Calculate</p>
-          <h2 className="cc-display mt-5 max-w-xl text-[clamp(26px,4.2vw,56px)] leading-[1.2] tracking-tight text-[var(--ink)]">
+          <h2 className="cc-display mt-5 max-w-xl text-[clamp(22px,3.4vw,44px)] leading-[1.2] tracking-tight text-[var(--ink)]">
             <span 
               className="block whitespace-nowrap font-serif italic font-medium tracking-tight text-[var(--coral,#ff7f50)] pr-2 py-0.5" 
               style={{ fontFamily: "'Newsreader', serif", fontStyle: "italic" }}

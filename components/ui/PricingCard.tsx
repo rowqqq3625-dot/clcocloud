@@ -75,8 +75,8 @@ export function PricingCard({ id, name, balance, price, discount, note, popular 
             </li>
           ))}
         </ul>
-        <div className="mt-9">
-          <PrimaryButton href={`/checkout?plan=${id}`} variant="secondary" arrow="→" pulse={popular}>
+        <div className="mt-9 flex justify-center w-full">
+          <PrimaryButton href={`/checkout?plan=${id}`} variant="secondary" arrow="→" pulse={popular} className="w-full max-w-[220px] justify-between min-h-[54px] rounded-[16px] shadow-md hover:shadow-lg">
             구매하기
           </PrimaryButton>
         </div>

@@ -116,15 +116,15 @@ export function PricingCardTilt({
         ))}
       </ul>
 
-      {/* Button aligned full width */}
-      <motion.div className="relative mt-9 self-end w-full" style={{ x: shiftX, y: shiftY }}>
+      {/* Button aligned compactly and plumply */}
+      <motion.div className="relative mt-9 self-end w-full flex justify-center" style={{ x: shiftX, y: shiftY }}>
         <PrimaryButton
           onClick={onSelectPlan ? () => onSelectPlan(id.toUpperCase(), price, `${name} 플랜 ($${balance})`) : undefined}
           href={onSelectPlan ? undefined : `/checkout?plan=${id}`}
           variant="secondary"
           arrow="→"
           pulse={popular}
-          className="w-full text-center justify-between"
+          className="w-full max-w-[220px] justify-between min-h-[54px] rounded-[16px] shadow-md hover:shadow-lg"
         >
           구매하기
         </PrimaryButton>
