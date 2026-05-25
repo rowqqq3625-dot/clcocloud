@@ -43,8 +43,9 @@ export function Sequence06Pricing() {
     <section id="pricing" className="dark-panel py-32">
       <div className="container-cinematic">
         <p className="eyebrow">Pricing</p>
-        <h2 className="section-display mt-5 max-w-5xl text-[clamp(44px,6vw,88px)] font-semibold">
-          기간 만료 없이, 필요한 만큼 구매하세요.
+        <h2 className="section-display mt-5 max-w-5xl text-[clamp(44px,6vw,88px)] font-semibold leading-[1.2]">
+          기간 만료 없이,<br />
+          필요한 만큼 구매하세요.
         </h2>
         <div className="mt-16 grid gap-5 lg:grid-cols-3">
           {pricingPlansWithDiscount.map((plan, index) => (

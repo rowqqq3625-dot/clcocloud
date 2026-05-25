@@ -1324,3 +1324,17 @@ html:has(.assistant-page) {
   min-height: 0;
 }
 
+/* Shimmer sweep animation for glossy effects */
+@keyframes shimmerSweep {
+  0% {
+    transform: translateX(-150%) rotate(30deg);
+  }
+  100% {
+    transform: translateX(150%) rotate(30deg);
+  }
+}
+
+.animate-shimmer-sweep {
+  animation: shimmerSweep 6s infinite ease-in-out;
+}
+
