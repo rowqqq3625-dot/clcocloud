@@ -50,6 +50,7 @@ export function Sequence06Pricing() {
         <div className="mt-16 grid gap-5 lg:grid-cols-3">
           {pricingPlansWithDiscount.map((plan, index) => (
             <motion.div
+              id={`plan-${plan.id}`}
               key={plan.name}
               initial={{ opacity: 0, y: 30 }}
               whileInView={{ opacity: 1, y: 0 }}

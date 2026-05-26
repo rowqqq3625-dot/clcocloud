@@ -142,7 +142,7 @@ export default function BundleSection() {
   };
 
   return (
-    <section className="cc-section bg-[var(--surface-dark)] text-[var(--cream)] relative py-24 px-5 lg:px-12 border-t border-[rgba(232,224,210,0.04)]">
+    <section id="bundle" className="cc-section bg-[var(--surface-dark)] text-[var(--cream)] relative py-24 px-5 lg:px-12 border-t border-[rgba(232,224,210,0.04)]">
       <div className="max-w-6xl mx-auto">
         {/* Section Header */}
         <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6 mb-12">
@@ -171,20 +171,21 @@ export default function BundleSection() {
         {/* 3개 패키지 카드 그리드 */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8">
           {bundles.map((bundle, index) => (
-            <BundleCard
-              key={bundle.product_code}
-              productCode={bundle.product_code}
-              displayName={bundle.display_name}
-              aiPartner={bundle.ai_partner}
-              description={bundle.description}
-              periodMonths={bundle.period_months}
-              includedBalance={bundle.included_balance}
-              priceKrw={bundle.price_krw}
-              originalPriceKrw={bundle.original_price_krw}
-              isFeatured={bundle.is_featured}
-              onCheckout={handleCheckoutOpen}
-              index={index}
-            />
+            <div key={bundle.product_code} id={`bundle-${bundle.product_code.toLowerCase().replace(/_/g, '-')}`}>
+              <BundleCard
+                productCode={bundle.product_code}
+                displayName={bundle.display_name}
+                aiPartner={bundle.ai_partner}
+                description={bundle.description}
+                periodMonths={bundle.period_months}
+                includedBalance={bundle.included_balance}
+                priceKrw={bundle.price_krw}
+                originalPriceKrw={bundle.original_price_krw}
+                isFeatured={bundle.is_featured}
+                onCheckout={handleCheckoutOpen}
+                index={index}
+              />
+            </div>
           ))}
         </div>
       </div>
