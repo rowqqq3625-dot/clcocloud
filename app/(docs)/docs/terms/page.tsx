@@ -2,9 +2,14 @@ import type { Metadata } from "next";
 import { DocsArticle } from "@/components/docs/DocsArticle";
 
 export const metadata: Metadata = {
-  title: "이용약관 및 정책",
-  description: "클코클라우드 이용약관, 정책, 구매자 책임 고지입니다.",
-  alternates: { canonical: "/docs/terms" }
+  title: "서비스 이용 약관",
+  description: "클코클라우드 플랫폼을 사용하는 모든 회원 및 개발자의 권리와 서비스 이용 수칙 명시.",
+  alternates: { canonical: "/docs/terms" },
+  openGraph: {
+    title: "서비스 이용 약관",
+    description: "클코클라우드 플랫폼을 사용하는 모든 회원 및 개발자의 권리와 서비스 이용 수칙 명시.",
+    images: ["/og-logo.jpg"]
+  }
 };
 
 const headings = [

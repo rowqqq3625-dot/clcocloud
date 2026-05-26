@@ -4,9 +4,14 @@ import { DocsArticle } from "@/components/docs/DocsArticle";
 import { OPENCODE_CONFIG } from "@/lib/docs/snippets";
 
 export const metadata: Metadata = {
-  title: "오픈코드",
-  description: "오픈코드 provider 설정에 클코클라우드를 연결합니다.",
-  alternates: { canonical: "/docs/clients/opencode" }
+  title: "OpenCode 클라이언트 연동",
+  description: "커뮤니티형 개발 툴 OpenCode의 API 호출 규격을 클코 클라우드에 맞추는 세팅법.",
+  alternates: { canonical: "/docs/clients/opencode" },
+  openGraph: {
+    title: "OpenCode 클라이언트 연동",
+    description: "커뮤니티형 개발 툴 OpenCode의 API 호출 규격을 클코 클라우드에 맞추는 세팅법.",
+    images: ["/og-logo.jpg"]
+  }
 };
 
 const headings = [{ id: "settings", title: "오픈코드 설정", level: 2 as const }];

@@ -1,7 +1,16 @@
 import type { Metadata } from "next";
 import { DocsArticle } from "@/components/docs/DocsArticle";
 
-export const metadata: Metadata = { title: "FAQ", description: "클코클라우드 개발자용 Q&A입니다.", alternates: { canonical: "/docs/faq" } };
+export const metadata: Metadata = {
+  title: "개발 가이드 FAQ",
+  description: "회원 정보, 결제 대행 관련 세무 처리 및 API 키 다중 발급 규칙 등을 다룹니다.",
+  alternates: { canonical: "/docs/faq" },
+  openGraph: {
+    title: "개발 가이드 FAQ",
+    description: "회원 정보, 결제 대행 관련 세무 처리 및 API 키 다중 발급 규칙 등을 다룹니다.",
+    images: ["/og-logo.jpg"]
+  }
+};
 
 const headings = [{ id: "developer-faq", title: "개발자용 Q&A", level: 2 as const }];
 

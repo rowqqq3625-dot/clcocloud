@@ -4,9 +4,14 @@ import { Download, Key, LifeBuoy, Plug, Rocket, Settings } from "lucide-react";
 import { DocsArticle } from "@/components/docs/DocsArticle";
 
 export const metadata: Metadata = {
-  title: "클코클라우드 문서",
-  description: "클로드 코드를 공식보다 합리적으로, 안정적으로 쓰기 위한 모든 가이드입니다.",
-  alternates: { canonical: "/docs" }
+  title: "클코클라우드 개발자 공식 문서",
+  description: "클로드코드를 더 저렴하고 안정적으로 쓰기 위해 필요한 모든 연동 및 설치 매뉴얼 제공.",
+  alternates: { canonical: "/docs" },
+  openGraph: {
+    title: "클코클라우드 개발자 공식 문서",
+    description: "클로드코드를 더 저렴하고 안정적으로 쓰기 위해 필요한 모든 연동 및 설치 매뉴얼 제공.",
+    images: ["/og-logo.jpg"]
+  }
 };
 
 const cards = [

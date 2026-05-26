@@ -4,9 +4,14 @@ import { DocsArticle } from "@/components/docs/DocsArticle";
 import { N8N_CONFIG } from "@/lib/docs/snippets";
 
 export const metadata: Metadata = {
-  title: "n8n",
-  description: "n8n 워커에 클코클라우드 환경 변수를 주입합니다.",
-  alternates: { canonical: "/docs/clients/n8n" }
+  title: "n8n 자동화 워크플로우 연동",
+  description: "워크플로우 빌더 n8n에 클코 API 노드를 추가하여 자동화 코딩 파이프라인을 구축하세요.",
+  alternates: { canonical: "/docs/clients/n8n" },
+  openGraph: {
+    title: "n8n 자동화 워크플로우 연동",
+    description: "워크플로우 빌더 n8n에 클코 API 노드를 추가하여 자동화 코딩 파이프라인을 구축하세요.",
+    images: ["/og-logo.jpg"]
+  }
 };
 
 const headings = [{ id: "settings", title: "n8n 설정", level: 2 as const }];

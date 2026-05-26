@@ -3,9 +3,14 @@ import Link from "next/link";
 import { DocsArticle } from "@/components/docs/DocsArticle";
 
 export const metadata: Metadata = {
-  title: "모델가격",
-  description: "Anthropic 공식 Claude 모델별 입력, 출력, 캐시, 배치 가격입니다.",
-  alternates: { canonical: "/docs/model-pricing" }
+  title: "AI 모델별 토큰 단가 명세",
+  description: "3.5 Sonnet, 3.5 Haiku, 3 Opus 등 공식 모델 호출 시 발생하는 토큰 차감 가격표.",
+  alternates: { canonical: "/docs/model-pricing" },
+  openGraph: {
+    title: "AI 모델별 토큰 단가 명세",
+    description: "3.5 Sonnet, 3.5 Haiku, 3 Opus 등 공식 모델 호출 시 발생하는 토큰 차감 가격표.",
+    images: ["/og-logo.jpg"]
+  }
 };
 
 const headings = [

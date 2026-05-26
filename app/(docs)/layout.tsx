@@ -6,15 +6,15 @@ import { DocsSidebar } from "@/components/docs/DocsSidebar";
 
 export const metadata: Metadata = {
   title: {
-    default: "클코클라우드 문서",
+    default: "클코클라우드 | 개발자 공식 문서",
     template: "%s | 클코클라우드 문서"
   },
-  description: "클로드 코드를 공식보다 합리적으로, 안정적으로 쓰기 위한 클코클라우드 개발자 문서입니다.",
+  description: "클로드코드를 더 저렴하고 안정적으로 쓰기 위해 필요한 모든 연동 및 설치 매뉴얼 제공.",
   alternates: {
     canonical: "/docs"
   },
   openGraph: {
-    title: "클코클라우드 문서",
+    title: "클코클라우드 | 개발자 공식 문서",
     description: "클코클라우드 설치, API 키, 환경 변수, 외부 에이전트 연동 가이드",
     images: ["/og-logo.jpg"]
   },

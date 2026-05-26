@@ -3,9 +3,14 @@ import { Callout } from "@/components/docs/Callout";
 import { DocsArticle } from "@/components/docs/DocsArticle";
 
 export const metadata: Metadata = {
-  title: "문제 해결",
-  description: "클코클라우드 연동 중 자주 발생하는 오류와 해결 방법입니다.",
-  alternates: { canonical: "/docs/troubleshooting" }
+  title: "시스템 트러블슈팅",
+  description: "네트워크 연결 불안정, 키 로딩 오류 등 실무 개발자 환경의 장애 해결 방법 총망라.",
+  alternates: { canonical: "/docs/troubleshooting" },
+  openGraph: {
+    title: "시스템 트러블슈팅",
+    description: "네트워크 연결 불안정, 키 로딩 오류 등 실무 개발자 환경의 장애 해결 방법 총망라.",
+    images: ["/og-logo.jpg"]
+  }
 };
 
 const headings = [

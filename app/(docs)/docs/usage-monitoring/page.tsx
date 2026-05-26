@@ -3,9 +3,14 @@ import { BarChart3 } from "lucide-react";
 import { DocsArticle } from "@/components/docs/DocsArticle";
 
 export const metadata: Metadata = {
-  title: "사용량 모니터링",
-  description: "클코클라우드 대시보드에서 키 상태와 사용량을 확인합니다.",
-  alternates: { canonical: "/docs/usage-monitoring" }
+  title: "사용량 통계 및 대시보드 활용",
+  description: "상세한 실시간 소모 통계 그래프를 이용해 일별/시간별 사용 습관과 지출을 조율하세요.",
+  alternates: { canonical: "/docs/usage-monitoring" },
+  openGraph: {
+    title: "사용량 통계 및 대시보드 활용",
+    description: "상세한 실시간 소모 통계 그래프를 이용해 일별/시간별 사용 습관과 지출을 조율하세요.",
+    images: ["/og-logo.jpg"]
+  }
 };
 
 const headings = [

@@ -5,8 +5,14 @@ import { SiteHeader } from "@/components/navigation/SiteHeader";
 import { getSessionFromCookies } from "@/lib/auth-session";
 
 export const metadata: Metadata = {
-  title: "클로드 API 키 사용량조회",
-  description: "클코클라우드 API 키 잔액 및 사용량을 실시간으로 확인합니다."
+  title: "클코클라우드 | 개발자 대시보드 콘솔",
+  description: "내 API 키 조회, 실시간 토큰 사용 그래프, 충전 잔액을 실시간으로 투명하게 관리하세요.",
+  alternates: { canonical: "/dashboard" },
+  openGraph: {
+    title: "클코클라우드 | 개발자 대시보드 콘솔",
+    description: "내 API 키 조회, 실시간 토큰 사용 그래프, 충전 잔액을 실시간으로 투명하게 관리하세요.",
+    images: ["/og-logo.jpg"]
+  }
 };
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {

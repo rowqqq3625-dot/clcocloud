@@ -2,9 +2,14 @@ import type { Metadata } from "next";
 import { DocsArticle } from "@/components/docs/DocsArticle";
 
 export const metadata: Metadata = {
-  title: "오류코드",
-  description: "클코클라우드 연동 중 마주치는 주요 HTTP 오류코드 설명입니다.",
-  alternates: { canonical: "/docs/error-codes" }
+  title: "API 에러 코드 해결법",
+  description: "연동 및 호출 중 마주치는 주요 에러 메시지(인증 실패, 한도 초과 등) 분석 및 조치 요령.",
+  alternates: { canonical: "/docs/error-codes" },
+  openGraph: {
+    title: "API 에러 코드 해결법",
+    description: "연동 및 호출 중 마주치는 주요 에러 메시지(인증 실패, 한도 초과 등) 분석 및 조치 요령.",
+    images: ["/og-logo.jpg"]
+  }
 };
 
 const headings = [{ id: "codes", title: "주요 오류코드", level: 2 as const }];

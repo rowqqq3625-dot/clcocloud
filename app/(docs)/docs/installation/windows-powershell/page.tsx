@@ -4,8 +4,14 @@ import { DocsArticle } from "@/components/docs/DocsArticle";
 import { PS_CODE } from "@/lib/docs/snippets";
 
 export const metadata: Metadata = {
-  title: "Windows PowerShell 설치",
-  alternates: { canonical: "/docs/installation/windows-powershell" }
+  title: "Windows PowerShell 설치 방법",
+  description: "파워쉘 환경에서 스크립트 실행 권한 오류를 예방하고 설치하는 실무 매뉴얼.",
+  alternates: { canonical: "/docs/installation/windows-powershell" },
+  openGraph: {
+    title: "Windows PowerShell 설치 방법",
+    description: "파워쉘 환경에서 스크립트 실행 권한 오류를 예방하고 설치하는 실무 매뉴얼.",
+    images: ["/og-logo.jpg"]
+  }
 };
 const headings = [{ id: "powershell", title: "Windows PowerShell", level: 2 as const }];
 

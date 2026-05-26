@@ -4,9 +4,14 @@ import { DocsArticle } from "@/components/docs/DocsArticle";
 import { HERMES_AGENT_CONFIG } from "@/lib/docs/snippets";
 
 export const metadata: Metadata = {
-  title: "헤르메스 에이전트",
-  description: "헤르메스 에이전트에 클코클라우드 Anthropic provider를 설정합니다.",
-  alternates: { canonical: "/docs/clients/hermes" }
+  title: "Hermes AI 에이전트 연동",
+  description: "AI 자율 코딩 에이전트 Hermes에 클코 API 키를 주입하여 자율 개발을 진행하는 매뉴얼.",
+  alternates: { canonical: "/docs/clients/hermes" },
+  openGraph: {
+    title: "Hermes AI 에이전트 연동",
+    description: "AI 자율 코딩 에이전트 Hermes에 클코 API 키를 주입하여 자율 개발을 진행하는 매뉴얼.",
+    images: ["/og-logo.jpg"]
+  }
 };
 
 const headings = [{ id: "settings", title: "헤르메스 에이전트 설정", level: 2 as const }];

@@ -6,9 +6,14 @@ import { OSTabs } from "@/components/docs/OSTabs";
 import { CLAUDE_CODE_INSTALL, OS_TABS } from "@/lib/docs/snippets";
 
 export const metadata: Metadata = {
-  title: "클로드코드CLI",
-  description: "클로드코드CLI 설치와 OS별 환경 변수 설정입니다.",
-  alternates: { canonical: "/docs/installation" }
+  title: "OS별 CLI 설치 안내",
+  description: "맥, 윈도우, 리눅스 각 OS 터미널에 클로드코드를 깔끔하게 설치하는 방법 정리.",
+  alternates: { canonical: "/docs/installation" },
+  openGraph: {
+    title: "OS별 CLI 설치 안내",
+    description: "맥, 윈도우, 리눅스 각 OS 터미널에 클로드코드를 깔끔하게 설치하는 방법 정리.",
+    images: ["/og-logo.jpg"]
+  }
 };
 
 const headings = [

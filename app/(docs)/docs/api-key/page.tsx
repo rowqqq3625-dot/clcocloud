@@ -4,9 +4,14 @@ import { Callout } from "@/components/docs/Callout";
 import { DocsArticle } from "@/components/docs/DocsArticle";
 
 export const metadata: Metadata = {
-  title: "API 키 발급",
-  description: "클코클라우드 API 키 형식, 발급 절차, 관리 기준입니다.",
-  alternates: { canonical: "/docs/api-key" }
+  title: "API 키 관리 및 보관",
+  description: "발급받은 API 키의 안전한 보관 수칙과 실시간 잔액 연계 로직을 설명합니다.",
+  alternates: { canonical: "/docs/api-key" },
+  openGraph: {
+    title: "API 키 관리 및 보관",
+    description: "발급받은 API 키의 안전한 보관 수칙과 실시간 잔액 연계 로직을 설명합니다.",
+    images: ["/og-logo.jpg"]
+  }
 };
 
 const headings = [

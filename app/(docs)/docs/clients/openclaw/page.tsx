@@ -4,9 +4,14 @@ import { DocsArticle } from "@/components/docs/DocsArticle";
 import { HERMES_AGENT_CONFIG } from "@/lib/docs/snippets";
 
 export const metadata: Metadata = {
-  title: "오픈클로",
-  description: "오픈클로에서 클코클라우드 endpoint와 token을 설정합니다.",
-  alternates: { canonical: "/docs/clients/openclaw" }
+  title: "OpenClaw 클라이언트 연동",
+  description: "오픈소스 코딩 도구 OpenClaw와 클코 API를 오차 없이 매칭하는 상세 가이드.",
+  alternates: { canonical: "/docs/clients/openclaw" },
+  openGraph: {
+    title: "OpenClaw 클라이언트 연동",
+    description: "오픈소스 코딩 도구 OpenClaw와 클코 API를 오차 없이 매칭하는 상세 가이드.",
+    images: ["/og-logo.jpg"]
+  }
 };
 
 const headings = [{ id: "settings", title: "오픈클로 설정", level: 2 as const }];

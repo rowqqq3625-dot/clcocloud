@@ -4,9 +4,14 @@ import { DocsArticle } from "@/components/docs/DocsArticle";
 import { CURSOR_CONFIG } from "@/lib/docs/snippets";
 
 export const metadata: Metadata = {
-  title: "커서",
-  description: "커서에서 클코클라우드 Anthropic 호환 설정을 적용합니다.",
-  alternates: { canonical: "/docs/clients/cursor" }
+  title: "Cursor 에디터 연동 방법",
+  description: "AI 기반 차세대 에디터인 Cursor에 클코 API 키를 간편하게 세팅하고 활용하는 방법.",
+  alternates: { canonical: "/docs/clients/cursor" },
+  openGraph: {
+    title: "Cursor 에디터 연동 방법",
+    description: "AI 기반 차세대 에디터인 Cursor에 클코 API 키를 간편하게 세팅하고 활용하는 방법.",
+    images: ["/og-logo.jpg"]
+  }
 };
 
 const headings = [{ id: "settings", title: "커서 설정", level: 2 as const }];

@@ -6,9 +6,14 @@ import { PurchaseAwareApiKeyButton } from "@/components/docs/PurchaseAwareApiKey
 import { OS_TABS } from "@/lib/docs/snippets";
 
 export const metadata: Metadata = {
-  title: "빠른시작",
-  description: "결제, API 키 발급, 환경변수 설정, 클로드 코드 실행까지.",
-  alternates: { canonical: "/docs/quickstart" }
+  title: "5분 퀵스타트",
+  description: "초보자도 쉽게 따라 할 수 있는 최단 시간 CLI 구동 및 연동 테스트 가이드.",
+  alternates: { canonical: "/docs/quickstart" },
+  openGraph: {
+    title: "5분 퀵스타트",
+    description: "초보자도 쉽게 따라 할 수 있는 최단 시간 CLI 구동 및 연동 테스트 가이드.",
+    images: ["/og-logo.jpg"]
+  }
 };
 
 const headings = [

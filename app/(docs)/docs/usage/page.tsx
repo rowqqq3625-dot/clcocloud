@@ -3,9 +3,14 @@ import { CodeBlock } from "@/components/docs/CodeBlock";
 import { DocsArticle } from "@/components/docs/DocsArticle";
 
 export const metadata: Metadata = {
-  title: "사용법",
-  description: "클로드코드 CLI에서 자주 쓰는 명령어입니다.",
-  alternates: { canonical: "/docs/usage" }
+  title: "CLI 기본 명령어와 사용법",
+  description: "터미널에서 클로드코드 CLI를 다루는 코어 명령어 및 비용 효율적인 토큰 절약법.",
+  alternates: { canonical: "/docs/usage" },
+  openGraph: {
+    title: "CLI 기본 명령어와 사용법",
+    description: "터미널에서 클로드코드 CLI를 다루는 코어 명령어 및 비용 효율적인 토큰 절약법.",
+    images: ["/og-logo.jpg"]
+  }
 };
 
 const headings = [

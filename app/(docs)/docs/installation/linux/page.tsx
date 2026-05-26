@@ -3,7 +3,16 @@ import { CodeBlock } from "@/components/docs/CodeBlock";
 import { DocsArticle } from "@/components/docs/DocsArticle";
 import { LINUX_CODE } from "@/lib/docs/snippets";
 
-export const metadata: Metadata = { title: "Linux 설치", alternates: { canonical: "/docs/installation/linux" } };
+export const metadata: Metadata = {
+  title: "Linux CLI 설치 방법",
+  description: "리눅스 환경에서 모듈 누락이나 터미널 권한 오류 없이 안정적으로 셋업하는 커맨드.",
+  alternates: { canonical: "/docs/installation/linux" },
+  openGraph: {
+    title: "Linux CLI 설치 방법",
+    description: "리눅스 환경에서 모듈 누락이나 터미널 권한 오류 없이 안정적으로 셋업하는 커맨드.",
+    images: ["/og-logo.jpg"]
+  }
+};
 const headings = [{ id: "linux", title: "Linux", level: 2 as const }];
 
 export default function LinuxPage() {

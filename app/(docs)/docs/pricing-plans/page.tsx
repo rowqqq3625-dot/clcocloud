@@ -3,9 +3,14 @@ import Link from "next/link";
 import { DocsArticle } from "@/components/docs/DocsArticle";
 
 export const metadata: Metadata = {
-  title: "요금제",
-  description: "기술적 관점의 토큰, 모델, 잔액 계산 기준입니다.",
-  alternates: { canonical: "/docs/pricing-plans" }
+  title: "충전형 요금제 세부 정책",
+  description: "요금제별 충전 혜택 및 장기 미접속 시의 잔액 유지 조건 등 요금 정책 상세 확인.",
+  alternates: { canonical: "/docs/pricing-plans" },
+  openGraph: {
+    title: "충전형 요금제 세부 정책",
+    description: "요금제별 충전 혜택 및 장기 미접속 시의 잔액 유지 조건 등 요금 정책 상세 확인.",
+    images: ["/og-logo.jpg"]
+  }
 };
 
 const headings = [

@@ -2,9 +2,14 @@ import type { Metadata } from "next";
 import { DocsArticle } from "@/components/docs/DocsArticle";
 
 export const metadata: Metadata = {
-  title: "환경 변수 레퍼런스",
-  description: "클코클라우드 연동에 필요한 환경 변수와 예시값입니다.",
-  alternates: { canonical: "/docs/environment-variables" }
+  title: "환경 변수 설정",
+  description: "매번 인증할 필요 없도록 개발자 로컬 PC 시스템에 API 키 환경 변수를 주입하는 법.",
+  alternates: { canonical: "/docs/environment-variables" },
+  openGraph: {
+    title: "환경 변수 설정",
+    description: "매번 인증할 필요 없도록 개발자 로컬 PC 시스템에 API 키 환경 변수를 주입하는 법.",
+    images: ["/og-logo.jpg"]
+  }
 };
 
 const headings = [{ id: "table", title: "환경 변수", level: 2 as const }];

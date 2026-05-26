@@ -2,9 +2,14 @@ import type { Metadata } from "next";
 import { DocsArticle } from "@/components/docs/DocsArticle";
 
 export const metadata: Metadata = {
-  title: "문의하기",
-  description: "클코클라우드 문의 전 준비할 정보와 지원 메일입니다.",
-  alternates: { canonical: "/docs/support" }
+  title: "고객 기술 지원 채널",
+  description: "API 장애, 즉시 충전 미반영 등 긴급 상황 발생 시 1:1 전담 서포트팀과 연동하는 법.",
+  alternates: { canonical: "/docs/support" },
+  openGraph: {
+    title: "고객 기술 지원 채널",
+    description: "API 장애, 즉시 충전 미반영 등 긴급 상황 발생 시 1:1 전담 서포트팀과 연동하는 법.",
+    images: ["/og-logo.jpg"]
+  }
 };
 
 const headings = [
