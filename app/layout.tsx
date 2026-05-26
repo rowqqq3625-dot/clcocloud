@@ -26,7 +26,7 @@ const mono = localFont({
 });
 
 const siteDescription =
-  "가격고민 ZERO 나만의 API KEY, 멈추지않는 혁신을 지금 경험하세요.";
+  "클로드코드, 아직도 정가 내고 쓰시나요? 가격고민 ZERO 나만의 API KEY, 멈추지않는 혁신을 지금 경험하세요.";
 
 const chunkReloadGuard = `
 (() => {
@@ -52,7 +52,7 @@ const chunkReloadGuard = `
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://clcocloud.kr"),
-  title: "클로드코드, 아직도 정가 내고 쓰시나요?",
+  title: "클코클라우드 - 생각은 가볍게, 빌드는 완벽하게",
   description: siteDescription,
   keywords: ["클코클라우드", "클로드코드", "Claude Code", "API 잔액 충전", "클로드코드 CLI", "클로드코드 API"],
   icons: {
@@ -63,7 +63,7 @@ export const metadata: Metadata = {
   openGraph: {
     type: "website",
     siteName: "클코클라우드",
-    title: "클로드코드, 아직도 정가 내고 쓰시나요?",
+    title: "클코클라우드 - 생각은 가볍게, 빌드는 완벽하게",
     description: siteDescription,
     images: [
       {
@@ -76,7 +76,7 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary",
-    title: "클로드코드, 아직도 정가 내고 쓰시나요?",
+    title: "클코클라우드 - 생각은 가볍게, 빌드는 완벽하게",
     description: siteDescription,
     images: ["/og-logo.jpg"]
   }
@@ -97,8 +97,8 @@ export default function RootLayout({
       </head>
       <body>
         <div aria-hidden="true" className="sr-only" itemScope itemType="https://schema.org/WebPage">
-          <h1 itemProp="name">클로드코드, 아직도 정가 내고 쓰시나요?</h1>
-          <p itemProp="description">가격고민 ZERO 나만의 API KEY, 멈추지않는 혁신을 지금 경험하세요.</p>
+          <h1 itemProp="name">클코클라우드 - 생각은 가볍게, 빌드는 완벽하게</h1>
+          <p itemProp="description">클로드코드, 아직도 정가 내고 쓰시나요? 가격고민 ZERO 나만의 API KEY, 멈추지않는 혁신을 지금 경험하세요.</p>
         </div>
         <LenisProvider />
         {children}
