@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 import { getSessionFromRequest } from "@/lib/auth-session";
 import { getDashboardKeyRecords } from "@/lib/dashboard-key-records";
 import { getSupabaseAdminClient } from "@/lib/supabase-admin";
+import { isAdminCandidateEmail } from "@/lib/admin/config";
+import { issueCsrfTokenOnResponse } from "@/lib/admin/csrf";
 
 export async function GET(request: NextRequest) {
   const session = getSessionFromRequest(request);
@@ -30,10 +32,13 @@ export async function GET(request: NextRequest) {
     }
   }
 
-  return NextResponse.json({
+  const isAdminCandidate = Boolean(session?.email && isAdminCandidateEmail(session.email));
+
+  const response = NextResponse.json({
     authenticated: Boolean(session),
     hasHistory,
     lastSeenAt,
+    isAdminCandidate,
     user: session
       ? {
           provider: session.provider,
@@ -43,4 +48,17 @@ export async function GET(request: NextRequest) {
         }
       : null
   });
+
+  // Issue a CSRF token cookie alongside session lookup. This lets the
+  // ProfileMenu's "관리자 페이지" click submit a matching X-Admin-CSRF header
+  // even though the admin gate hasn't been visited yet.
+  if (isAdminCandidate) {
+    try {
+      issueCsrfTokenOnResponse(response);
+    } catch {
+      // Missing ADMIN_CSRF_SECRET — admin features inert; ignore for session probe.
+    }
+  }
+
+  return response;
 }

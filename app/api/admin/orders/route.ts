@@ -1,19 +1,13 @@
-import { NextResponse } from "next/server";
-import { cookies } from "next/headers";
-import { getSessionFromCookies, isAdminSession } from "@/lib/auth-session";
+import { NextRequest, NextResponse } from "next/server";
+import { guardAdminApi } from "@/lib/admin/guard";
 import { getSupabaseAdminClient } from "@/lib/supabase-admin";
 
+export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-function verifyAdmin() {
-  const session = getSessionFromCookies(cookies());
-  return isAdminSession(session);
-}
-
-export async function GET(req: Request) {
-  if (!verifyAdmin()) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
+export async function GET(req: NextRequest) {
+  const guard = await guardAdminApi(req);
+  if (!guard.ok) return guard.response;
 
   try {
     const { searchParams } = new URL(req.url);
@@ -23,10 +17,9 @@ export async function GET(req: Request) {
 
     const supabase = getSupabaseAdminClient();
     if (!supabase) {
-      return NextResponse.json({ error: "Supabase client config error" }, { status: 500 });
+      return NextResponse.json({ error: "잠시 후 다시 시도해주세요." }, { status: 503 });
     }
 
-    // 1. 특정 주문 상세 조회인 경우
     if (orderId) {
       const { data: order, error: orderError } = await supabase
         .from("orders")
@@ -35,17 +28,15 @@ export async function GET(req: Request) {
         .single();
 
       if (orderError) {
-        return NextResponse.json({ error: orderError.message }, { status: 404 });
+        return NextResponse.json({ error: "not_found" }, { status: 404 });
       }
 
-      // 발급된 키 조회
-      const { data: issuedKeys, error: keyError } = await supabase
+      const { data: issuedKeys } = await supabase
         .from("issued_api_keys")
         .select("id, fp16, last4, initial_balance, issued_at")
         .eq("order_id", orderId);
 
-      // 알림톡 발송 로그 조회
-      const { data: alimtalkLogs, error: logError } = await supabase
+      const { data: alimtalkLogs } = await supabase
         .from("alimtalk_logs")
         .select("*")
         .eq("order_id", orderId)
@@ -59,7 +50,6 @@ export async function GET(req: Request) {
       });
     }
 
-    // 2. 전체 주문 목록 조회인 경우
     let query = supabase
       .from("orders")
       .select("*")
@@ -70,18 +60,17 @@ export async function GET(req: Request) {
     }
 
     if (!all) {
-      // 일반 조회의 경우 페이지네이션 또는 150개 제한
       query = query.limit(150);
     }
 
     const { data: orders, error: ordersError } = await query;
 
     if (ordersError) {
-      return NextResponse.json({ error: ordersError.message }, { status: 500 });
+      return NextResponse.json({ error: "잠시 후 다시 시도해주세요." }, { status: 500 });
     }
 
     return NextResponse.json({ success: true, orders });
-  } catch (error: any) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
+  } catch {
+    return NextResponse.json({ error: "잠시 후 다시 시도해주세요." }, { status: 500 });
   }
 }

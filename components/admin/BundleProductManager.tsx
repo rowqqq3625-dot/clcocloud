@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
+import { adminCsrfHeaders } from "@/lib/admin-csrf-client";
 
 interface BundleProduct {
   id: string;
@@ -121,9 +122,8 @@ export default function BundleProductManager() {
       const method = editId ? "PUT" : "POST";
       const res = await fetch(url, {
         method,
-        headers: {
-          "Content-Type": "application/json",
-        },
+        credentials: "same-origin",
+        headers: adminCsrfHeaders({ "Content-Type": "application/json" }),
         body: JSON.stringify(payload),
       });
 
@@ -144,9 +144,8 @@ export default function BundleProductManager() {
     try {
       const res = await fetch("/api/admin/bundle-products", {
         method: "DELETE",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        credentials: "same-origin",
+        headers: adminCsrfHeaders({ "Content-Type": "application/json" }),
         body: JSON.stringify({ id }),
       });
       const data = await res.json();

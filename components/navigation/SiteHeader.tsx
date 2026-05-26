@@ -2,9 +2,11 @@
 
 import Image from "next/image";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { BrandLogo } from "@/components/ui/BrandLogo";
 import { DashboardGateLink } from "@/components/navigation/DashboardGateLink";
+import { GeoBlockedDialog } from "@/components/site/GeoBlockedDialog";
 
 type SiteHeaderProps = {
   variant?: "floating" | "solid";
@@ -20,7 +22,18 @@ type SessionUser = {
 type SessionResponse = {
   authenticated: boolean;
   user: SessionUser | null;
+  isAdminCandidate?: boolean;
 };
+
+function readCookie(name: string): string | undefined {
+  if (typeof document === "undefined") return undefined;
+  for (const part of document.cookie.split(/;\s*/)) {
+    const eq = part.indexOf("=");
+    if (eq < 0) continue;
+    if (part.slice(0, eq) === name) return decodeURIComponent(part.slice(eq + 1));
+  }
+  return undefined;
+}
 
 const providerLabels: Record<string, string> = {
   google: "Google",
@@ -30,8 +43,12 @@ const providerLabels: Record<string, string> = {
 
 export function SiteHeader({ variant = "floating" }: SiteHeaderProps) {
   const [user, setUser] = useState<SessionUser | null>(null);
+  const [isAdminCandidate, setIsAdminCandidate] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
+  const [geoBlockedOpen, setGeoBlockedOpen] = useState(false);
+  const [adminEntryBusy, setAdminEntryBusy] = useState(false);
   const profileRef = useRef<HTMLDivElement>(null);
+  const router = useRouter();
 
   useEffect(() => {
     let active = true;
@@ -39,16 +56,49 @@ export function SiteHeader({ variant = "floating" }: SiteHeaderProps) {
     fetch("/api/session", { cache: "no-store" })
       .then((response) => response.json() as Promise<SessionResponse>)
       .then((data) => {
-        if (active) setUser(data.authenticated ? data.user : null);
+        if (!active) return;
+        setUser(data.authenticated ? data.user : null);
+        setIsAdminCandidate(Boolean(data.isAdminCandidate));
       })
       .catch(() => {
-        if (active) setUser(null);
+        if (active) {
+          setUser(null);
+          setIsAdminCandidate(false);
+        }
       });
 
     return () => {
       active = false;
     };
   }, []);
+
+  const handleAdminEntry = async () => {
+    if (adminEntryBusy) return;
+    setAdminEntryBusy(true);
+    setProfileOpen(false);
+    try {
+      const csrf = readCookie("clco-admin-csrf");
+      const response = await fetch("/api/admin/entry/start", {
+        method: "POST",
+        credentials: "same-origin",
+        headers: csrf ? { "X-Admin-CSRF": csrf } : undefined,
+      });
+      if (response.ok) {
+        const data = (await response.json().catch(() => null)) as { next?: string } | null;
+        router.push(data?.next || "/admin-gate");
+        return;
+      }
+      if (response.status === 403) {
+        setGeoBlockedOpen(true);
+        return;
+      }
+      // Other failures: stay silent — never reveal admin existence.
+    } catch {
+      // Network error: silent.
+    } finally {
+      setAdminEntryBusy(false);
+    }
+  };
 
   useEffect(() => {
     if (!profileOpen) return undefined;
@@ -153,6 +203,16 @@ export function SiteHeader({ variant = "floating" }: SiteHeaderProps) {
                   <DashboardGateLink href="/mypage" className="rounded-2xl px-3 py-2 text-secondary transition hover:bg-coral/10 hover:text-coral">
                     MY
                   </DashboardGateLink>
+                  {isAdminCandidate ? (
+                    <button
+                      type="button"
+                      onClick={handleAdminEntry}
+                      disabled={adminEntryBusy}
+                      className="rounded-2xl px-3 py-2 text-left text-secondary transition hover:bg-coral/10 hover:text-coral disabled:opacity-60"
+                    >
+                      관리자 페이지
+                    </button>
+                  ) : null}
                   <Link href="/api/auth/logout" className="rounded-2xl px-3 py-2 text-xs font-bold text-secondary/75 transition hover:bg-primary hover:text-cream">
                     로그아웃
                   </Link>
@@ -162,6 +222,7 @@ export function SiteHeader({ variant = "floating" }: SiteHeaderProps) {
           </>
         ) : null}
       </div>
+      <GeoBlockedDialog open={geoBlockedOpen} onClose={() => setGeoBlockedOpen(false)} />
     </nav>
   );
 }

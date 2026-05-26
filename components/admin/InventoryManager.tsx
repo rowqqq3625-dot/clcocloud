@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
+import { adminCsrfHeaders } from "@/lib/admin-csrf-client";
 
 interface InventoryManagerProps {
   onSuccess: () => void;
@@ -43,9 +44,8 @@ export default function InventoryManager({ onSuccess }: InventoryManagerProps) {
     try {
       const response = await fetch("/api/admin/inventory", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        credentials: "same-origin",
+        headers: adminCsrfHeaders({ "Content-Type": "application/json" }),
         body: JSON.stringify({
           keys,
           productCode,

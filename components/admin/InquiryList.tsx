@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
+import { adminCsrfHeaders } from "@/lib/admin-csrf-client";
 
 interface Inquiry {
   id: string;
@@ -46,9 +47,8 @@ export default function InquiryList() {
     try {
       const response = await fetch("/api/admin/inquiries", {
         method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        credentials: "same-origin",
+        headers: adminCsrfHeaders({ "Content-Type": "application/json" }),
         body: JSON.stringify({ id, status: newStatus }),
       });
       const data = await response.json();

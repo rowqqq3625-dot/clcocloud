@@ -3,6 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import type { BalanceRequestRecord, BalanceRequestStatus } from "@/lib/supabase-admin";
+import { adminCsrfHeaders } from "@/lib/admin-csrf-client";
 
 export function AdminBalanceRequestActions({ request }: { request: Pick<BalanceRequestRecord, "id" | "admin_note"> }) {
   const router = useRouter();
@@ -13,7 +14,8 @@ export function AdminBalanceRequestActions({ request }: { request: Pick<BalanceR
     setBusy(status);
     await fetch(`/api/admin/balance-requests/${request.id}`, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      credentials: "same-origin",
+      headers: adminCsrfHeaders({ "Content-Type": "application/json" }),
       body: JSON.stringify({ status, adminNote })
     });
     setBusy(null);

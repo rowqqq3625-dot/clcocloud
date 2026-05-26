@@ -3,6 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import type { BonusStatus, ReviewRecord, ReviewStatus } from "@/lib/supabase-admin";
+import { adminCsrfHeaders } from "@/lib/admin-csrf-client";
 
 type ReviewLite = Pick<ReviewRecord, "id" | "status" | "bonus_status">;
 
@@ -14,7 +15,8 @@ export function AdminReviewActions({ review }: { review: ReviewLite }) {
     setBusy(label);
     await fetch(`/api/admin/reviews/${review.id}`, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      credentials: "same-origin",
+      headers: adminCsrfHeaders({ "Content-Type": "application/json" }),
       body: JSON.stringify(payload)
     });
     setBusy(null);
