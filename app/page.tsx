@@ -16,7 +16,7 @@ import { Sequence13Footer } from "@/components/sequences/Sequence13Footer";
 
 export default function Page() {
   return (
-    <main>
+    <main data-nosnippet>
       <HomeStructuredData />
       <Sequence01Hero />
       <Sequence02TrustStrip />

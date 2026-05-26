@@ -221,7 +221,7 @@ export default function AssistantPage() {
       <title>클코클라우드 어시스턴트 | Claude API 연동 문제 해결 무인 채널</title>
       <meta name="description" content="클로드 API 키 연동 실패, 401 오류, 프록시, CORS, 결제 의문 등 클로드 API 사용에 관한 모든 CS 문의를 AI 어시스턴트가 3단계 무장벽 인터페이스로 100% 무인 해결해 드립니다." />
 
-      <main className="assistant-page noise relative overflow-hidden selection:bg-coral selection:text-cream h-[100dvh] flex flex-col">
+      <main data-nosnippet className="assistant-page noise relative overflow-hidden selection:bg-coral selection:text-cream h-[100dvh] flex flex-col">
         {/* Poetic background lighting */}
         <div className="pointer-events-none absolute -right-40 top-20 h-[560px] w-[560px] rounded-full bg-coral/8 blur-[180px]" />
         <div className="pointer-events-none absolute -bottom-52 left-[-16rem] h-[620px] w-[620px] rounded-full bg-peach/60 blur-[200px]" />

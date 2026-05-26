@@ -15,7 +15,7 @@ export default function CheckoutPage({ searchParams }: CheckoutPageProps) {
   if (!session) redirect(`/start?returnTo=${encodeURIComponent(`/checkout?plan=${plan.id}`)}`);
 
   return (
-    <main className="auth-page-shell noise relative min-h-screen overflow-hidden bg-cream px-5 py-8 text-primary sm:py-12">
+    <main data-nosnippet className="auth-page-shell noise relative min-h-screen overflow-hidden bg-cream px-5 py-8 text-primary sm:py-12">
       <div className="pointer-events-none absolute -right-36 top-20 h-[560px] w-[560px] rounded-full bg-coral/20 blur-[180px]" />
       <div className="pointer-events-none absolute -bottom-52 left-[-16rem] h-[620px] w-[620px] rounded-full bg-peach/70 blur-[220px]" />
       <SiteHeader variant="floating" />

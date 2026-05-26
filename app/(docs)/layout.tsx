@@ -26,7 +26,7 @@ export const metadata: Metadata = {
 
 export default function DocsLayout({ children }: { children: ReactNode }) {
   return (
-    <div data-docs>
+    <div data-docs data-nosnippet>
       <DocsHeader />
       <div className="docs-shell">
         <aside className="docs-sidebar-slot">

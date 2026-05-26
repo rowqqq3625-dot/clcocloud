@@ -142,7 +142,7 @@ export default function DashboardPage() {
 
   return (
     <AipProvider basePath="/api/dashboard/aip">
-      <main className="dashboard-page-shell noise relative overflow-hidden py-16 sm:py-24">
+      <main data-nosnippet className="dashboard-page-shell noise relative overflow-hidden py-16 sm:py-24">
         {/* Validation Overlay */}
         {isValidating && (
           <div className="fixed inset-0 z-50 flex items-center justify-center bg-cream/60 backdrop-blur-[2px]">
