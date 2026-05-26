@@ -4,7 +4,7 @@ import Image from "next/image";
 
 export function Sequence13Footer() {
   return (
-    <footer className="dark-panel noise px-5 py-16">
+    <footer className="dark-panel noise px-5 py-16" data-nosnippet>
       {/* 1px line separator */}
       <div className="container-cinematic mb-12">
         <div className="border-b border-white/10 pb-4" />
