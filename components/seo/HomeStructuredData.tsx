@@ -7,7 +7,7 @@ const structuredData = [
     name: "클코클라우드",
     url: siteUrl,
     logo: `${siteUrl}/og-logo.jpg`,
-    description: "가격 부담으로 망설여졌던 바이브코딩, 이제 멈추지않는 혁신을 만나보세요."
+    description: "가격고민 ZERO 나만의 API KEY, 멈추지않는 혁신을 지금 경험하세요."
   },
   {
     "@context": "https://schema.org",
@@ -15,7 +15,7 @@ const structuredData = [
     name: "클코클라우드",
     alternateName: ["클로드코드 API 잔액 충전", "Claude Code API 충전"],
     url: siteUrl,
-    description: "가격 부담으로 망설여졌던 바이브코딩, 이제 멈추지않는 혁신을 만나보세요."
+    description: "가격고민 ZERO 나만의 API KEY, 멈추지않는 혁신을 지금 경험하세요."
   },
   {
     "@context": "https://schema.org",
