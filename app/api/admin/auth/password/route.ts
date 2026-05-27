@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
-import { requireAdminEnv } from "@/lib/admin/config";
+import { getSessionFromRequest } from "@/lib/auth-session";
+import { isAdminCandidateEmail, requireAdminEnv } from "@/lib/admin/config";
 import { verifyCsrf } from "@/lib/admin/csrf";
 import { getClientIp, isKoreaRequest } from "@/lib/admin/geo";
 import { verifyScrypt } from "@/lib/admin/hash";
@@ -18,17 +19,30 @@ import { logAdminSecurityEvent } from "@/lib/admin/audit";
 
 export const runtime = "nodejs";
 
-// TEMPORARY: dev-only diagnostic. Logs WHICH check failed and surfaces the
-// stage code in the response body so the gate form can show it during local
-// debugging. In production we keep the generic 401 to avoid leaking info.
 const IS_DEV = process.env.NODE_ENV !== "production";
-const DENY = (stage?: string) =>
-  NextResponse.json(
-    IS_DEV && stage
+
+/**
+ * Generic 401 with optional stage hint.
+ * - In dev: always include stage (helps local debugging).
+ * - In prod: only include stage if the requester already proved they're an
+ *   ADMIN_ALLOWED_EMAILS candidate via OAuth session. They have legit access
+ *   to the admin flow, so telling them *which* check failed leaks nothing
+ *   they can't otherwise discover.
+ */
+function deny(req: NextRequest, stage?: string): NextResponse {
+  let exposeStage = IS_DEV;
+  if (!exposeStage && stage) {
+    const session = getSessionFromRequest(req);
+    exposeStage = Boolean(session?.email && isAdminCandidateEmail(session.email));
+  }
+  return NextResponse.json(
+    exposeStage && stage
       ? { error: "접근할 수 없습니다.", debugStage: stage }
       : { error: "접근할 수 없습니다." },
     { status: 401 }
   );
+}
+
 function devLog(stage: string, extra?: Record<string, unknown>) {
   if (!IS_DEV) return;
   // eslint-disable-next-line no-console
@@ -43,11 +57,11 @@ const Schema = z.object({
 export async function POST(req: NextRequest) {
   if (!verifyCsrf(req)) {
     devLog("FAIL_CSRF");
-    return DENY("FAIL_CSRF");
+    return deny(req,"FAIL_CSRF");
   }
   if (!isKoreaRequest(req.headers)) {
     devLog("FAIL_GEO");
-    return DENY("FAIL_GEO");
+    return deny(req,"FAIL_GEO");
   }
 
   const ipKey = `${getClientIp(req.headers) || "unknown"}:pw`;
@@ -65,7 +79,7 @@ export async function POST(req: NextRequest) {
   if (!challenge) {
     devLog("FAIL_ENTRY_TOKEN");
     await recordAdminFailure(ipKey, "admin_password");
-    return DENY("FAIL_ENTRY_TOKEN");
+    return deny(req,"FAIL_ENTRY_TOKEN");
   }
 
   let parsed: z.infer<typeof Schema>;
@@ -75,7 +89,7 @@ export async function POST(req: NextRequest) {
   } catch {
     devLog("FAIL_BODY_PARSE");
     await recordAdminFailure(ipKey, "admin_password");
-    return DENY("FAIL_BODY_PARSE");
+    return deny(req,"FAIL_BODY_PARSE");
   }
 
   // Always evaluate BOTH hashes — flattens timing between "id wrong" / "pw wrong".
@@ -103,7 +117,7 @@ export async function POST(req: NextRequest) {
       email: challenge.admin_email,
       req,
     });
-    return DENY("FAIL_CREDENTIALS");
+    return deny(req,"FAIL_CREDENTIALS");
   }
 
   devLog("OK");
