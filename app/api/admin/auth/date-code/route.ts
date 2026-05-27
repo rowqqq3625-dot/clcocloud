@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
-import { ADMIN_PANEL_PATH } from "@/lib/admin/config";
+import { getSessionFromRequest } from "@/lib/auth-session";
+import { ADMIN_PANEL_PATH, isAdminCandidateEmail } from "@/lib/admin/config";
 import { logAdminAction, logAdminSecurityEvent } from "@/lib/admin/audit";
 import { verifyCsrf } from "@/lib/admin/csrf";
 import { verifyAdminDateCode } from "@/lib/admin/date-code";
@@ -20,15 +21,29 @@ import { issueAdminSession } from "@/lib/admin/session";
 
 export const runtime = "nodejs";
 
-const DENY = () => NextResponse.json({ error: "접근할 수 없습니다." }, { status: 401 });
+const IS_DEV = process.env.NODE_ENV !== "production";
+
+function deny(req: NextRequest, stage?: string): NextResponse {
+  let exposeStage = IS_DEV;
+  if (!exposeStage && stage) {
+    const session = getSessionFromRequest(req);
+    exposeStage = Boolean(session?.email && isAdminCandidateEmail(session.email));
+  }
+  return NextResponse.json(
+    exposeStage && stage
+      ? { error: "접근할 수 없습니다.", debugStage: stage }
+      : { error: "접근할 수 없습니다." },
+    { status: 401 }
+  );
+}
 
 const Schema = z.object({
   code: z.string().regex(/^\d{4}$/),
 });
 
 export async function POST(req: NextRequest) {
-  if (!verifyCsrf(req)) return DENY();
-  if (!isKoreaRequest(req.headers)) return DENY();
+  if (!verifyCsrf(req)) return deny(req,"FAIL_CSRF");
+  if (!isKoreaRequest(req.headers)) return deny(req,"FAIL_GEO");
 
   const ipKey = `${getClientIp(req.headers) || "unknown"}:date`;
   try {
@@ -43,7 +58,7 @@ export async function POST(req: NextRequest) {
   const challenge = await verifyAdminEntryToken(req);
   if (!challenge || !challenge.password_passed) {
     await recordAdminFailure(ipKey, "admin_date_code");
-    return DENY();
+    return deny(req,"FAIL_ENTRY_TOKEN");
   }
 
   let parsed: z.infer<typeof Schema>;
@@ -52,7 +67,7 @@ export async function POST(req: NextRequest) {
     parsed = Schema.parse(body);
   } catch {
     await recordAdminFailure(ipKey, "admin_date_code");
-    return DENY();
+    return deny(req,"FAIL_BODY_PARSE");
   }
 
   if (!verifyAdminDateCode(parsed.code)) {
@@ -62,7 +77,7 @@ export async function POST(req: NextRequest) {
       email: challenge.admin_email,
       req,
     });
-    return DENY();
+    return deny(req,"FAIL_DATE_CODE");
   }
 
   const response = NextResponse.json({ ok: true, next: ADMIN_PANEL_PATH });

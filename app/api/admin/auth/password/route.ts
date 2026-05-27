@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
-import { requireAdminEnv } from "@/lib/admin/config";
+import { getSessionFromRequest } from "@/lib/auth-session";
+import { isAdminCandidateEmail, requireAdminEnv } from "@/lib/admin/config";
 import { verifyCsrf } from "@/lib/admin/csrf";
 import { getClientIp, isKoreaRequest } from "@/lib/admin/geo";
 import { verifyScrypt } from "@/lib/admin/hash";
@@ -18,12 +19,30 @@ import { logAdminSecurityEvent } from "@/lib/admin/audit";
 
 export const runtime = "nodejs";
 
-const DENY = () => NextResponse.json({ error: "접근할 수 없습니다." }, { status: 401 });
-
-// TEMPORARY: dev-only diagnostic logging. Logs WHICH check failed so we can
-// distinguish "wrong password" from "expired entry token" without leaking
-// info to the client. Strip before any production deploy.
 const IS_DEV = process.env.NODE_ENV !== "production";
+
+/**
+ * Generic 401 with optional stage hint.
+ * - In dev: always include stage (helps local debugging).
+ * - In prod: only include stage if the requester already proved they're an
+ *   ADMIN_ALLOWED_EMAILS candidate via OAuth session. They have legit access
+ *   to the admin flow, so telling them *which* check failed leaks nothing
+ *   they can't otherwise discover.
+ */
+function deny(req: NextRequest, stage?: string): NextResponse {
+  let exposeStage = IS_DEV;
+  if (!exposeStage && stage) {
+    const session = getSessionFromRequest(req);
+    exposeStage = Boolean(session?.email && isAdminCandidateEmail(session.email));
+  }
+  return NextResponse.json(
+    exposeStage && stage
+      ? { error: "접근할 수 없습니다.", debugStage: stage }
+      : { error: "접근할 수 없습니다." },
+    { status: 401 }
+  );
+}
+
 function devLog(stage: string, extra?: Record<string, unknown>) {
   if (!IS_DEV) return;
   // eslint-disable-next-line no-console
@@ -38,11 +57,11 @@ const Schema = z.object({
 export async function POST(req: NextRequest) {
   if (!verifyCsrf(req)) {
     devLog("FAIL_CSRF");
-    return DENY();
+    return deny(req,"FAIL_CSRF");
   }
   if (!isKoreaRequest(req.headers)) {
     devLog("FAIL_GEO");
-    return DENY();
+    return deny(req,"FAIL_GEO");
   }
 
   const ipKey = `${getClientIp(req.headers) || "unknown"}:pw`;
@@ -60,7 +79,7 @@ export async function POST(req: NextRequest) {
   if (!challenge) {
     devLog("FAIL_ENTRY_TOKEN");
     await recordAdminFailure(ipKey, "admin_password");
-    return DENY();
+    return deny(req,"FAIL_ENTRY_TOKEN");
   }
 
   let parsed: z.infer<typeof Schema>;
@@ -70,12 +89,20 @@ export async function POST(req: NextRequest) {
   } catch {
     devLog("FAIL_BODY_PARSE");
     await recordAdminFailure(ipKey, "admin_password");
-    return DENY();
+    return deny(req,"FAIL_BODY_PARSE");
   }
 
   // Always evaluate BOTH hashes — flattens timing between "id wrong" / "pw wrong".
-  const idOk = verifyScrypt(parsed.loginId, requireAdminEnv("ADMIN_LOGIN_ID_HASH"));
-  const pwOk = verifyScrypt(parsed.password, requireAdminEnv("ADMIN_PASSWORD_HASH"));
+  let idOk = false;
+  let pwOk = false;
+  try {
+    idOk = verifyScrypt(parsed.loginId, requireAdminEnv("ADMIN_LOGIN_ID_HASH"));
+    pwOk = verifyScrypt(parsed.password, requireAdminEnv("ADMIN_PASSWORD_HASH"));
+  } catch (err) {
+    devLog("FAIL_ENV_MISSING", { error: (err as Error).message });
+    await recordAdminFailure(ipKey, "admin_password");
+    return deny(req, "FAIL_ENV_MISSING");
+  }
 
   if (!idOk || !pwOk) {
     const storedId = process.env.ADMIN_LOGIN_ID_HASH || "";
@@ -98,7 +125,7 @@ export async function POST(req: NextRequest) {
       email: challenge.admin_email,
       req,
     });
-    return DENY();
+    return deny(req,"FAIL_CREDENTIALS");
   }
 
   devLog("OK");
