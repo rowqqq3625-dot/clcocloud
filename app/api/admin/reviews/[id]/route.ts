@@ -1,51 +1,29 @@
 import { NextRequest, NextResponse } from "next/server";
-import { z } from "zod";
-import { logAdminAction } from "@/lib/admin/audit";
 import { guardAdminApi } from "@/lib/admin/guard";
-import { getSupabaseAdminClient } from "@/lib/supabase-admin";
+import { getAdminReviewDetail } from "@/lib/reviews/queries";
 
 export const runtime = "nodejs";
 
-const adminReviewSchema = z.object({
-  status: z.enum(["pending", "approved", "rejected"]).optional(),
-  bonusStatus: z.enum(["none", "pending", "paid"]).optional(),
-});
-
-export async function POST(request: NextRequest, { params }: { params: { id: string } }) {
+// ---------------------------------------------------------------------------
+// GET /api/admin/reviews/:id — single review with reviewer context
+// (last 20 orders + last 20 prior reviews) for the abuse-detection
+// surface in the admin review modal.
+//
+// The legacy POST handler here (which used to flip status/bonus_status
+// in place) has been removed in favour of the dedicated action routes:
+//   POST /api/admin/reviews/:id/approve
+//   POST /api/admin/reviews/:id/reject
+//   POST /api/admin/reviews/:id/hide
+//   POST /api/admin/reviews/:id/unhide
+//   POST /api/admin/reviews/:id/feature
+// ---------------------------------------------------------------------------
+export async function GET(request: NextRequest, { params }: { params: { id: string } }) {
   const guard = await guardAdminApi(request);
   if (!guard.ok) return guard.response;
 
-  const parsed = adminReviewSchema.safeParse(await request.json().catch(() => null));
-  if (!parsed.success) return NextResponse.json({ error: "invalid_review_update" }, { status: 400 });
-
-  const supabase = getSupabaseAdminClient();
-  if (!supabase) return NextResponse.json({ error: "잠시 후 다시 시도해주세요." }, { status: 503 });
-
-  const update: Record<string, string> = {};
-  if (parsed.data.status) {
-    update.status = parsed.data.status;
-    update.reviewed_at = new Date().toISOString();
+  const detail = await getAdminReviewDetail(params.id);
+  if (!detail.review) {
+    return NextResponse.json({ error: "not_found" }, { status: 404 });
   }
-  if (parsed.data.bonusStatus) update.bonus_status = parsed.data.bonusStatus;
-  if (Object.keys(update).length === 0) return NextResponse.json({ error: "empty_update" }, { status: 400 });
-
-  const { data, error } = await supabase
-    .from("reviews")
-    .update(update)
-    .eq("id", params.id)
-    .select("id,status,bonus_status,reviewed_at")
-    .single();
-
-  if (error) return NextResponse.json({ error: "review_update_failed" }, { status: 500 });
-
-  await logAdminAction({
-    email: guard.session.admin_email,
-    action: "REVIEW_UPDATE",
-    targetType: "review",
-    targetId: params.id,
-    payload: parsed.data,
-    req: request,
-  });
-
-  return NextResponse.json({ review: data });
+  return NextResponse.json(detail);
 }
