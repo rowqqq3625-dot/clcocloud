@@ -6,6 +6,7 @@ import BundleSection from "@/components/bundle/BundleSection";
 import { Sequence04Compare } from "@/components/sequences/Sequence04Compare";
 import { Sequence05Simulator } from "@/components/sequences/Sequence05Simulator";
 import { Sequence06Pricing } from "@/components/sequences/Sequence06Pricing";
+import { ComparisonSection } from "@/components/landing/ComparisonSection";
 import { Sequence07PhotoBreak } from "@/components/sequences/Sequence07PhotoBreak";
 import { Sequence08Flow } from "@/components/sequences/Sequence08Flow";
 import { Sequence09IndependentKey } from "@/components/sequences/Sequence09IndependentKey";
@@ -26,6 +27,7 @@ export default function Page() {
       <Sequence04Compare />
       <Sequence05Simulator />
       <Sequence06Pricing />
+      <ComparisonSection />
       <Sequence07PhotoBreak />
       <Sequence08Flow />
       <Sequence09IndependentKey />
