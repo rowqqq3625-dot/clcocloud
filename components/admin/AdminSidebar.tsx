@@ -9,6 +9,8 @@ const NAV_ITEMS = [
   { href: "/admin-panel/orders", label: "주문/결제" },
   { href: "/admin-panel/api-keys", label: "API 키" },
   { href: "/admin-panel/bundles", label: "번들 상품" },
+  { href: "/admin-panel/reviews", label: "리뷰 운영" },
+  { href: "/admin-panel/case-studies", label: "케이스 스터디" },
   { href: "/admin-panel/inquiries", label: "문의" },
   { href: "/admin-panel/security", label: "보안/감사" },
   { href: "/admin-panel/analytics", label: "통계" },
