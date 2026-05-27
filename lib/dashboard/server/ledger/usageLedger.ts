@@ -23,6 +23,8 @@ export interface LedgerUsageInput {
   upstreamSource: 'direct' | 'operator' | 'webhook';
   rawPayloadHash: string;
   durationMs?: number | null;
+  statusCode?: number | null;
+  statusReason?: string | null;
 }
 
 interface LedgerUsageRow extends QueryResultRow {
@@ -38,6 +40,8 @@ interface LedgerUsageRow extends QueryResultRow {
   request_source: string;
   occurred_at: string | Date | null;
   duration_ms: number | null;
+  status_code: number | null;
+  status_reason: string | null;
 }
 
 interface LedgerBalanceRow extends QueryResultRow {
@@ -249,6 +253,43 @@ function usageInputFromRow(
     .update(JSON.stringify(row))
     .digest('hex');
 
+  const statusCandidates = [
+    record.status_code,
+    record.statusCode,
+    record.http_status,
+    record.httpStatus,
+    record.status,
+  ];
+  let statusCode: number | null = null;
+  for (const candidate of statusCandidates) {
+    if (typeof candidate === 'number' && Number.isFinite(candidate)) {
+      statusCode = Math.round(candidate);
+      break;
+    }
+    if (typeof candidate === 'string') {
+      const parsed = Number(candidate);
+      if (Number.isFinite(parsed) && parsed >= 100 && parsed < 600) {
+        statusCode = Math.round(parsed);
+        break;
+      }
+    }
+  }
+  const reasonCandidates = [
+    record.status_reason,
+    record.statusReason,
+    record.error_message,
+    record.errorMessage,
+    record.error,
+    record.reason,
+  ];
+  let statusReason: string | null = null;
+  for (const candidate of reasonCandidates) {
+    if (typeof candidate === 'string' && candidate.trim() !== '') {
+      statusReason = candidate.trim();
+      break;
+    }
+  }
+
   return {
     fp_full: fpFull,
     fp16: fpShort,
@@ -266,6 +307,8 @@ function usageInputFromRow(
     upstreamSource,
     rawPayloadHash,
     durationMs: typeof row.duration_ms === 'number' ? row.duration_ms : (typeof record.durationMs === 'number' ? record.durationMs : 0),
+    statusCode,
+    statusReason,
   };
 }
 
@@ -303,41 +346,54 @@ export async function syncUsageLedgerFromRows(
         continue;
       }
 
-      await client.query(`
-        INSERT INTO usage_logs (
-          fp_full,
-          fp16,
-          last4,
-          request_id,
-          model,
-          reasoning_effort,
-          input_tokens,
-          output_tokens,
-          cost_usd,
-          request_source,
-          occurred_at,
-          upstream_source,
-          raw_payload_hash,
-          duration_ms
-        )
-        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)
-        ON CONFLICT (fp_full, request_id) DO NOTHING
-      `, [
-        input.fp_full,
-        input.fp16,
-        input.last4,
-        input.requestId,
-        input.model,
-        input.reasoningEffort,
-        input.inputTokens,
-        input.outputTokens,
-        input.costUsd,
-        input.requestSource,
-        input.occurredAt,
-        input.upstreamSource,
-        input.rawPayloadHash,
-        input.durationMs ?? 0
-      ]);
+      try {
+        await client.query(`
+          INSERT INTO usage_logs (
+            fp_full,
+            fp16,
+            last4,
+            request_id,
+            model,
+            reasoning_effort,
+            input_tokens,
+            output_tokens,
+            cost_usd,
+            request_source,
+            occurred_at,
+            upstream_source,
+            raw_payload_hash,
+            duration_ms,
+            status_code,
+            status_reason
+          )
+          VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16)
+          ON CONFLICT (fp_full, request_id) DO NOTHING
+        `, [
+          input.fp_full,
+          input.fp16,
+          input.last4,
+          input.requestId,
+          input.model,
+          input.reasoningEffort,
+          input.inputTokens,
+          input.outputTokens,
+          input.costUsd,
+          input.requestSource,
+          input.occurredAt,
+          input.upstreamSource,
+          input.rawPayloadHash,
+          input.durationMs ?? 0,
+          input.statusCode ?? null,
+          input.statusReason ?? null,
+        ]);
+      } catch (insertError) {
+        console.error('[ledger.insert.fail]', JSON.stringify({
+          fp16: input.fp16,
+          requestId: input.requestId,
+          reason: insertError instanceof Error ? insertError.message : 'unknown',
+        }));
+        throw insertError;
+      }
     }
   });
 }
@@ -369,7 +425,9 @@ export async function readLedgerUsageRows(
                cost_usd,
                request_source,
                occurred_at,
-               duration_ms
+               duration_ms,
+               status_code,
+               status_reason
           FROM usage_logs
          WHERE fp_full = $1
            AND request_source = 'user_prompt'
@@ -380,6 +438,106 @@ export async function readLedgerUsageRows(
     );
 
     return result.rows.map((row) => rowToUsageEvent(row, keyIdentifier));
+  });
+}
+
+/**
+ * readLedgerUsageRowsInRange
+ * Asia/Seoul KST 기준으로 [startIsoUtc, endIsoUtc) 윈도우의 행을 최신순으로 limit 만큼 반환.
+ * startIsoUtc / endIsoUtc 가 null이면 해당 방향 조건을 비활성화.
+ */
+export async function readLedgerUsageRowsInRange(
+  fpFull: string,
+  startIsoUtc: string | null,
+  endIsoUtc: string | null,
+  keyIdentifier = '',
+  limit = 500
+): Promise<UsageEventDto[]> {
+  if (!hasUsageLedger()) {
+    return [];
+  }
+
+  return withLedgerClient(async (client) => {
+    const result = await client.query<LedgerUsageRow>(
+      `
+        SELECT fp_full,
+               fp16,
+               last4,
+               request_id,
+               model,
+               reasoning_effort,
+               input_tokens,
+               output_tokens,
+               cost_usd,
+               request_source,
+               occurred_at,
+               duration_ms,
+               status_code,
+               status_reason
+          FROM usage_logs
+         WHERE fp_full = $1
+           AND request_source = 'user_prompt'
+           AND ($2::timestamptz IS NULL OR occurred_at >= $2::timestamptz)
+           AND ($3::timestamptz IS NULL OR occurred_at <  $3::timestamptz)
+         ORDER BY occurred_at DESC NULLS LAST, id DESC
+         LIMIT $4
+      `,
+      [fpFull, startIsoUtc, endIsoUtc, limit]
+    );
+
+    return result.rows.map((row) => rowToUsageEvent(row, keyIdentifier));
+  });
+}
+
+export interface LedgerUsageSummary {
+  requests: number;
+  tokensIn: number;
+  tokensOut: number;
+  costUsd: number;
+}
+
+/**
+ * readLedgerUsageSummary
+ * range 윈도우 전체에 대한 SUM/COUNT. 표시 limit 와 무관하게 진짜 총계 반환.
+ */
+export async function readLedgerUsageSummary(
+  fpFull: string,
+  startIsoUtc: string | null,
+  endIsoUtc: string | null
+): Promise<LedgerUsageSummary> {
+  if (!hasUsageLedger()) {
+    return { requests: 0, tokensIn: 0, tokensOut: 0, costUsd: 0 };
+  }
+
+  return withLedgerClient(async (client) => {
+    const result = await client.query<{
+      requests: string | number | null;
+      tokens_in: string | number | null;
+      tokens_out: string | number | null;
+      cost_usd: string | number | null;
+    }>(
+      `
+        SELECT COUNT(*)::int                        AS requests,
+               COALESCE(SUM(input_tokens), 0)::int  AS tokens_in,
+               COALESCE(SUM(output_tokens), 0)::int AS tokens_out,
+               COALESCE(SUM(cost_usd), 0)           AS cost_usd
+          FROM usage_logs
+         WHERE fp_full = $1
+           AND request_source = 'user_prompt'
+           AND ($2::timestamptz IS NULL OR occurred_at >= $2::timestamptz)
+           AND ($3::timestamptz IS NULL OR occurred_at <  $3::timestamptz)
+      `,
+      [fpFull, startIsoUtc, endIsoUtc]
+    );
+
+    const row = result.rows[0];
+    const cost = Number(row?.cost_usd ?? 0);
+    return {
+      requests: Number(row?.requests ?? 0),
+      tokensIn: Number(row?.tokens_in ?? 0),
+      tokensOut: Number(row?.tokens_out ?? 0),
+      costUsd: Number.isFinite(cost) ? Number(cost.toFixed(6)) : 0,
+    };
   });
 }
 
@@ -508,9 +666,11 @@ function rowToUsageEvent(row: LedgerUsageRow, keyIdentifier: string): UsageEvent
     total_tokens: Number(row.input_tokens) + Number(row.output_tokens),
     actual_cost: Number(row.cost_usd),
     cost: Number(row.cost_usd),
-    created_at: occurredAtStr ?? '', // null인 경우 "확인 중" 처리를 위해 빈 문자열 또는 특정 표기 가능하도록 함
+    created_at: occurredAtStr ?? '',
     request_source: row.request_source,
     duration_ms: row.duration_ms ? Number(row.duration_ms) : 0,
+    status_code: row.status_code ?? null,
+    status_reason: row.status_reason ?? null,
   });
 }
 

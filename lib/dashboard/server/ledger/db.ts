@@ -46,8 +46,13 @@ async function initializeTables(client: PoolClient) {
       upstream_source     text            NOT NULL,
       raw_payload_hash    char(64)        NOT NULL,
       duration_ms         integer         NULL,
+      status_code         integer         NULL,
+      status_reason       text            NULL,
       CONSTRAINT unique_fp_request UNIQUE (fp_full, request_id)
     );
+
+    ALTER TABLE public.usage_logs ADD COLUMN IF NOT EXISTS status_code   integer NULL;
+    ALTER TABLE public.usage_logs ADD COLUMN IF NOT EXISTS status_reason text    NULL;
 
     CREATE INDEX IF NOT EXISTS idx_usage_logs_fp_occurred ON public.usage_logs (fp_full, occurred_at DESC NULLS LAST);
     CREATE INDEX IF NOT EXISTS idx_usage_logs_fp_source_occurred ON public.usage_logs (fp_full, request_source, occurred_at DESC NULLS LAST);
