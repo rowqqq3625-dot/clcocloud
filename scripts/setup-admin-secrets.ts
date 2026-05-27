@@ -53,14 +53,41 @@ const original = exists ? readFileSync(envPath, "utf8") : "";
 function currentValue(content: string, key: string): string | null {
   const re = new RegExp(`^${key}=(.*)$`, "m");
   const match = content.match(re);
-  return match ? match[1] : null;
+  if (!match) return null;
+  let value = match[1];
+  if ((value.startsWith("'") && value.endsWith("'")) || (value.startsWith('"') && value.endsWith('"'))) {
+    value = value.slice(1, -1);
+  }
+  return value.replace(/\\\$/g, "$");
+}
+
+/**
+ * Escape `$` as `\$` when writing to .env.local.
+ *
+ * Next.js (@next/env) runs dotenv-expand AFTER parsing, which expands `$VAR`
+ * references inside values *regardless of quoting* — single and double quotes
+ * are both transparent to expansion. Scrypt hash format includes `$`
+ * separators (e.g. `scrypt$N=131072,r=8,p=1$<salt>$<hash>`), so without
+ * escaping, `$N`, `$<salt-first-char>`, `$<hash-first-char>` all get
+ * interpreted as variable references and stripped → corrupted hash.
+ *
+ * Backslash-escape is the only safe option: dotenv-expand's regex is
+ * `(?<!\\)\$...` so `\$` is left literal in the final value.
+ *
+ * We also wrap the whole thing in double quotes to make the file
+ * unambiguously parseable for humans (single quotes are *not* used because
+ * dotenv strips them but then dotenv-expand re-expands the inner value).
+ */
+function escapeValue(value: string): string {
+  return `"${value.replace(/\$/g, "\\$")}"`;
 }
 
 function upsert(content: string, key: string, value: string): string {
+  const escaped = escapeValue(value);
   const re = new RegExp(`^${key}=.*$`, "m");
-  if (re.test(content)) return content.replace(re, `${key}=${value}`);
+  if (re.test(content)) return content.replace(re, `${key}=${escaped}`);
   const sep = content.length === 0 || content.endsWith("\n") ? "" : "\n";
-  return `${content}${sep}${key}=${value}\n`;
+  return `${content}${sep}${key}=${escaped}\n`;
 }
 
 const newLoginHash = scryptHash(loginId);

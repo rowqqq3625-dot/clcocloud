@@ -31,6 +31,8 @@ function loadEnvFile(path: string): void {
     if ((value.startsWith('"') && value.endsWith('"')) || (value.startsWith("'") && value.endsWith("'"))) {
       value = value.slice(1, -1);
     }
+    // Unescape `\$` back to `$` (matches dotenv-expand semantics).
+    value = value.replace(/\\\$/g, "$");
     if (key && process.env[key] === undefined) {
       process.env[key] = value;
     }
