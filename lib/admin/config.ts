@@ -35,6 +35,18 @@ export const ADMIN_ENTRY_TTL_MINUTES = 5;
 export const ADMIN_DATE_CODE_TIMEZONE: string = process.env.ADMIN_DATE_CODE_TIMEZONE || "Asia/Seoul";
 
 export const ADMIN_GEO_FAIL_CLOSED: boolean = readBoolean(process.env.ADMIN_GEO_FAIL_CLOSED, true);
+/**
+ * Opt-in escape hatch for environments where the KR geo gate would otherwise
+ * block a legitimate operator (local dev with no `x-vercel-ip-country` header,
+ * preview deploys accessed from outside KR, etc). Defaults to true in
+ * development so `npm run dev` on localhost just works without extra config;
+ * production deploys must set ADMIN_GEO_BYPASS=true explicitly to disable the
+ * country check.
+ */
+export const ADMIN_GEO_BYPASS: boolean = readBoolean(
+  process.env.ADMIN_GEO_BYPASS,
+  process.env.NODE_ENV !== "production"
+);
 export const ADMIN_RATE_LIMIT_MAX_FAILS: number = readNumber(process.env.ADMIN_RATE_LIMIT_MAX_FAILS, 5);
 export const ADMIN_RATE_LIMIT_LOCK_MINUTES: number = readNumber(process.env.ADMIN_RATE_LIMIT_LOCK_MINUTES, 30);
 

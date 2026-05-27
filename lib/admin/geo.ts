@@ -1,5 +1,5 @@
 import "server-only";
-import { ADMIN_GEO_FAIL_CLOSED } from "./config";
+import { ADMIN_GEO_BYPASS, ADMIN_GEO_FAIL_CLOSED } from "./config";
 
 type HeaderSource =
   | Headers
@@ -34,11 +34,13 @@ export function getCountryFromRequest(headers: HeaderSource): string | null {
 
 /**
  * KR-only gate.
+ * - ADMIN_GEO_BYPASS=true → always true (dev/preview escape hatch)
  * - country=KR  → true
  * - country!=KR → false
  * - missing     → false when ADMIN_GEO_FAIL_CLOSED (default), true otherwise
  */
 export function isKoreaRequest(headers: HeaderSource): boolean {
+  if (ADMIN_GEO_BYPASS) return true;
   const country = getCountryFromRequest(headers);
   if (country === "KR") return true;
   if (country) return false;
