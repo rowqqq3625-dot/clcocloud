@@ -1,6 +1,5 @@
 "use client";
 
-import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
@@ -10,15 +9,17 @@ import { DashboardGateLink } from "@/components/navigation/DashboardGateLink";
 import { GeoBlockedDialog } from "@/components/site/GeoBlockedDialog";
 import { MobileMenuDrawer } from "@/components/navigation/MobileMenuDrawer";
 
-type SiteHeaderProps = {
-  variant?: "floating" | "solid";
-};
-
-type SessionUser = {
+export type SessionUser = {
   provider: string;
   email: string | null;
   name: string | null;
   image: string | null;
+};
+
+type SiteHeaderProps = {
+  variant?: "floating" | "solid";
+  initialUser?: SessionUser | null;
+  initialAdminCandidate?: boolean;
 };
 
 type SessionResponse = {
@@ -43,9 +44,47 @@ const providerLabels: Record<string, string> = {
   naver: "Naver"
 };
 
-export function SiteHeader({ variant = "floating" }: SiteHeaderProps) {
-  const [user, setUser] = useState<SessionUser | null>(null);
-  const [isAdminCandidate, setIsAdminCandidate] = useState(false);
+function ProfileAvatar({
+  user,
+  size,
+  textClassName = "text-[11px] font-bold text-secondary",
+}: {
+  user: SessionUser;
+  size: number;
+  textClassName?: string;
+}) {
+  const [imgFailed, setImgFailed] = useState(false);
+  const showImage = Boolean(user.image) && !imgFailed;
+  const initial = (user.name || user.email || user.provider || "?").slice(0, 1).toUpperCase();
+
+  if (showImage) {
+    return (
+      // eslint-disable-next-line @next/next/no-img-element
+      <img
+        src={user.image as string}
+        alt=""
+        width={size}
+        height={size}
+        referrerPolicy="no-referrer"
+        crossOrigin="anonymous"
+        loading="lazy"
+        decoding="async"
+        onError={() => setImgFailed(true)}
+        className="h-full w-full object-cover"
+      />
+    );
+  }
+
+  return <span className={textClassName}>{initial}</span>;
+}
+
+export function SiteHeader({
+  variant = "floating",
+  initialUser = null,
+  initialAdminCandidate = false,
+}: SiteHeaderProps) {
+  const [user, setUser] = useState<SessionUser | null>(initialUser);
+  const [isAdminCandidate, setIsAdminCandidate] = useState(initialAdminCandidate);
   const [profileOpen, setProfileOpen] = useState(false);
   const [geoBlockedOpen, setGeoBlockedOpen] = useState(false);
   const [adminEntryBusy, setAdminEntryBusy] = useState(false);
@@ -56,7 +95,7 @@ export function SiteHeader({ variant = "floating" }: SiteHeaderProps) {
   useEffect(() => {
     let active = true;
 
-    fetch("/api/session", { cache: "no-store" })
+    fetch("/api/session", { cache: "no-store", credentials: "same-origin" })
       .then((response) => response.json() as Promise<SessionResponse>)
       .then((data) => {
         if (!active) return;
@@ -64,10 +103,8 @@ export function SiteHeader({ variant = "floating" }: SiteHeaderProps) {
         setIsAdminCandidate(Boolean(data.isAdminCandidate));
       })
       .catch(() => {
-        if (active) {
-          setUser(null);
-          setIsAdminCandidate(false);
-        }
+        // Keep server-hydrated state on transient errors to avoid flashing
+        // the logged-out UI when the user is in fact authenticated.
       });
 
     return () => {
@@ -174,22 +211,14 @@ export function SiteHeader({ variant = "floating" }: SiteHeaderProps) {
               aria-label="프로필 메뉴"
               aria-expanded={profileOpen}
             >
-              {user.image ? (
-                <Image src={user.image} alt="" width={32} height={32} className="h-full w-full object-cover" unoptimized />
-              ) : (
-                <span>{(user.name || user.email || user.provider).slice(0, 1).toUpperCase()}</span>
-              )}
+              <ProfileAvatar user={user} size={32} />
             </button>
 
             {profileOpen ? (
               <div className="absolute right-0 top-11 z-[60] w-[260px] overflow-hidden rounded-3xl border border-[var(--border-subtle)] bg-cream/95 p-3 text-primary shadow-[0_24px_80px_rgba(31,30,29,.18)] backdrop-blur-xl">
                 <div className="flex items-center gap-3 rounded-2xl bg-cream-2/70 p-3">
                   <div className="grid h-10 w-10 shrink-0 place-items-center overflow-hidden rounded-full border border-[var(--border-subtle)] bg-cream text-sm font-bold text-coral">
-                    {user.image ? (
-                      <Image src={user.image} alt="" width={40} height={40} className="h-full w-full object-cover" unoptimized />
-                    ) : (
-                      <span>{(user.name || user.email || user.provider).slice(0, 1).toUpperCase()}</span>
-                    )}
+                    <ProfileAvatar user={user} size={40} textClassName="text-sm font-bold text-coral" />
                   </div>
                   <div className="min-w-0">
                     <p className="truncate text-sm font-bold">{user.name || "연동 계정"}</p>

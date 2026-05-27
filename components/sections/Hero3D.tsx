@@ -12,11 +12,16 @@ const MascotCanvas = dynamic(() => import("@/components/hero3d/MascotCanvas"), {
 
 import { SplitHeadline } from "@/components/hero3d/SplitHeadline";
 import { WatermarkText } from "@/components/hero3d/WatermarkText";
-import { SiteHeader } from "@/components/navigation/SiteHeader";
+import { SiteHeader, type SessionUser } from "@/components/navigation/SiteHeader";
 import { mascotToastMessages } from "@/lib/hero3d/animations";
 import { useMouseRef } from "@/lib/hero3d/use-mouse";
 
-export function Hero3D() {
+type Hero3DProps = {
+  initialUser?: SessionUser | null;
+  initialAdminCandidate?: boolean;
+};
+
+export function Hero3D({ initialUser = null, initialAdminCandidate = false }: Hero3DProps) {
   const stageRef = useRef<HTMLDivElement | null>(null);
   const { scrollYProgress } = useScroll({ target: stageRef, offset: ["start start", "end start"] });
   const [scrollProgress, setScrollProgress] = useState(0);
@@ -66,7 +71,7 @@ export function Hero3D() {
       }}
     >
       <HeroBackground />
-      <SiteHeader variant="floating" />
+      <SiteHeader variant="floating" initialUser={initialUser} initialAdminCandidate={initialAdminCandidate} />
 
       <div
         ref={stageRef}

@@ -1,7 +1,7 @@
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { ReviewForm } from "@/components/reviews/ReviewForm";
-import { SiteHeader } from "@/components/navigation/SiteHeader";
+import { SiteHeaderShell } from "@/components/navigation/SiteHeaderShell";
 import { getSessionFromCookies } from "@/lib/auth-session";
 import { getSupabaseAdminClient } from "@/lib/supabase-admin";
 
@@ -41,7 +41,7 @@ export default async function ReviewPage({ params }: ReviewPageProps) {
     <main className="auth-page-shell noise relative min-h-screen overflow-hidden bg-cream px-5 py-8 text-primary sm:py-10">
       <div className="pointer-events-none absolute -right-40 top-20 h-[560px] w-[560px] rounded-full bg-coral/16 blur-[190px]" />
       <div className="pointer-events-none absolute -bottom-52 left-[-16rem] h-[620px] w-[620px] rounded-full bg-peach/70 blur-[220px]" />
-      <SiteHeader variant="floating" />
+      <SiteHeaderShell variant="floating" />
       <section className="container-cinematic relative z-[1] max-w-3xl py-12">
         {state === "ready" ? <ReviewForm orderId={params.orderId} defaultName={defaultName} /> : <ReviewBlocked state={state} />}
       </section>
