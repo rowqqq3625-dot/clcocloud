@@ -205,8 +205,6 @@ function DrawerAvatar({ user, size }: { user: SessionUser; size: number }) {
         width={size}
         height={size}
         referrerPolicy="no-referrer"
-        crossOrigin="anonymous"
-        loading="lazy"
         decoding="async"
         onError={() => setImgFailed(true)}
         className="h-full w-full object-cover"
