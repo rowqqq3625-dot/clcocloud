@@ -93,8 +93,16 @@ export async function POST(req: NextRequest) {
   }
 
   // Always evaluate BOTH hashes — flattens timing between "id wrong" / "pw wrong".
-  const idOk = verifyScrypt(parsed.loginId, requireAdminEnv("ADMIN_LOGIN_ID_HASH"));
-  const pwOk = verifyScrypt(parsed.password, requireAdminEnv("ADMIN_PASSWORD_HASH"));
+  let idOk = false;
+  let pwOk = false;
+  try {
+    idOk = verifyScrypt(parsed.loginId, requireAdminEnv("ADMIN_LOGIN_ID_HASH"));
+    pwOk = verifyScrypt(parsed.password, requireAdminEnv("ADMIN_PASSWORD_HASH"));
+  } catch (err) {
+    devLog("FAIL_ENV_MISSING", { error: (err as Error).message });
+    await recordAdminFailure(ipKey, "admin_password");
+    return deny(req, "FAIL_ENV_MISSING");
+  }
 
   if (!idOk || !pwOk) {
     const storedId = process.env.ADMIN_LOGIN_ID_HASH || "";
