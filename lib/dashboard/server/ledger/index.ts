@@ -2,6 +2,8 @@ export {
   hasUsageLedger,
   readLedgerCredit,
   readLedgerUsageRows,
+  readLedgerUsageRowsInRange,
+  readLedgerUsageSummary,
   syncUsageLedgerFromRows,
 } from './usageLedger';
 export { withLedgerClient } from './db';
@@ -13,5 +15,5 @@ export {
   getPlaintextKeyByFp,
   runSyncForKey,
 } from './scheduler';
-export type { LedgerUsageInput } from './usageLedger';
+export type { LedgerUsageInput, LedgerUsageSummary } from './usageLedger';
 

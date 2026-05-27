@@ -945,6 +945,21 @@ function withDirectMetaRows(rows: unknown[], root: Record<string, unknown>, data
           row.completed_at ??
           row.completedAt ??
           firstNestedValue(row, ['created_at', 'createdAt', 'timestamp', 'time', 'date', 'request_time', 'requestTime', 'started_at', 'startedAt', 'completed_at', 'completedAt']),
+        status_code:
+          row.status_code ??
+          row.statusCode ??
+          row.http_status ??
+          row.httpStatus ??
+          row.status ??
+          firstNestedValue(row, ['status_code', 'statusCode', 'http_status', 'httpStatus']),
+        status_reason:
+          row.status_reason ??
+          row.statusReason ??
+          row.error_message ??
+          row.errorMessage ??
+          row.error ??
+          row.reason ??
+          firstNestedValue(row, ['status_reason', 'statusReason', 'error_message', 'errorMessage', 'error', 'reason']),
         ...meta,
       };
     });
@@ -971,6 +986,21 @@ function withOperatorHistoryRows(rows: unknown[], keyFilter?: string): unknown[]
           row.completed_at ??
           row.completedAt ??
           firstNestedValue(row, ['created_at', 'createdAt', 'timestamp', 'time', 'date', 'request_time', 'requestTime', 'started_at', 'startedAt', 'completed_at', 'completedAt']),
+        status_code:
+          row.status_code ??
+          row.statusCode ??
+          row.http_status ??
+          row.httpStatus ??
+          row.status ??
+          firstNestedValue(row, ['status_code', 'statusCode', 'http_status', 'httpStatus']),
+        status_reason:
+          row.status_reason ??
+          row.statusReason ??
+          row.error_message ??
+          row.errorMessage ??
+          row.error ??
+          row.reason ??
+          firstNestedValue(row, ['status_reason', 'statusReason', 'error_message', 'errorMessage', 'error', 'reason']),
       };
     });
 }

@@ -58,7 +58,7 @@ export function adaptRecentRequests(rows: Record<string, string | number | null>
       totalTokens,
       costUsd,
       latencyMs: numberValue(row.latencyMs ?? row['duration_ms']),
-      statusCode: numberValue(row.statusCode ?? row['status_code'], 200),
+      statusCode: numberValue(row.statusCode ?? row['status_code'], 0),
       createdAt,
       reasoningEffort: (() => {
         const raw = row.reasoningEffort ?? row.reasoning_effort ?? row['reasoning_effort'] ?? row.reasoningLabel ?? row.reasoning_label ?? row.reasoning ?? row.thinking ?? row.effort ?? row.difficulty ?? row.level ?? row['추론난이도'] ?? row['추론'];
@@ -72,7 +72,7 @@ export function adaptRecentRequests(rows: Record<string, string | number | null>
         if (lower.includes('none')) return 'none';
         return String(raw);
       })(),
-      processing: stringValue(row.processing ?? row.status ?? row['처리'], 'success'),
+      processing: stringValue(row['status_reason'] ?? row.processing ?? row.status ?? row['처리'], 'success'),
     }];
   });
 }

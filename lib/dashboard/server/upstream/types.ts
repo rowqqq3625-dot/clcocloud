@@ -208,6 +208,8 @@ export const UsageEventDtoSchema = z
     cost: flexibleNumberSchema,
     actual_cost: flexibleNumberSchema,
     duration_ms: flexibleNumberSchema,
+    status_code: nullableFlexibleNumberSchema,
+    status_reason: z.union([z.string(), z.null()]).optional(),
     created_at: z.union([z.string(), z.number()]).optional(),
   })
   .passthrough()
