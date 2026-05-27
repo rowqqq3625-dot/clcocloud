@@ -1,19 +1,18 @@
 import { NextResponse } from "next/server";
-import { getSupabaseAdminClient, type PublicReviewRecord } from "@/lib/supabase-admin";
+import { getApprovedReviews } from "@/lib/reviews/queries";
 
 export const dynamic = "force-dynamic";
 
+/**
+ * Legacy endpoint kept for backward compatibility with the existing
+ * landing-page Sequence10TextureBreak loader. New callers should use
+ * GET /api/reviews instead.
+ *
+ * The response shape is intentionally identical to the pre-Phase-3
+ * version (only `reviews` array, no pagination metadata) so the
+ * existing client component continues to work without changes.
+ */
 export async function GET() {
-  const supabase = getSupabaseAdminClient();
-  if (!supabase) return NextResponse.json({ reviews: [] });
-
-  const { data, error } = await supabase
-    .from("reviews")
-    .select("id,rating,body,masked_name,created_at")
-    .eq("status", "approved")
-    .order("created_at", { ascending: false })
-    .limit(24);
-
-  if (error) return NextResponse.json({ reviews: [] });
-  return NextResponse.json({ reviews: (data || []) as PublicReviewRecord[] });
+  const { rows } = await getApprovedReviews({ limit: 24, sort: "recent" });
+  return NextResponse.json({ reviews: rows });
 }

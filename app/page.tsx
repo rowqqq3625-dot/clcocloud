@@ -9,6 +9,7 @@ import { Sequence06Pricing } from "@/components/sequences/Sequence06Pricing";
 import { Sequence07PhotoBreak } from "@/components/sequences/Sequence07PhotoBreak";
 import { Sequence08Flow } from "@/components/sequences/Sequence08Flow";
 import { Sequence09IndependentKey } from "@/components/sequences/Sequence09IndependentKey";
+import { Sequence09bCaseStudyTeaser } from "@/components/sequences/Sequence09bCaseStudyTeaser";
 import { Sequence10TextureBreak } from "@/components/sequences/Sequence10TextureBreak";
 import { Sequence11FAQ } from "@/components/sequences/Sequence11FAQ";
 import { Sequence12FinalCTA } from "@/components/sequences/Sequence12FinalCTA";
@@ -28,6 +29,7 @@ export default function Page() {
       <Sequence07PhotoBreak />
       <Sequence08Flow />
       <Sequence09IndependentKey />
+      <Sequence09bCaseStudyTeaser />
       <Sequence10TextureBreak />
       <Sequence11FAQ />
       <Sequence12FinalCTA />
