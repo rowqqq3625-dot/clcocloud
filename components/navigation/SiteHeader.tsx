@@ -4,9 +4,11 @@ import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
+import { Menu } from "lucide-react";
 import { BrandLogo } from "@/components/ui/BrandLogo";
 import { DashboardGateLink } from "@/components/navigation/DashboardGateLink";
 import { GeoBlockedDialog } from "@/components/site/GeoBlockedDialog";
+import { MobileMenuDrawer } from "@/components/navigation/MobileMenuDrawer";
 
 type SiteHeaderProps = {
   variant?: "floating" | "solid";
@@ -47,6 +49,7 @@ export function SiteHeader({ variant = "floating" }: SiteHeaderProps) {
   const [profileOpen, setProfileOpen] = useState(false);
   const [geoBlockedOpen, setGeoBlockedOpen] = useState(false);
   const [adminEntryBusy, setAdminEntryBusy] = useState(false);
+  const [drawerOpen, setDrawerOpen] = useState(false);
   const profileRef = useRef<HTMLDivElement>(null);
   const router = useRouter();
 
@@ -131,7 +134,7 @@ export function SiteHeader({ variant = "floating" }: SiteHeaderProps) {
         <BrandLogo size={28} type="full" />
       </Link>
 
-      <div className="order-3 flex w-full items-center gap-3 overflow-x-auto whitespace-nowrap text-[12px] font-semibold text-secondary [scrollbar-width:none] md:order-none md:w-auto md:overflow-visible md:text-sm">
+      <div className="hidden w-full items-center gap-3 overflow-x-auto whitespace-nowrap text-[12px] font-semibold text-secondary [scrollbar-width:none] md:order-none md:flex md:w-auto md:overflow-visible md:text-sm">
         {/* Left Menu Group */}
         <div className="flex items-center gap-4 md:gap-6">
           <Link className={linkClass} href="/#pricing">가격</Link>
@@ -221,8 +224,30 @@ export function SiteHeader({ variant = "floating" }: SiteHeaderProps) {
             ) : null}
           </>
         ) : null}
+
+        <button
+          type="button"
+          onClick={() => {
+            setProfileOpen(false);
+            setDrawerOpen(true);
+          }}
+          aria-label="메뉴 열기"
+          aria-expanded={drawerOpen}
+          aria-controls="mobile-menu-drawer"
+          className="grid h-11 w-11 place-items-center rounded-full text-primary transition active:scale-[0.97] hover:bg-[var(--border-subtle)]/40 md:hidden"
+        >
+          <Menu size={24} strokeWidth={1.75} aria-hidden="true" />
+        </button>
       </div>
       <GeoBlockedDialog open={geoBlockedOpen} onClose={() => setGeoBlockedOpen(false)} />
+      <MobileMenuDrawer
+        open={drawerOpen}
+        onClose={() => setDrawerOpen(false)}
+        user={user}
+        isAdminCandidate={isAdminCandidate}
+        adminEntryBusy={adminEntryBusy}
+        onAdminEntry={handleAdminEntry}
+      />
     </nav>
   );
 }

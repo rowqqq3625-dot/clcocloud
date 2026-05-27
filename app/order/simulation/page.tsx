@@ -11,6 +11,15 @@ interface OrderDetail {
   buyer_phone: string;
 }
 
+export default function SimulationPage() {
+  // Next.js 14 정적 생성 요구사항: useSearchParams는 Suspense 경계 안에 있어야 함
+  return (
+    <Suspense fallback={<div style={{ padding: "2rem", textAlign: "center" }}>로딩 중...</div>}>
+      <SimulationPageInner />
+    </Suspense>
+  );
+}
+
 function SimulationPageInner() {
   const searchParams = useSearchParams();
   const router = useRouter();
@@ -193,20 +202,5 @@ function SimulationPageInner() {
         </div>
       </div>
     </div>
-  );
-}
-
-export default function SimulationPage() {
-  return (
-    <Suspense
-      fallback={
-        <div className="min-h-screen bg-[#F7F1E8] flex flex-col items-center justify-center p-6 text-[#1F1E1D]">
-          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#D97757]"></div>
-          <p className="mt-4 font-medium text-lg">주문 데이터를 로드하고 있습니다...</p>
-        </div>
-      }
-    >
-      <SimulationPageInner />
-    </Suspense>
   );
 }

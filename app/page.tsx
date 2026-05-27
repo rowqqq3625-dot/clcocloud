@@ -21,7 +21,7 @@ export default function Page() {
       <Sequence01Hero />
       <Sequence02TrustStrip />
       <Sequence03Dashboard />
-      <BundleSection />
+      {/* <BundleSection /> 출시 준비 중 — 임시 숨김 */}
       <Sequence04Compare />
       <Sequence05Simulator />
       <Sequence06Pricing />

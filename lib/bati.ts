@@ -204,6 +204,16 @@ export async function sendAdminPayDone(params: AdminPayDoneParams): Promise<Bati
     buyer_name: params.buyerName,
     product_name: params.productName,
     amount: formatAmount(params.amount),
+    // 운영자 워크플로 데이터 시트 컬럼5: 처리시각(Asia/Seoul, YYYY. MM. DD. HH:mm)
+    timestamp: new Date().toLocaleString("ko-KR", {
+      timeZone: "Asia/Seoul",
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+      hour: "2-digit",
+      minute: "2-digit",
+      hour12: false,
+    }),
   };
 
   console.log(`[Bati Webhook] Sending ADMIN_PAY_DONE for ${params.orderNo}`);
@@ -227,6 +237,8 @@ export interface AdminLowStockParams {
   orderNo: string;
   productName: string;
   remainingCount: number;
+  buyerName: string;
+  amount: number;
 }
 
 /**
@@ -267,9 +279,13 @@ export async function sendAdminLowStock(params: AdminLowStockParams): Promise<Ba
     }
   }
 
+  // 수신번호는 Bati 워크플로의 알림톡 액션 슬롯에 고정값(01058503625)으로 직접 지정됨.
+  // 페이로드는 시트 컬럼 매핑용 5개 키만 전송.
   const payload = {
     order_no: params.orderNo,
+    buyer_name: params.buyerName,
     product_name: params.productName,
+    amount: formatAmount(params.amount),
     remaining: String(params.remainingCount),
   };
 

@@ -18,11 +18,15 @@ function format(remainingMs: number): string {
 export function AdminSessionCountdown({ expiresAt }: Props) {
   const router = useRouter();
   const expiryMs = useRef<number>(new Date(expiresAt).getTime());
-  const [remaining, setRemaining] = useState<number>(() => Math.max(0, expiryMs.current - Date.now()));
+  // Initial value is null on both server and client to avoid the inevitable
+  // sub-second drift between SSR render and client hydration (Date.now() differs).
+  // useEffect populates the real value on mount.
+  const [remaining, setRemaining] = useState<number | null>(null);
   const [evicted, setEvicted] = useState(false);
 
   // Tick every second.
   useEffect(() => {
+    setRemaining(Math.max(0, expiryMs.current - Date.now()));
     const id = window.setInterval(() => {
       const remainingMs = Math.max(0, expiryMs.current - Date.now());
       setRemaining(remainingMs);
@@ -65,7 +69,7 @@ export function AdminSessionCountdown({ expiresAt }: Props) {
     };
   }, [router]);
 
-  const warning = remaining > 0 && remaining < 5 * 60_000;
+  const warning = remaining !== null && remaining > 0 && remaining < 5 * 60_000;
 
   return (
     <div className="flex items-center gap-2 text-xs">
@@ -77,7 +81,7 @@ export function AdminSessionCountdown({ expiresAt }: Props) {
         ].join(" ")}
         aria-live="polite"
       >
-        {format(remaining)}
+        {remaining === null ? "--:--" : format(remaining)}
       </span>
       {evicted ? (
         <span className="ml-2 rounded-full bg-[#D97757]/20 px-2 py-0.5 text-[10px] font-bold text-[#F0E2D2]">
