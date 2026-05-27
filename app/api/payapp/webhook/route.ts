@@ -149,6 +149,8 @@ export async function POST(req: NextRequest) {
         // [Rule 3] Send low stock alert to Admin ONLY. Do not notify buyer.
         await sendAdminLowStock({
           orderNo: orderNo,
+          buyerName: order.buyer_name,
+          amount: order.amount,
           productName: order.product_code === "ULTRA" ? "ULTRA 잔액형 키" : order.product_code + " 잔액형 키",
           remainingCount: 0
         });
@@ -180,23 +182,27 @@ export async function POST(req: NextRequest) {
           .update(updatePayload)
           .eq("id", order.id);
 
-        // [Rule 1] Send Alimtalk to buyer (delivers API key)
+        // [Rule 1] Buyer Alimtalk — fire-and-forget; Bati 실패가 결제 트랜잭션을 망가뜨리지 않도록 catch 분리
         const alimtalkPhone = recvphone || order.buyer_phone;
-        await sendBuyerPayDone({
+        void sendBuyerPayDone({
           buyerName: order.buyer_name,
           buyerPhone: alimtalkPhone,
           orderNo: orderNo,
           productName: productName,
           amount: order.amount,
           apiKey: apiKeyVal
+        }).catch((e) => {
+          console.error(`[PayApp Webhook] sendBuyerPayDone failed for ${orderNo}:`, e);
         });
 
-        // [Rule 2] Send Alimtalk to admin (ADMIN_PAY_DONE)
-        await sendAdminPayDone({
+        // [Rule 2] Admin Alimtalk — 동일하게 논블로킹 분리
+        void sendAdminPayDone({
           orderNo: orderNo,
           buyerName: order.buyer_name,
           productName: productName,
           amount: order.amount
+        }).catch((e) => {
+          console.error(`[PayApp Webhook] sendAdminPayDone failed for ${orderNo}:`, e);
         });
       }
 
@@ -247,17 +253,11 @@ export async function POST(req: NextRequest) {
         .eq("id", order.id);
     }
 
-    return new NextResponse("SUCCESS", {
-      status: 200,
-      headers: { "Content-Type": "text/plain" }
-    });
+    return new NextResponse("OK", { status: 200 });
 
   } catch (err: any) {
     console.error(`[PayApp Webhook Exception] orderNo=${orderNo}, mulNo=${mulNo}:`, err);
     // Return 200 anyway to prevent PayApp infinite retries, but log the error
-    return new NextResponse("SUCCESS", {
-      status: 200,
-      headers: { "Content-Type": "text/plain" }
-    });
+    return new NextResponse("OK", { status: 200 });
   }
 }

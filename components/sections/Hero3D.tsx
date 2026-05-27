@@ -102,7 +102,7 @@ export function Hero3D() {
         </motion.div>
 
         <div
-          className="pointer-events-auto absolute bottom-[18vh] left-1/2 z-20 h-[34vh] w-[82vw] max-w-[520px] -translate-x-1/2 sm:bottom-[18vh] sm:h-[36vh] md:bottom-[0vh] md:left-auto md:right-[4vw] md:h-[48vh] md:w-[42vw] md:max-w-[560px] md:translate-x-0 lg:bottom-[-1vh] lg:right-[1vw] lg:h-[76vh] lg:w-[38vw] lg:max-w-[660px] xl:bottom-[0vh] xl:right-[1vw] xl:h-[80vh] xl:w-[36vw] 2xl:right-[3vw] 2xl:h-[82vh] 2xl:w-[33vw]"
+          className="pointer-events-auto absolute bottom-[18vh] left-1/2 z-20 h-[160px] w-[160px] max-[374px]:h-[140px] max-[374px]:w-[140px] max-w-[520px] -translate-x-1/2 sm:bottom-[18vh] sm:h-[160px] sm:w-[160px] md:bottom-[0vh] md:left-auto md:right-[4vw] md:h-[48vh] md:w-[42vw] md:max-w-[560px] md:translate-x-0 lg:bottom-[-1vh] lg:right-[1vw] lg:h-[76vh] lg:w-[38vw] lg:max-w-[660px] xl:bottom-[0vh] xl:right-[1vw] xl:h-[80vh] xl:w-[36vw] 2xl:right-[3vw] 2xl:h-[82vh] 2xl:w-[33vw]"
           onPointerDown={triggerMascot}
         >
           <MascotCanvas scrollProgress={scrollProgress} mouseRef={mouseRef} onMascotClick={triggerMascot} toastMessage={toastMessage} burstId={burstId} />

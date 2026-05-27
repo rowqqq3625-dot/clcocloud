@@ -4,6 +4,7 @@ import { getDashboardKeyRecords } from "@/lib/dashboard-key-records";
 import { getSupabaseAdminClient } from "@/lib/supabase-admin";
 import { isAdminCandidateEmail } from "@/lib/admin/config";
 import { issueCsrfTokenOnResponse } from "@/lib/admin/csrf";
+import { touchUserLastSeen } from "@/lib/user-profile";
 
 export async function GET(request: NextRequest) {
   const session = getSessionFromRequest(request);
@@ -11,6 +12,10 @@ export async function GET(request: NextRequest) {
   let lastSeenAt: string | null = null;
 
   if (session) {
+    // Fire-and-forget: marks the user "online now" for the admin members view.
+    // Errors are intentionally swallowed — this should never break the session
+    // probe even if Supabase is briefly unreachable.
+    touchUserLastSeen(session, request).catch(() => {});
     const supabase = getSupabaseAdminClient();
     const keyRecords = await getDashboardKeyRecords(session, false);
     hasHistory = keyRecords.length > 0;

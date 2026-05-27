@@ -130,7 +130,7 @@ export function SplitHeadline({
       className="hero3d-split-headline max-w-[920px] text-left"
     >
       <motion.h2
-        className="text-[32px] sm:text-[43px] md:text-[50px] lg:text-[64px] xl:text-[73px] 2xl:text-[80px] font-bold leading-[1.12] tracking-[-0.047em] text-primary break-keep"
+        className="text-[28px] max-[374px]:text-[24px] sm:text-[28px] md:text-[50px] lg:text-[64px] xl:text-[73px] 2xl:text-[80px] font-bold leading-[1.3] md:leading-[1.12] tracking-[-0.047em] text-primary break-keep"
         aria-label="클코클라우드 - 생각은 가볍게, 빌드는 완벽하게"
       >
         <span className="block">

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { AUTH_PROVIDERS, AuthProvider, OAuthProfile, getAuthBaseUrl, getProviderCredentials, isAuthProvider } from "@/lib/auth-providers";
 import { AUTH_SESSION_COOKIE, AUTH_STATE_COOKIE, createSessionToken, parseStatePayload, verifySignedValue } from "@/lib/auth-session";
 import { recordSessionEvent } from "@/lib/dashboard-key-records";
+import { upsertUserProfileOnLogin } from "@/lib/user-profile";
 
 type RouteContext = {
   params: { provider: string };
@@ -119,6 +120,7 @@ export async function GET(request: NextRequest, { params }: RouteContext) {
       path: "/"
     });
     await recordSessionEvent({ ...profile, issuedAt: Date.now() }, request, "oauth_login");
+    await upsertUserProfileOnLogin(profile, request);
     return response;
   } catch {
     return NextResponse.redirect(new URL(`${fallbackPath}${fallbackPath.includes("?") ? "&" : "?"}error=oauth_failed&provider=${provider}`, request.url));

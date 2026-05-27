@@ -40,7 +40,11 @@ export function AdminGateForm({ initialStep, csrfToken }: Props) {
     setBusy(true);
     setError(null);
     try {
-      const csrf = csrfToken || readCookie("clco-admin-csrf");
+      // Prefer live cookie over the SSR-rendered prop: /api/session rotates
+      // the CSRF cookie on every poll, so the prop captured at render time
+      // becomes stale within seconds. Reading the cookie at submit time keeps
+      // the header value in sync with what the server currently expects.
+      const csrf = readCookie("clco-admin-csrf") || csrfToken;
       const response = await fetch(path, {
         method: "POST",
         credentials: "same-origin",

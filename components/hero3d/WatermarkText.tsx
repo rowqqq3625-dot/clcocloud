@@ -8,7 +8,7 @@ export function WatermarkText({ opacity, x, letterSpacing }: { opacity: MotionVa
       <motion.div
         aria-hidden="true"
         style={{ opacity, x, letterSpacing }}
-        className="pointer-events-none absolute left-[1.2vw] top-[81%] z-[1] select-none whitespace-nowrap text-left text-[clamp(48px,14vw,72px)] font-black leading-none text-primary sm:left-[1.6vw] sm:text-[clamp(88px,12.8vw,188px)] md:left-[1.9vw] md:top-[77%] md:text-[clamp(118px,12.6vw,210px)] lg:left-[2vw] lg:top-[71%] lg:text-[clamp(150px,12.8vw,230px)] xl:left-[2vw] xl:top-[71%] xl:text-[clamp(170px,12.65vw,240px)] 2xl:left-[2.1vw] 2xl:top-[71%] 2xl:text-[clamp(190px,12.25vw,238px)]"
+        className="pointer-events-none absolute left-[1.2vw] top-[81%] z-[1] select-none whitespace-nowrap text-left text-[clamp(32px,9vw,48px)] font-black leading-none text-primary sm:left-[1.6vw] sm:text-[clamp(32px,9vw,48px)] md:left-[1.9vw] md:top-[77%] md:text-[clamp(118px,12.6vw,210px)] lg:left-[2vw] lg:top-[71%] lg:text-[clamp(150px,12.8vw,230px)] xl:left-[2vw] xl:top-[71%] xl:text-[clamp(170px,12.65vw,240px)] 2xl:left-[2.1vw] 2xl:top-[71%] 2xl:text-[clamp(190px,12.25vw,238px)]"
       >
         CLCOCLOUD
       </motion.div>
