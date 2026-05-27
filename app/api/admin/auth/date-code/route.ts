@@ -37,13 +37,16 @@ function deny(req: NextRequest, stage?: string): NextResponse {
   );
 }
 
+// Opt-in geo gate (see admin/entry/start/route.ts for rationale).
+const GEO_REQUIRED = (process.env.ADMIN_GEO_REQUIRED || "").trim().toLowerCase() === "true";
+
 const Schema = z.object({
   code: z.string().regex(/^\d{4}$/),
 });
 
 export async function POST(req: NextRequest) {
-  if (!verifyCsrf(req)) return deny(req,"FAIL_CSRF");
-  if (!isKoreaRequest(req.headers)) return deny(req,"FAIL_GEO");
+  if (!verifyCsrf(req)) return deny(req, "FAIL_CSRF");
+  if (GEO_REQUIRED && !isKoreaRequest(req.headers)) return deny(req, "FAIL_GEO");
 
   const ipKey = `${getClientIp(req.headers) || "unknown"}:date`;
   try {

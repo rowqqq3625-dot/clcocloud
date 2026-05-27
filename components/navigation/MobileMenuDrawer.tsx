@@ -1,8 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import Image from "next/image";
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { ChevronRight, X } from "lucide-react";
 import { BrandLogo } from "@/components/ui/BrandLogo";
@@ -121,11 +120,7 @@ export function MobileMenuDrawer({
             {user ? (
               <div className="mx-5 mb-2 flex items-center gap-3 rounded-2xl border border-[var(--border-subtle)] bg-cream-2/70 p-3">
                 <div className="grid h-10 w-10 shrink-0 place-items-center overflow-hidden rounded-full border border-[var(--border-subtle)] bg-cream text-sm font-bold text-coral">
-                  {user.image ? (
-                    <Image src={user.image} alt="" width={40} height={40} className="h-full w-full object-cover" unoptimized />
-                  ) : (
-                    <span>{(user.name || user.email || user.provider).slice(0, 1).toUpperCase()}</span>
-                  )}
+                  <DrawerAvatar user={user} size={40} />
                 </div>
                 <div className="min-w-0">
                   <p className="truncate text-sm font-bold">{user.name || "연동 계정"}</p>
@@ -194,4 +189,28 @@ export function MobileMenuDrawer({
       ) : null}
     </AnimatePresence>
   );
+}
+
+function DrawerAvatar({ user, size }: { user: SessionUser; size: number }) {
+  const [imgFailed, setImgFailed] = useState(false);
+  const showImage = Boolean(user.image) && !imgFailed;
+  const initial = (user.name || user.email || user.provider || "?").slice(0, 1).toUpperCase();
+
+  if (showImage) {
+    return (
+      // eslint-disable-next-line @next/next/no-img-element
+      <img
+        src={user.image as string}
+        alt=""
+        width={size}
+        height={size}
+        referrerPolicy="no-referrer"
+        decoding="async"
+        onError={() => setImgFailed(true)}
+        className="h-full w-full object-cover"
+      />
+    );
+  }
+
+  return <span>{initial}</span>;
 }

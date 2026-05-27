@@ -1,3 +1,7 @@
+import { cookies } from "next/headers";
+import { getSessionFromCookies } from "@/lib/auth-session";
+import { isAdminCandidateEmail } from "@/lib/admin/config";
+import type { SessionUser } from "@/components/navigation/SiteHeader";
 import { HomeStructuredData } from "@/components/seo/HomeStructuredData";
 import { Sequence01Hero } from "@/components/sequences/Sequence01Hero";
 import { Sequence02TrustStrip } from "@/components/sequences/Sequence02TrustStrip";
@@ -17,10 +21,22 @@ import { Sequence12FinalCTA } from "@/components/sequences/Sequence12FinalCTA";
 import { Sequence13Footer } from "@/components/sequences/Sequence13Footer";
 
 export default function Page() {
+  const session = getSessionFromCookies(cookies());
+
+  const initialUser: SessionUser | null = session
+    ? {
+        provider: session.provider,
+        email: session.email || null,
+        name: session.name || null,
+        image: session.image || null,
+      }
+    : null;
+  const initialAdminCandidate = Boolean(session?.email && isAdminCandidateEmail(session.email));
+
   return (
     <main data-nosnippet>
       <HomeStructuredData />
-      <Sequence01Hero />
+      <Sequence01Hero initialUser={initialUser} initialAdminCandidate={initialAdminCandidate} />
       <Sequence02TrustStrip />
       <Sequence03Dashboard />
       {/* <BundleSection /> 출시 준비 중 — 임시 숨김 */}

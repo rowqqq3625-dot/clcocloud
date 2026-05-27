@@ -6,6 +6,12 @@ import {
 } from "@/lib/admin/config";
 import { verifyCsrf } from "@/lib/admin/csrf";
 import { getClientIp, isKoreaRequest } from "@/lib/admin/geo";
+
+// Opt-in geo gate. The `isAdminCandidateEmail` check above is already
+// gated by a valid OAuth session, so the geo restriction is redundant
+// for verified admin candidates. Set ADMIN_GEO_REQUIRED=true to re-enable
+// the KR-only check on top of the email allowlist.
+const GEO_REQUIRED = (process.env.ADMIN_GEO_REQUIRED || "").trim().toLowerCase() === "true";
 import {
   AdminRateLimitError,
   checkAdminRateLimit,
@@ -44,7 +50,7 @@ export async function POST(req: NextRequest) {
     throw err;
   }
 
-  if (!isKoreaRequest(req.headers)) {
+  if (GEO_REQUIRED && !isKoreaRequest(req.headers)) {
     await recordAdminFailure(ipKey, "admin_entry");
     await logAdminSecurityEvent({
       eventType: "NON_KR_BLOCKED",

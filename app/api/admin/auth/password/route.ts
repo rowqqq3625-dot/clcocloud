@@ -19,6 +19,10 @@ import { logAdminSecurityEvent } from "@/lib/admin/audit";
 
 export const runtime = "nodejs";
 
+// Opt-in geo gate. Verified admin candidates already proved identity via
+// OAuth + entry token; geo enforcement is secondary and opt-in via env.
+const GEO_REQUIRED = (process.env.ADMIN_GEO_REQUIRED || "").trim().toLowerCase() === "true";
+
 const IS_DEV = process.env.NODE_ENV !== "production";
 
 /**
@@ -59,7 +63,7 @@ export async function POST(req: NextRequest) {
     devLog("FAIL_CSRF");
     return deny(req,"FAIL_CSRF");
   }
-  if (!isKoreaRequest(req.headers)) {
+  if (GEO_REQUIRED && !isKoreaRequest(req.headers)) {
     devLog("FAIL_GEO");
     return deny(req,"FAIL_GEO");
   }

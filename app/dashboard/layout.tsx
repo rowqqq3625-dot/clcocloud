@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
-import { SiteHeader } from "@/components/navigation/SiteHeader";
+import { SiteHeaderShell } from "@/components/navigation/SiteHeaderShell";
 import { getSessionFromCookies } from "@/lib/auth-session";
 
 export const metadata: Metadata = {
@@ -22,7 +22,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   return (
     <div className="min-h-screen bg-cream text-primary">
       <header className="sticky top-0 z-40 border-b border-[var(--border-subtle)] bg-cream/95 backdrop-blur-xl">
-        <SiteHeader variant="solid" />
+        <SiteHeaderShell variant="solid" />
       </header>
       {children}
     </div>

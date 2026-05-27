@@ -9,6 +9,11 @@ import {
 import { getClientIp, getCountryFromRequest, isKoreaRequest } from "./geo";
 import { hashToken, hashUserAgent, randomToken } from "./hash";
 
+// Opt-in geo gate for live admin sessions. The session cookie itself is
+// httpOnly/secure/strict-SameSite and only issued after OAuth + entry token
+// + scrypt password + date code, so geo is secondary.
+const GEO_REQUIRED = (process.env.ADMIN_GEO_REQUIRED || "").trim().toLowerCase() === "true";
+
 export type AdminSessionRow = {
   id: string;
   admin_email: string;
@@ -91,8 +96,8 @@ export async function getCurrentAdminSession(req: NextRequest | Request): Promis
   const token = getSessionTokenFromRequest(req);
   if (!token) return null;
 
-  // 1. country must be KR for every authenticated request
-  if (!isKoreaRequest(req.headers)) return null;
+  // 1. country must be KR for every authenticated request (opt-in)
+  if (GEO_REQUIRED && !isKoreaRequest(req.headers)) return null;
 
   const tokenHash = hashToken(token);
   const { data: session } = await supabase
