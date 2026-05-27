@@ -117,9 +117,14 @@ export default async function MyPage() {
                   <p className="font-mono text-[11px] font-bold uppercase tracking-[0.16em] text-coral/80">Orders</p>
                   <h2 className="mt-2 text-[clamp(28px,4vw,42px)] font-[680] leading-tight tracking-[-0.035em]">내 주문</h2>
                 </div>
-                <a href="/checkout?plan=standard" className="rounded-full border border-coral/25 bg-coral/10 px-4 py-2 text-sm font-bold text-coral transition hover:bg-coral hover:text-cream">
-                  새 결제
-                </a>
+                <div className="flex flex-wrap items-center gap-2">
+                  <a href="/mypage/reviews" className="rounded-full border border-[var(--border-subtle)] bg-cream px-4 py-2 text-sm font-bold text-secondary transition hover:border-coral/45 hover:text-coral">
+                    내 리뷰
+                  </a>
+                  <a href="/checkout?plan=standard" className="rounded-full border border-coral/25 bg-coral/10 px-4 py-2 text-sm font-bold text-coral transition hover:bg-coral hover:text-cream">
+                    새 결제
+                  </a>
+                </div>
               </div>
 
               {configError ? (
@@ -249,8 +254,8 @@ function ReviewOrderAction({
   }
 
   return (
-    <a href={`/reviews/${order.id}`} className="mt-5 inline-flex min-h-12 items-center rounded-2xl bg-coral px-5 text-sm font-bold text-cream shadow-coral transition hover:-translate-y-0.5 hover:bg-coral-hi">
-      리뷰 작성하고 $30 받기
+    <a href={`/reviews/new?orderId=${order.id}`} className="mt-5 inline-flex min-h-12 items-center rounded-2xl bg-coral px-5 text-sm font-bold text-cream shadow-coral transition hover:-translate-y-0.5 hover:bg-coral-hi">
+      리뷰 작성하고 $50 받기
     </a>
   );
 }
