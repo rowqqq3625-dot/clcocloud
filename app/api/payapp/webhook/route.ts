@@ -98,23 +98,55 @@ export async function POST(req: NextRequest) {
         return new NextResponse("PRICE_MISMATCH", { status: 200 });
       }
 
-      // Call Supabase RPC issue_api_key to claim stock
-      let issueResult = null;
-      let issueError = null;
-      
+      // 새 함수 issue_key_for_order 는 orders.status 가 paid 또는 paid_pending_key 일 것을
+      // 요구한다. 따라서 호출 전에 pending → paid 로 선행 전이한다.
+      // OUT_OF_STOCK 발생 시에는 아래 분기에서 paid_pending_key 로 덮어쓴다.
+      await supabase
+        .from("orders")
+        .update({
+          status: "paid",
+          payapp_mul_no: mul_no,
+          paid_at: new Date().toISOString(),
+        })
+        .eq("id", order.id)
+        .eq("status", "pending");
+
+      // Call Supabase RPC issue_key_for_order (자판기 모듈 메인 함수)
+      let issueResult: any = null;
+      let issueError: any = null;
+
       try {
-        const rpcRes = await supabase.rpc("issue_api_key", { p_order_no: orderNo });
+        const rpcRes = await supabase.rpc("issue_key_for_order", { p_order_no: orderNo });
         issueResult = rpcRes.data;
         issueError = rpcRes.error;
       } catch (err) {
         issueError = err;
       }
 
-      if (issueError) {
-        console.error(`[PayApp Webhook] issue_api_key RPC error:`, issueError);
+      // OUT_OF_STOCK 은 함수가 RAISE EXCEPTION 으로 던진다.
+      const isOutOfStock = Boolean(
+        issueError?.message?.includes("OUT_OF_STOCK")
+      );
+
+      if (issueError && !isOutOfStock) {
+        console.error(`[PayApp Webhook] issue_key_for_order RPC error:`, issueError);
       }
 
-      let issuedKey = (issueResult && issueResult.length > 0) ? issueResult[0] : null;
+      // 새 함수는 {api_key, key_id, plan_code} 반환. 기존 product_name 호환을 위해 매핑.
+      const PLAN_NAME: Record<string, string> = {
+        STANDARD: "STANDARD 잔액형 키",
+        PRO: "PRO 잔액형 키",
+        ULTRA: "ULTRA 잔액형 키",
+      };
+      let issuedKey: { api_key: string; key_id: string; product_name: string } | null = null;
+      if (!isOutOfStock && issueResult && issueResult.length > 0) {
+        const row = issueResult[0];
+        issuedKey = {
+          api_key: row.api_key,
+          key_id: row.key_id,
+          product_name: PLAN_NAME[row.plan_code] || `${row.plan_code} 잔액형 키`,
+        };
+      }
 
       // Fallback for simulation mode if tables are not fully migrated/created yet
       // Also supports simulating stock empty for productCode "ULTRA" to test the paid_pending_key flow
