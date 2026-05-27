@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 
 interface OrderDetail {
@@ -11,7 +11,7 @@ interface OrderDetail {
   buyer_phone: string;
 }
 
-export default function SimulationPage() {
+function SimulationPageInner() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const orderNo = searchParams.get("orderNo");
@@ -193,5 +193,20 @@ export default function SimulationPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function SimulationPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="min-h-screen bg-[#F7F1E8] flex flex-col items-center justify-center p-6 text-[#1F1E1D]">
+          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#D97757]"></div>
+          <p className="mt-4 font-medium text-lg">주문 데이터를 로드하고 있습니다...</p>
+        </div>
+      }
+    >
+      <SimulationPageInner />
+    </Suspense>
   );
 }
