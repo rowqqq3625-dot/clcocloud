@@ -3,6 +3,7 @@
 import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { adminCsrfHeaders } from "@/lib/admin-csrf-client";
+import { renderMarkdownLite } from "@/lib/case-studies/markdown";
 import type { CaseStudyRow } from "@/lib/reviews/types";
 
 type Mode = "create" | "edit";
@@ -336,92 +337,5 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
   );
 }
 
-/**
- * Minimal Markdown-to-HTML rendering for the preview pane. Supports
- * headings, paragraphs, **bold**, *italic*, `inline code`, fenced code
- * blocks, bullet/numbered lists, and links. This is *not* a security
- * boundary — the editor only runs in the admin console with full trust.
- */
-function renderMarkdownLite(input: string): string {
-  if (!input) return '<p class="text-cream/40">(빈 본문)</p>';
-  const esc = (s: string) =>
-    s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
-  const lines = input.split(/\r?\n/);
-  const out: string[] = [];
-  let inCode = false;
-  let codeBuf: string[] = [];
-  let listType: "ul" | "ol" | null = null;
-  let listBuf: string[] = [];
-
-  const flushList = () => {
-    if (listType && listBuf.length) {
-      out.push(`<${listType} class="ml-5 list-${listType === "ol" ? "decimal" : "disc"}">`);
-      for (const li of listBuf) out.push(`<li>${li}</li>`);
-      out.push(`</${listType}>`);
-    }
-    listType = null;
-    listBuf = [];
-  };
-
-  const inline = (s: string) =>
-    esc(s)
-      .replace(/`([^`]+)`/g, '<code class="rounded bg-cream/10 px-1 py-0.5 font-mono text-[12px]">$1</code>')
-      .replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>")
-      .replace(/\*([^*]+)\*/g, "<em>$1</em>")
-      .replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" class="text-[#D97757] underline" target="_blank" rel="noreferrer">$1</a>');
-
-  for (const raw of lines) {
-    if (raw.startsWith("```")) {
-      if (inCode) {
-        out.push(
-          `<pre class="rounded-xl bg-[#0F0E0B] p-3 font-mono text-[11px] leading-6 text-cream/80 overflow-auto"><code>${esc(codeBuf.join("\n"))}</code></pre>`
-        );
-        codeBuf = [];
-        inCode = false;
-      } else {
-        flushList();
-        inCode = true;
-      }
-      continue;
-    }
-    if (inCode) {
-      codeBuf.push(raw);
-      continue;
-    }
-    const line = raw.trim();
-    if (!line) {
-      flushList();
-      continue;
-    }
-    const ul = line.match(/^[-*]\s+(.*)/);
-    const ol = line.match(/^\d+\.\s+(.*)/);
-    const h = line.match(/^(#{1,4})\s+(.*)/);
-    if (h) {
-      flushList();
-      const level = h[1].length;
-      out.push(
-        `<h${level} class="mt-5 font-bold text-cream" style="font-size:${20 - level * 2}px">${inline(h[2])}</h${level}>`
-      );
-    } else if (ul) {
-      if (listType !== "ul") {
-        flushList();
-        listType = "ul";
-      }
-      listBuf.push(inline(ul[1]));
-    } else if (ol) {
-      if (listType !== "ol") {
-        flushList();
-        listType = "ol";
-      }
-      listBuf.push(inline(ol[1]));
-    } else {
-      flushList();
-      out.push(`<p>${inline(line)}</p>`);
-    }
-  }
-  flushList();
-  if (inCode && codeBuf.length) {
-    out.push(`<pre class="rounded-xl bg-[#0F0E0B] p-3 font-mono text-[11px]"><code>${esc(codeBuf.join("\n"))}</code></pre>`);
-  }
-  return out.join("\n");
-}
+// Preview rendering is delegated to lib/case-studies/markdown.ts so the
+// public detail page and the editor preview never drift apart.
