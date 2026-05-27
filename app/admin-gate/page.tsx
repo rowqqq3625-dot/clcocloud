@@ -9,6 +9,11 @@ import { AdminGateForm } from "@/components/admin/AdminGateForm";
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
+// Opt-in geo gate. The admin entry token already proves the requester is a
+// verified admin candidate via OAuth session. Geo enforcement here is
+// secondary and opt-in via ADMIN_GEO_REQUIRED=true.
+const GEO_REQUIRED = (process.env.ADMIN_GEO_REQUIRED || "").trim().toLowerCase() === "true";
+
 function DenyView() {
   return (
     <main className="grid place-items-center text-center">
@@ -32,7 +37,7 @@ export default async function AdminGatePage() {
     },
   } as unknown as NextRequest;
 
-  if (!isKoreaRequest(headerStore)) return <DenyView />;
+  if (GEO_REQUIRED && !isKoreaRequest(headerStore)) return <DenyView />;
 
   const challenge = await verifyAdminEntryToken(reqLike);
   if (!challenge) return <DenyView />;

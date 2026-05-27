@@ -20,6 +20,10 @@ export const runtime = "nodejs";
 
 const DENY = () => NextResponse.json({ error: "접근할 수 없습니다." }, { status: 401 });
 
+// Opt-in geo gate. Verified admin candidates already proved identity via
+// OAuth + entry token; geo enforcement is secondary and opt-in via env.
+const GEO_REQUIRED = (process.env.ADMIN_GEO_REQUIRED || "").trim().toLowerCase() === "true";
+
 // TEMPORARY: dev-only diagnostic logging. Logs WHICH check failed so we can
 // distinguish "wrong password" from "expired entry token" without leaking
 // info to the client. Strip before any production deploy.
@@ -40,7 +44,7 @@ export async function POST(req: NextRequest) {
     devLog("FAIL_CSRF");
     return DENY();
   }
-  if (!isKoreaRequest(req.headers)) {
+  if (GEO_REQUIRED && !isKoreaRequest(req.headers)) {
     devLog("FAIL_GEO");
     return DENY();
   }

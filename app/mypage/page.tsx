@@ -1,6 +1,6 @@
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
-import { SiteHeader } from "@/components/navigation/SiteHeader";
+import { SiteHeaderShell } from "@/components/navigation/SiteHeaderShell";
 import { getSessionFromCookies } from "@/lib/auth-session";
 import { getDashboardKeyRecords, type DashboardKeyListItem } from "@/lib/dashboard-key-records";
 import { getSupabaseAdminClient, type BonusStatus, type OrderRecord, type OrderStatus, type ReviewRecord, type ReviewStatus } from "@/lib/supabase-admin";
@@ -87,7 +87,7 @@ export default async function MyPage() {
       <div className="pointer-events-none absolute -right-40 top-20 h-[560px] w-[560px] rounded-full bg-coral/10 blur-[190px]" />
       <div className="pointer-events-none absolute -bottom-52 left-[-16rem] h-[620px] w-[620px] rounded-full bg-peach/70 blur-[220px]" />
 
-      <SiteHeader variant="floating" />
+      <SiteHeaderShell variant="floating" />
       <section className="container-cinematic relative z-[1]">
         <section className="grid gap-6 py-10 lg:grid-cols-[minmax(0,.84fr)_minmax(0,1.16fr)] lg:py-14">
           <aside className="relative overflow-hidden rounded-[34px] border border-cream/10 bg-dark p-7 text-cream shadow-[0_32px_100px_rgba(31,30,29,.22)] sm:p-9">

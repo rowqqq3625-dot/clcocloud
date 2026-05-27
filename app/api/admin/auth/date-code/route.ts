@@ -22,13 +22,16 @@ export const runtime = "nodejs";
 
 const DENY = () => NextResponse.json({ error: "접근할 수 없습니다." }, { status: 401 });
 
+// Opt-in geo gate (see admin/entry/start/route.ts for rationale).
+const GEO_REQUIRED = (process.env.ADMIN_GEO_REQUIRED || "").trim().toLowerCase() === "true";
+
 const Schema = z.object({
   code: z.string().regex(/^\d{4}$/),
 });
 
 export async function POST(req: NextRequest) {
   if (!verifyCsrf(req)) return DENY();
-  if (!isKoreaRequest(req.headers)) return DENY();
+  if (GEO_REQUIRED && !isKoreaRequest(req.headers)) return DENY();
 
   const ipKey = `${getClientIp(req.headers) || "unknown"}:date`;
   try {
