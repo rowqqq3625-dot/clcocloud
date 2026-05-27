@@ -57,7 +57,10 @@ export function AdminGateForm({ initialStep, csrfToken }: Props) {
       if (response.ok) {
         return (await response.json().catch(() => ({}))) as { next?: string };
       }
-      setError(DENY_MESSAGE);
+      const payload = (await response.json().catch(() => null)) as {
+        debugStage?: string;
+      } | null;
+      setError(payload?.debugStage ? `${DENY_MESSAGE} (${payload.debugStage})` : DENY_MESSAGE);
       return null;
     } catch {
       setError(DENY_MESSAGE);

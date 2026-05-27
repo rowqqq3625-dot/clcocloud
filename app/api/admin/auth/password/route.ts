@@ -18,12 +18,17 @@ import { logAdminSecurityEvent } from "@/lib/admin/audit";
 
 export const runtime = "nodejs";
 
-const DENY = () => NextResponse.json({ error: "접근할 수 없습니다." }, { status: 401 });
-
-// TEMPORARY: dev-only diagnostic logging. Logs WHICH check failed so we can
-// distinguish "wrong password" from "expired entry token" without leaking
-// info to the client. Strip before any production deploy.
+// TEMPORARY: dev-only diagnostic. Logs WHICH check failed and surfaces the
+// stage code in the response body so the gate form can show it during local
+// debugging. In production we keep the generic 401 to avoid leaking info.
 const IS_DEV = process.env.NODE_ENV !== "production";
+const DENY = (stage?: string) =>
+  NextResponse.json(
+    IS_DEV && stage
+      ? { error: "접근할 수 없습니다.", debugStage: stage }
+      : { error: "접근할 수 없습니다." },
+    { status: 401 }
+  );
 function devLog(stage: string, extra?: Record<string, unknown>) {
   if (!IS_DEV) return;
   // eslint-disable-next-line no-console
@@ -38,11 +43,11 @@ const Schema = z.object({
 export async function POST(req: NextRequest) {
   if (!verifyCsrf(req)) {
     devLog("FAIL_CSRF");
-    return DENY();
+    return DENY("FAIL_CSRF");
   }
   if (!isKoreaRequest(req.headers)) {
     devLog("FAIL_GEO");
-    return DENY();
+    return DENY("FAIL_GEO");
   }
 
   const ipKey = `${getClientIp(req.headers) || "unknown"}:pw`;
@@ -60,7 +65,7 @@ export async function POST(req: NextRequest) {
   if (!challenge) {
     devLog("FAIL_ENTRY_TOKEN");
     await recordAdminFailure(ipKey, "admin_password");
-    return DENY();
+    return DENY("FAIL_ENTRY_TOKEN");
   }
 
   let parsed: z.infer<typeof Schema>;
@@ -70,7 +75,7 @@ export async function POST(req: NextRequest) {
   } catch {
     devLog("FAIL_BODY_PARSE");
     await recordAdminFailure(ipKey, "admin_password");
-    return DENY();
+    return DENY("FAIL_BODY_PARSE");
   }
 
   // Always evaluate BOTH hashes — flattens timing between "id wrong" / "pw wrong".
@@ -98,7 +103,7 @@ export async function POST(req: NextRequest) {
       email: challenge.admin_email,
       req,
     });
-    return DENY();
+    return DENY("FAIL_CREDENTIALS");
   }
 
   devLog("OK");
