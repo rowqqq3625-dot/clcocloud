@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 
 interface OrderDetail {
@@ -12,6 +12,15 @@ interface OrderDetail {
 }
 
 export default function SimulationPage() {
+  // Next.js 14 정적 생성 요구사항: useSearchParams는 Suspense 경계 안에 있어야 함
+  return (
+    <Suspense fallback={<div style={{ padding: "2rem", textAlign: "center" }}>로딩 중...</div>}>
+      <SimulationPageInner />
+    </Suspense>
+  );
+}
+
+function SimulationPageInner() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const orderNo = searchParams.get("orderNo");
